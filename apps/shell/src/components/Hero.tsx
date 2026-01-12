@@ -1,7 +1,7 @@
 import React from "react";
 // import webpackLogo from "../assets/webpack.png";
 
-const About = ({ msg }: { msg: string }) => {
+const Hero = ({ msg }: { msg: string }) => {
   return (
     <section className="relative overflow-hidden bg-blue-1000 py-24 sm:py-32">
       {/* Decorative background glow */}
@@ -54,4 +54,4 @@ const About = ({ msg }: { msg: string }) => {
 
 }
 
-export default About;
+export default Hero;

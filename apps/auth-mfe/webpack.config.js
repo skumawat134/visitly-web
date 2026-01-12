@@ -94,6 +94,9 @@ module.exports = {
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    }
   },
   devtool: "source-map",
   module: {
@@ -116,7 +119,16 @@ module.exports = {
       },
       {
         test: /\.css$/i,
-        use: ["style-loader", "css-loader"],
+        use: [
+            "style-loader",
+            {
+              loader: "css-loader",
+              options: { 
+                importLoaders: 1 // Crucial: passes @imports back to postcss-loader
+              },
+            },
+            
+        ],
       },
       {
         test: /\.(png|jpe?g|gif|svg)$/i,
