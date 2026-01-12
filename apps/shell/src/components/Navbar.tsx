@@ -28,7 +28,7 @@ const NavBar = () => {
             About
           </NavLink> */}
           <NavLink
-            to="/login"
+            to="/auth/login"
             className="btn-secondary"
             style={({ isActive }) => ({
               backgroundColor: isActive ? 'var(--color-primary)' : 'var(--color-secondary)',

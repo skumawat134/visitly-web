@@ -133,12 +133,18 @@ module.exports = {
       name: "auth_mfe",
       filename: "remoteEntry.js",
       exposes: {
-          './Login': './src/Login',
+          // './Login': './src/Login',
           // './About': './src/components/About',
+          './AppRouter': './src/App',
       },
       shared: {
-          react: { singleton: true, eager: true, requiredVersion: '^18.2.0' },
-          "react-dom": { singleton: true, eager: true, requiredVersion: '^18.2.0' },
+          react: { singleton: true, requiredVersion: '^18.2.0' },
+          'react-router-dom': { singleton: true, requiredVersion: false },
+          "react-dom": { singleton: true, requiredVersion: '^18.2.0' },
+          'react/jsx-runtime': {
+            singleton: true,
+            requiredVersion: false,
+          },
       },
   }),
   ],

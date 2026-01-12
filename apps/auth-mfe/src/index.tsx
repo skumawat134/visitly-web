@@ -2,7 +2,7 @@
 // import { createRoot } from 'react-dom/client';
 // import App from './App';
 
-import "./styles/global.css";
+// import "./styles/global.css";
 
 // const container = document.getElementById('root');
 // const root = createRoot(container);
@@ -10,11 +10,12 @@ import "./styles/global.css";
 
 
 // src/index.tsx
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-// import './styles.css';
+// import React from 'react';
+// import { createRoot } from 'react-dom/client';
+// import App from './App';
+// // import './styles.css';
 
-const container = document.getElementById('root');
-const root = createRoot(container!);
-root.render(<App />);
+// const container = document.getElementById('root');
+// const root = createRoot(container!);
+// root.render(<App />);
+import('./bootstrap');
