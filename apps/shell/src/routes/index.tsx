@@ -3,14 +3,15 @@ import Home from '../components/Home';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AuthMFE from '../mfe/AuthMFE';
 import Header from '@/components/Header';
+import { useState } from 'react';
 
-// const AuthMFE = React.lazy(() => import('AuthM FE/AppRouter'));
+// const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
 function AppRouter() {
   return (
     <>
     <BrowserRouter>
-    <Header />
+      <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth/*" element={<AuthMFE />} />

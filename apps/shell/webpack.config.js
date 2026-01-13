@@ -1,89 +1,7 @@
-// const path = require('path');
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
-// const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
-
-// const isProduction = process.env.NODE_ENV === 'production';
-// const stylesHandler = 'style-loader';
-
-// const config = {
-//   entry: './src/index.tsx',
-
-//   output: {
-//     path: path.resolve(__dirname, 'dist'),
-//     publicPath: 'auto',
-//     clean: true,
-//   },
-
-//   devServer: {
-//     open: true,
-//     host: 'localhost',
-//     port: 8080,
-//     historyApiFallback: true,
-//   },
-
-//   plugins: [
-//     new HtmlWebpackPlugin({
-//       template: 'index.html',
-//     }),
-//   ],
-
-//   module: {
-//     rules: [
-//       {
-//         test: /\.(js|jsx)$/,
-//         exclude: /node_modules/,
-//         use: {
-//           loader: 'babel-loader',
-//           options: {
-//             presets: ['@babel/preset-env', '@babel/preset-react'],
-//           },
-//         },
-//       },
-//       {
-//         test: /\.(ts|tsx)$/,
-//         exclude: /node_modules/,
-//         use: {
-//           loader: 'ts-loader',
-//           options: {
-//             transpileOnly: true,
-//           },
-//         },
-//       },
-//       {
-//         test: /\.css$/i,
-//         use: [stylesHandler, 'css-loader'],
-//       },
-//       {
-//         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
-//         type: 'asset',
-//       },
-//     ],
-//   },
-
-//   resolve: {
-//     alias: {
-//       '@': path.resolve(__dirname, './src/'),
-//       react: path.resolve(__dirname, 'node_modules/react'),
-//       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-//     },
-//     extensions: ['.ts', '.tsx', '.js', '.jsx'],
-//   },
-// };
-
-// module.exports = () => {
-//   config.mode = isProduction ? 'production' : 'development';
-
-//   if (isProduction) {
-//     config.plugins.push(new WorkboxWebpackPlugin.GenerateSW());
-//   }
-
-//   return config;
-// };
-
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const {ModuleFederationPlugin} = require("webpack").container;
+const { ModuleFederationPlugin } = require("webpack").container;
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -120,24 +38,24 @@ module.exports = {
       {
         test: /\.css$/i,
         use: [
-            "style-loader",
-            {
-              loader: "css-loader",
-              options: { 
-                importLoaders: 1 // Crucial: passes @imports back to postcss-loader
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              importLoaders: 1 // Crucial: passes @imports back to postcss-loader
+            },
+          },
+          {
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: [
+                  // Explicitly require the v4 plugin here
+                  require("@tailwindcss/postcss"),
+                ],
               },
             },
-            {
-              loader: "postcss-loader",
-              options: {
-                postcssOptions: {
-                  plugins: [
-                    // Explicitly require the v4 plugin here
-                    require("@tailwindcss/postcss"),
-                  ],
-                },
-              },
-            },
+          },
         ],
       },
       {
@@ -155,21 +73,23 @@ module.exports = {
       name: "auth_mfe",
       filename: "remoteEntry.js",
       remotes: {
-          // 'LoginInHost': 'auth_mfe@http://localhost:3006/remoteEntry.js',
-          // './About': './src/components/About',
+        // 'LoginInHost': 'auth_mfe@http://localhost:3006/remoteEntry.js',
+        // './About': './src/components/About',
         'AuthMFE': 'auth_mfe@http://localhost:3006/remoteEntry.js',
 
       },
       shared: {
-          react: { singleton: true, requiredVersion: '^18.2.0' },
-          "react-dom": { singleton: true, requiredVersion: '^18.2.0' },
-          'react-router-dom': { singleton: true, requiredVersion: false },
-          'react/jsx-runtime': {
-            singleton: true,
-            requiredVersion: false,
-          },
+        react: { singleton: true, requiredVersion: '^18.2.0' },
+        "react-dom": { singleton: true, requiredVersion: '^18.2.0' },
+        'react-router-dom': { singleton: true, requiredVersion: false },
+        'react/jsx-runtime': {
+          singleton: true,
+          requiredVersion: false,
+        },
+        zustand: { singleton: true, requiredVersion: '^5.0.10' },
+        "@visitly/app-store": { singleton: true }
       },
-  }),
+    }),
   ],
   devServer: {
     static: "./dist",

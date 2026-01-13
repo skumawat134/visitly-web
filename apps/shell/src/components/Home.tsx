@@ -1,5 +1,6 @@
 import React, { useState }  from "react";
 import Hero from "./Hero";
+import { useAuthStore } from "@visitly/app-store";
 // import webpackLogo from "../assets/webpack.png";
 // import {Card} from "@repo/ui/card";
 const App = () => {
@@ -30,7 +31,8 @@ const App = () => {
         "Instantly deploy your Turborepo to a shareable URL with Vercel.",
     },
   ];
-
+  const user = useAuthStore();
+  console.log("userrrrrrrrr" , user)
   return (
     <>
         <main>

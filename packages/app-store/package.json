@@ -1,0 +1,18 @@
+{
+  "name": "@visitly/app-store",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {},
+  "peerDependencies": {
+    "zustand": "^5.0.10"
+  }
+}

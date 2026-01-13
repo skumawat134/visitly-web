@@ -1,8 +1,11 @@
 
+import { useAuthStore } from '@visitly/app-store';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 const Header = () => {
+  const user = useAuthStore();
+  console.log("userrrrrrrrr" , user)
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-blue-1000/70 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">

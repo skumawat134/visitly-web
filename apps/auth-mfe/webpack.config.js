@@ -157,6 +157,8 @@ module.exports = {
             singleton: true,
             requiredVersion: false,
           },
+          zustand: { singleton: true, requiredVersion: '^5.0.10'},
+          "@visitly/app-store" : {singleton : true}
       },
   }),
   ],

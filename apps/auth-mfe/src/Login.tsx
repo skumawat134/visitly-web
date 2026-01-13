@@ -1,3 +1,4 @@
+import { useAuthStore } from '@visitly/app-store';
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 
 const Login = () => {
@@ -28,13 +29,13 @@ const Login = () => {
     try {
       // Replace this with your actual Auth API call
       console.log('Authenticating:', formData);
-      
+
       // Simulating API delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+
       // Logic after successful login (e.g., redirect or update global state)
       alert('Logged in successfully!');
-      
+
     } catch (err) {
       setError('Invalid email or password. Please try again.');
     } finally {
@@ -42,15 +43,23 @@ const Login = () => {
     }
   };
 
+  const setUser = useAuthStore((state) => state.setUser);
+  const user = useAuthStore((state) => state.user);
+
+
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-blue-1000/40 p-8 shadow-2xl backdrop-blur-xl">
-        
+
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white">Welcome back</h2>
           <p className="mt-2 text-sm ">Please enter your details to sign in</p>
         </div>
-
+        <h3>MFE 1</h3>
+        <p>User: {user ? user.email : "No user"}</p>
+        <button onClick={() => setUser({ id: "1", email: "Alice" })}>
+          Login Alice
+        </button>
         {/* Error Message Display */}
         {error && (
           <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-center text-sm text-red-400 border border-red-500/20">
