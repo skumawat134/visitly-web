@@ -1,6 +1,6 @@
 import { useAuthStore } from '@visitly/app-store';
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-
+import webpackLogo from "@/assets/webpack.png";
 const Login = () => {
   // 1. State Management
   const [formData, setFormData] = useState({
@@ -52,14 +52,15 @@ const Login = () => {
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-blue-1000/40 p-8 shadow-2xl backdrop-blur-xl">
 
         <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white">Welcome back</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-white">Welcome back Timo </h2>
           <p className="mt-2 text-sm ">Please enter your details to sign in</p>
+          <img src={webpackLogo} alt='gg' />
         </div>
-        <h3>MFE 1</h3>
+        {/* <h3>MFE 1</h3>
         <p>User: {user ? user.email : "No user"}</p>
         <button onClick={() => setUser({ id: "1", email: "Alice" })}>
           Login Alice
-        </button>
+        </button> */}
         {/* Error Message Display */}
         {error && (
           <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-center text-sm text-red-400 border border-red-500/20">

@@ -3,7 +3,11 @@
     "compilerOptions": {
       "target": "ESNext",
       "module": "ESNext",
-      "lib": ["DOM", "DOM.Iterable", "ESNext"],
+      "lib": [
+        "DOM",
+        "DOM.Iterable",
+        "ESNext"
+      ],
       "strict": true,
       "skipLibCheck": true,
       "esModuleInterop": true,
@@ -11,12 +15,16 @@
       "jsx": "react-jsx",
       "baseUrl": ".",
       "paths": {
-          "@/*": [
-              "src/*"
-          ]
-      }
+        "@/*": [
+          "src/*"
+        ],
+      },
+      "types": [
+        "node"
+      ],
     },
-
-    "include": ["src"]
+    "include": [
+      "src",
+      "../../packages/typescript-config/env.d.ts" // Point directly to the source file
+    ]
   }
-  

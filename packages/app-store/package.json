@@ -14,5 +14,10 @@
   "dependencies": {},
   "peerDependencies": {
     "zustand": "^5.0.10"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@repo/typescript-config": "*"
+
   }
 }

@@ -6,8 +6,12 @@
             "@/*": [
                 "src/*"
             ]
-        }
+        },
+        "types": [
+            "node"
+          ]
     },
+    "files": ["../../packages/typescript-config/env.d.ts"],
     "include": [
         "**/*.ts",
         "**/*.tsx"
