@@ -1,0 +1,28 @@
+{
+  "name": "@visitly/api-client",
+  "version": "1.0.0",
+  "description": "http client and query client for visitly web plateform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+    "author": "skumawat@visitly.io",
+    "license": "MIT",
+    "private": true,
+    "dependencies": {
+      "@tanstack/react-query": "^5.90.17",
+      "axios": "^1.13.2"
+    },
+    "devDependencies": {
+      "@repo/typescript-config": "*",
+      "typescript": "^5.9.2"
+    }
+  }

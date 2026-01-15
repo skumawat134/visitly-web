@@ -5,7 +5,10 @@ import { NavLink } from 'react-router-dom';
 
 const Header = () => {
   const user = useAuthStore();
-  console.log("userrrrrrrrr" , user)
+  
+  // const remoteUrl = import.meta.env.VITE_AUTH_MFE_REMOTE_URL;
+  console.log("Remote URL is:", process.env.VITE_AUTH_MFE_REMOTE_URL);
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-blue-1000/70 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
