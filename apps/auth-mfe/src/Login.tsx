@@ -56,12 +56,6 @@ const Login = () => {
           <p className="mt-2 text-sm ">Please enter your details to sign in</p>
           <img src={webpackLogo} alt='gg' />
         </div>
-        {/* <h3>MFE 1</h3>
-        <p>User: {user ? user.email : "No user"}</p>
-        <button onClick={() => setUser({ id: "1", email: "Alice" })}>
-          Login Alice
-        </button> */}
-        {/* Error Message Display */}
         {error && (
           <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-center text-sm text-red-400 border border-red-500/20">
             {error}

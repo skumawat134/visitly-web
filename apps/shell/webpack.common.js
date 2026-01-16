@@ -44,7 +44,7 @@ module.exports = (env) => {
           ],
         },
         {
-          test: /\.css$/i,
+          test: /\.(scss|css)$/i, // Updated to catch both .css and .scss
           use: [
             "style-loader",
             {
@@ -59,6 +59,7 @@ module.exports = (env) => {
                 },
               },
             },
+            "sass-loader",
           ],
         },
         {
@@ -81,6 +82,7 @@ module.exports = (env) => {
         filename: "remoteEntry.js",
         remotes: {
           'AuthMFE': `auth_mfe@${process.env.VITE_AUTH_MFE_REMOTE_URL}/remoteEntry.js`,        // Add other remotes here as needed
+          'visitlyAngular': 'visitlyAngular@http://localhost:4200/remoteEntry.js',
         },
         shared: {
           react: { singleton: true, requiredVersion: "^18.2.0" },
