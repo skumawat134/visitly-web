@@ -1,141 +1,174 @@
 import { useAuthStore } from '@visitly/app-store';
-import React, { useState, ChangeEvent, FormEvent } from 'react';
-import webpackLogo from "@/assets/webpack.png";
-const Login = () => {
-  // 1. State Management
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+import React, { useState } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { Input, Button, Card, CardHeader, CardTitle, CardContent } from '@visitly/ui';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
-  // 2. Handle Input Changes
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { id, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: type === 'checkbox' ? checked : value,
-    }));
+const LoginForm = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const initialValues = {
+    email: 'gauravagarwal26+cf2@gmail.com',
+    password: '',
   };
 
-  // 3. Handle Form Submission
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email('Invalid email address')
+      .required('Email is required'),
+    password: Yup.string()
+      .min(6, 'Password must be at least 6 characters')
+      .required('Password is required'),
+  });
 
+  const handleSubmit = async (values: { email: string; password: string }) => {
+    setIsSubmitting(true);
     try {
-      // Replace this with your actual Auth API call
-      console.log('Authenticating:', formData);
-
-      // Simulating API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Logic after successful login (e.g., redirect or update global state)
-      alert('Logged in successfully!');
-
-    } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      console.log('Form data', values);
+      // TODO: Integrate with auth store
+      // await useAuthStore.getState().login(values.email, values.password);
+    } catch (error) {
+      console.error('Login error:', error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const setUser = useAuthStore((state) => state.setUser);
-  const user = useAuthStore((state) => state.user);
-
-
   return (
-    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-blue-1000/40 p-8 shadow-2xl backdrop-blur-xl">
-
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white">Welcome back Timo </h2>
-          <p className="mt-2 text-sm ">Please enter your details to sign in</p>
-          <img src={webpackLogo} alt='gg' />
-        </div>
-        {error && (
-          <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-center text-sm text-red-400 border border-red-500/20">
-            {error}
-          </div>
-        )}
-
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-medium text-slate-300" htmlFor="email">
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="name@company.com"
-              className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-slate-500 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-slate-300" htmlFor="password">
-                Password
-              </label>
-              <button type="button" className="text-xs font-medium text-blue-400 hover:text-blue-300">
-                Forgot password?
-              </button>
-            </div>
-            <input
-              id="password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-slate-500 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              id="rememberMe"
-              type="checkbox"
-              checked={formData.rememberMe}
-              onChange={handleChange}
-              className="h-4 w-4 rounded border-white/10 bg-white/5 text-blue-600 focus:ring-offset-blue-1000"
-            />
-            <label htmlFor="rememberMe" className="ml-2 block text-sm ">
-              Remember for 30 days
-            </label>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex w-full items-center justify-center rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isLoading ? (
-              <svg className="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : (
-              'Sign in'
-            )}
-          </button>
-        </form>
-
-        <p className="mt-8 text-center text-sm">
-          Don't have an account?{' '}
-          <button className="font-medium text-blue-400 hover:text-blue-300">
-            Sign up for free
-          </button>
-        </p>
+    <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:justify-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8">
+      {/* Visitly Logo */}
+      <div className="tw:flex tw:items-center tw:gap-2 tw:mb-8">
+        <svg 
+          className="tw:w-10 tw:h-10 tw:text-[#2d2a6e]" 
+          viewBox="0 0 40 40" 
+          fill="currentColor"
+        >
+          <path d="M20 0L37.32 10V30L20 40L2.68 30V10L20 0ZM20 6.6L8.66 13.15V26.85L20 33.4L31.34 26.85V13.15L20 6.6ZM20 13.2L25.85 16.58V23.42L20 26.8L14.15 23.42V16.58L20 13.2Z" />
+        </svg>
+        <span className="tw:text-4xl tw:font-bold tw:text-[#2d2a6e]">
+          visitly<span className="tw:text-[#6366f1]">.</span>
+        </span>
       </div>
+
+      {/* Card Container */}
+      <Card className="tw:max-w-md tw:w-full">
+        <CardHeader>
+          <CardTitle className="tw:text-2xl tw:font-bold tw:text-slate-900">
+            Please Sign In
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <Formik
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ errors, touched }) => (
+              <Form className="tw:space-y-6">
+                {/* Email Field */}
+                <Field name="email">
+                  {({ field }: any) => (
+                    <Input
+                      {...field}
+                      type="email"
+                      label="Username or Company Email"
+                      placeholder="Enter your email"
+                      error={touched.email && errors.email ? errors.email : undefined}
+                      leftIcon={<Mail className="tw:h-4 tw:w-4" />}
+                      className="tw:bg-[#eff4ff] tw:border-none focus:tw:ring-2 focus:tw:ring-indigo-500"
+                    />
+                  )}
+                </Field>
+
+                {/* Password Field */}
+                <Field name="password">
+                  {({ field }: any) => (
+                    <Input
+                      {...field}
+                      type={showPassword ? 'text' : 'password'}
+                      label="Password"
+                      placeholder="Enter your password"
+                      error={touched.password && errors.password ? errors.password : undefined}
+                      leftIcon={<Lock className="tw:h-4 tw:w-4" />}
+                      rightIcon={
+                        showPassword ? (
+                          <EyeOff className="tw:h-4 tw:w-4" />
+                        ) : (
+                          <Eye className="tw:h-4 tw:w-4" />
+                        )
+                      }
+                      rightIconClickable
+                      onRightIconClick={() => setShowPassword(!showPassword)}
+                      className="tw:bg-[#eff4ff] tw:border-none focus:tw:ring-2 focus:tw:ring-indigo-500"
+                    />
+                  )}
+                </Field>
+
+                {/* Forgot Password */}
+                <div className="tw:flex tw:items-center">
+                  <a 
+                    href="#" 
+                    className="tw:text-sm tw:font-bold tw:text-slate-900 hover:tw:underline"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // TODO: Implement forgot password flow
+                      console.log('Forgot password clicked');
+                    }}
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  isLoading={isSubmitting}
+                  className="tw:w-full tw:bg-[#5a44ff] hover:tw:bg-[#4a36e6] tw:shadow-md"
+                  disabled={isSubmitting}
+                >
+                  Login
+                </Button>
+
+                {/* Secondary Actions */}
+                <div className="tw:space-y-4 tw:text-center tw:pt-2">
+                  <a 
+                    href="#" 
+                    className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // TODO: Implement SSO flow
+                      console.log('SSO clicked');
+                    }}
+                  >
+                    Use single sign-on instead
+                  </a>
+                  <div className="tw:text-sm tw:text-slate-500">
+                    Don't have an account?{' '}
+                    <a 
+                      href="#" 
+                      className="tw:font-bold tw:text-indigo-600 hover:tw:underline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // TODO: Navigate to signup
+                        console.log('Sign up clicked');
+                      }}
+                    >
+                      Join Us
+                    </a>
+                  </div>
+                </div>
+              </Form>
+            )}
+          </Formik>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default Login;
+export default LoginForm;

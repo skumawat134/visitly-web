@@ -12,10 +12,10 @@ function AppRouter() {
   return (
     <>
     <BrowserRouter>
-      {/* <Header /> */}
+     {/* <Header />  */}
         <Routes>
-          <Route path="/" element={<LegacyMFE />} />
-          <Route path="/auth/*" element={<AuthMFE />} />
+          {/* <Route path="/visitly/" element={<LegacyMFE />} /> */}
+          <Route path="/visitly/*" element={<AuthMFE />} />
         </Routes>
     </BrowserRouter>
     </>

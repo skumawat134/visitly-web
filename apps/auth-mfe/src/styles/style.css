@@ -1,0 +1,2 @@
+/* Tailwind CSS is configured and imported in the shell app only */
+/* Do not import Tailwind here to avoid duplicate injection in microfrontend setup */

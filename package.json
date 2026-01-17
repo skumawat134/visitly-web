@@ -1,5 +1,5 @@
 {
-  "name": "with-tailwind",
+  "name": "visitly-web",
   "private": true,
   "scripts": {
     "build": "turbo run build",

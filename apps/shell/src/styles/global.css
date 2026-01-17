@@ -1,0 +1,20 @@
+/* @layer theme, base, components, utilities;
+@import "tailwindcss/theme" layer(theme) prefix(tw);    
+@import "tailwindcss/preflight" layer(base) prefix(tw);   
+@import "tailwindcss/utilities" layer(utilities) prefix(tw); */
+/* Import Tailwind CSS with tw: prefix - configured once in shell for microfrontend setup */
+@import "tailwindcss" prefix(tw);
+@import "@visitly/tailwind-config/theme.css";
+
+/* Source files for Tailwind to scan for class names */
+@source "../../../auth-mfe/src/**/*.{ts,tsx}";
+@source "../*.{ts,tsx,js,jsx}";
+@source "../**/*.{ts,tsx,js,jsx}";
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+
+
+
+
+#angular-container .topbar {
+    background: red;
+}

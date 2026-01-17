@@ -1,3 +1,6 @@
-/* Component-level styles for the UI package */
-@import "tailwindcss" prefix(ui);
-@import "@repo/tailwind-config";
+/* 
+ * Tailwind CSS is NOT imported here.
+ * In microfrontend setup, Tailwind is configured only in the shell app.
+ * This file is kept empty to prevent duplicate Tailwind injection.
+ * Components use tw: prefix classes which are processed by the shell's Tailwind config.
+ */

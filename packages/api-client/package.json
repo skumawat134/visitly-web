@@ -22,7 +22,7 @@
       "axios": "^1.13.2"
     },
     "devDependencies": {
-      "@repo/typescript-config": "*",
+      "@visitly/typescript-config": "*",
       "typescript": "^5.9.2"
     }
   }
