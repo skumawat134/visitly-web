@@ -162,7 +162,11 @@ module.exports = {
           },
           zustand: { singleton: true, requiredVersion: '^5.0.10'},
           "@visitly/app-store" : {singleton : true},
-          "@visitly/api-client": { singleton: true }
+          "@visitly/api-client": { singleton: true },
+          "@tanstack/react-query": {
+            singleton: true,
+            requiredVersion: "^5.90.17"
+          },
       },
   }),
   ],

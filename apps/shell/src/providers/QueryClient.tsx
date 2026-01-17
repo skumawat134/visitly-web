@@ -4,11 +4,10 @@ import {
   initApiClient,
   initQueryClient,
 } from "@visitly/api-client";
-
 const queryClient = initQueryClient();
-
+const API_URL = 'https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/v1/'
 initApiClient({
-  baseURL: "/api",
+  baseURL: API_URL,
   getToken: () => localStorage.getItem("token") ?? undefined,
   onUnauthorized: () => {
     console.log("Unauthorized – redirect to login");

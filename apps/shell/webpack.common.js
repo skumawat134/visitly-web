@@ -93,7 +93,7 @@ module.exports = (env) => {
           "@visitly/app-store": { singleton: true },
           "@tanstack/react-query": {
             singleton: true,
-            requiredVersion: "^5.0.0"
+            requiredVersion: "^5.90.17"
           },
           "@visitly/api-client": { singleton: true }
         },

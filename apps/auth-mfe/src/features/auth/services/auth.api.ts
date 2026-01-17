@@ -5,7 +5,7 @@ export async function loginApi(
   payload: LoginPayload
 ): Promise<LoginResponse> {
   const { data } = await getApiClient().post<LoginResponse>(
-    "/auth/login",
+    "/users/authenticate",
     payload
   );
   return data;
