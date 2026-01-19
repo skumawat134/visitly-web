@@ -17,6 +17,7 @@ function AppRouter() {
           {/* <Route path="/visitly/" element={<LegacyMFE />} /> */}
           <Route path="/" element={<Navigate to="/visitly" replace />} />
           <Route path="/visitly/*" element={<AuthMFE />} />
+          <Route path="/admin/*" element={<LegacyMFE />} />
         </Routes>
     </BrowserRouter>
     </>

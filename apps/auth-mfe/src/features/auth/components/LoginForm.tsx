@@ -12,7 +12,7 @@ const LoginForm = () => {
         <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8">
             {/* Visitly Logo */}
             <div className="tw:flex tw:items-center tw:gap-2 tw:my-12">
-                 <Image src={appLogo}  alt='visity-web-logo' width={196}/>
+                <Image src={appLogo} alt='visity-web-logo' width={196} />
             </div>
 
             {/* Card Container */}
@@ -63,31 +63,29 @@ const LoginForm = () => {
                             />)
                         }
                         {
-                            ssoUrl &&
-                            <span className='tw:flex tw:justify-center tw:gap-4'>
+                            ssoUrl && !showPasswordField &&
+                            <span className='tw:flex tw:justify-center tw:gap-2 tw:items-center tw:text-primary-1000'>
                                 <Lock />
-                                <p
-                                    className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
-                                >
+                                <p className="tw:block tw:text-sm tw:font-medium">
+
                                     Single sign-on enabled
                                 </p>
                             </span>
 
                         }
                         {/* Forgot Password */}
-                        <div className="tw:flex tw:items-center">
-                            <a
-                                href="#"
-                                className="tw:text-sm tw:font-bold tw:text-slate-900 hover:tw:underline"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    // TODO: Implement forgot password flow
-                                    console.log('Forgot password clicked');
-                                }}
-                            >
-                                Forgot password?
-                            </a>
-                        </div>
+                        {
+                            showPasswordField && <div className="tw:flex tw:items-center">
+                                <Link
+                                 to={'/visitly/forgot-password'}
+                                    className="tw:text-sm tw:font-bold tw:text-primary-1000 hover:tw:underline"
+                                   
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+                        }
+
 
                         {/* Submit Button */}
                         <Button
@@ -95,19 +93,19 @@ const LoginForm = () => {
                             variant="primary"
                             size="md"
                             isLoading={isSubmitting}
-                            className="tw:w-full tw:bg-[#5E2CED]! hover:tw:bg-[#4a36e6] tw:shadow-md"
+                            className={"tw:w-full  hover:tw:bg-[#4a36e6] tw:shadow-md tw:cursor-pointer"}
                             disabled={isSubmitting}
                         >
-                            Login
+                           {showPasswordField ?  'Login'  : 'Continue'}
                         </Button>
 
                         {/* Secondary Actions */}
                         <div className="tw:space-y-4 tw:text-center tw:pt-2">
                             {
-                                ssoUrl &&
+                                ssoUrl && !showPasswordField &&
                                 <a
-                                //    href='/visitly/login'
-                                    className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
+                                    //    href='/visitly/login'
+                                    className="tw:block tw:text-sm tw:font-semibold tw:text-primary-100 hover:tw:underline tw:cursor-pointer"
                                     onClick={(e) => {
                                         setStep("email");
                                     }}
@@ -115,16 +113,24 @@ const LoginForm = () => {
                                     Use password instead
                                 </a>
                             }
-                            <div className="tw:text-sm tw:text-slate-500">
+                            {
+                                ssoUrl && showPasswordField &&
+                                <a
+                                    //    href='/visitly/login'
+                                    className="tw:block tw:font-semibold tw:text-primary-100 hover:tw:underline tw:cursor-pointer"
+                                    onClick={(e) => {
+                                        setStep("sso");
+                                    }}
+                                >
+                                    Use single sign-on instead
+                                </a>
+                            }
+                            <div className=" tw:text-slate-500">
                                 Don't have an account?{' '}
                                 <Link
                                     to={'/visitly/signup'}
-                                    className="tw:font-bold tw:text-indigo-600 hover:tw:underline"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        // TODO: Navigate to signup
-                                        console.log('Sign up clicked');
-                                    }}
+                                    className=" tw:text-primary-100 hover:tw:underline tw:cursor-pointer"
+
                                 >
                                     Join Us
                                 </Link>
@@ -134,7 +140,6 @@ const LoginForm = () => {
 
                 </CardContent>
             </Card>
-            <Spinner />
         </div>
     );
 };

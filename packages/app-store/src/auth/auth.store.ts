@@ -1,14 +1,61 @@
-import { create } from "zustand";
-import { User } from "./auth.types";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { AuthState, User } from './auth.types';
 
-type AuthState = {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  logout: () => void;
-};
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      tokens: {
+        accessToken: null,
+        refreshToken: null,
+      },
+      isAuthenticated: false,
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  setUser: (user) => set({ user }),
-  logout: () => set({ user: null }),
-}));
+      setUser: (user) =>
+        set({
+          user,
+          isAuthenticated: !!user,
+        }),
+
+      setTokens: (tokens) =>
+        set({
+          tokens,
+          isAuthenticated: !!tokens?.accessToken,
+        }),
+
+      logout: () =>
+        set({
+          user: null,
+          tokens: {
+            accessToken: null,
+            refreshToken: null,
+          },
+          isAuthenticated: false,
+        }),
+    }),
+    {
+      name: 'auth-session',
+      storage: {
+        getItem: (key) => {
+          const value = sessionStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: (key, value) => {
+          sessionStorage.setItem(key, JSON.stringify(value));
+        },
+        removeItem: (key) => sessionStorage.removeItem(key),
+      },
+      partialize: (state) => ({
+        user: state.user,
+        tokens: state.tokens,
+        isAuthenticated: state.isAuthenticated,
+        setUser: state.setUser,
+        setTokens: state.setTokens,
+        logout: state.logout,
+      }),
+  
+    }
+  )
+);
+

@@ -4,14 +4,14 @@ import * as Yup from 'yup';
 import { useLoginMutation } from '../services/useLoginMutation';
 import { useFormik } from 'formik';
 import { useSsoMutation } from '../services/useSsoMutation';
+import { useNavigate } from 'react-router-dom';
 const useLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [step, setStep] = useState<'email' | 'password' | 'sso'>('email');
     const [ssoUrl, setSsoUrl] = useState<string | null>(null);
     const { mutate } = useLoginMutation();
     const checkSSO = useSsoMutation();
-
+    const navigate = useNavigate();
     const validationSchema = Yup.object({
         email: Yup.string()
             .email('Invalid email address')
@@ -29,7 +29,7 @@ const useLogin = () => {
             password: '',
         },
         validationSchema,
-        onSubmit: (values) => {
+        onSubmit: (values, { setSubmitting }) => {
             if (step === 'sso') {
                 if (ssoUrl) window.location.href = ssoUrl;
                 return;
@@ -39,7 +39,14 @@ const useLogin = () => {
                 // If we haven't asked for password yet and it's not SSO, technically we should check logic.
                 // But for this single page flow, we'll assume we submit credentials together or check password presence
                 if (!values.password) return; // Should be handled by YUP but double check
-               mutate({ email: values.email, password: values.password });
+                mutate({ email: values.email, password: values.password }, 
+                    {
+                    onSuccess: () => {
+                        setSubmitting(false);
+                        navigate('/admin')
+                    }
+                })
+
             }
         },
     });
@@ -67,10 +74,10 @@ const useLogin = () => {
         return () => clearTimeout(handler);
     }, [formik.values.email]);
 
-    const { handleSubmit, touched, errors, values, handleBlur, handleChange } = formik;
+    const { handleSubmit, touched, errors, values, handleBlur, handleChange, isSubmitting } = formik;
     const showPasswordField = step !== 'sso';
     return {
-        handleSubmit, showPassword, 
+        handleSubmit, showPassword,
         isSubmitting, setShowPassword,
         touched, errors, values,
         showPasswordField,

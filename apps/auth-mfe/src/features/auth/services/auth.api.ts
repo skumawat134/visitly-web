@@ -1,6 +1,7 @@
 import { getApiClient } from "@visitly/api-client";
 import { LoginPayload, LoginResponse, ConfirmEmailPayload , ConfirmEmailResponse, ForgotPasswordPayload, ForgotPasswordResponse,
-  VerifyEmailPayload , VerifyEmailResponse , ResetPasswordPayload , SSOCheckResponse
+  VerifyEmailPayload , VerifyEmailResponse , ResetPasswordPayload , SSOCheckResponse,
+  UserResponse
   } from "../types/auth.types";
 
 export async function loginApi(
@@ -57,5 +58,10 @@ export async function ssoCheckApi(
       "/users/check-email",
       payload
     );
+    return data;
+  }
+
+  export async function getUserInfoApi (){
+    const { data } = await getApiClient().get<UserResponse>("/users/userinfo"  );
     return data;
   }

@@ -1,2 +1,2 @@
 export { useAuthStore } from "./auth/auth.store";
-export type { User } from "./auth/auth.types";
+export type { User ,AuthState } from "./auth/auth.types";

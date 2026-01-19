@@ -52,3 +52,53 @@ export interface SSOCheckResponse {
     enabledSso : boolean;
     ssoRequestUrl : string;
 }
+
+export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+
+export type UserRoleType =
+  | 'GLOBAL_ORG_ADMIN'
+  | 'FRONTDESK_ADMIN'
+  | 'EVAC_MANAGER'
+  | 'DELIVERY_MANAGER'
+  | 'SITE_ADMIN';
+
+export interface UserRole {
+  role: UserRoleType;
+  allSitesFlag: boolean;
+}
+
+export interface UserResponse {
+  id: string;
+  externalId: string;
+
+  firstName: string;
+  lastName: string;
+  email: string;
+  emailVerified: boolean;
+
+  status: UserStatus;
+
+  workPhoneCountryCode?: string;
+  workPhone?: string;
+
+  mobilePhoneCountryCode?: string;
+  mobilePhone?: string;
+
+  orgId: string;
+  employeeId?: string;
+
+  avatarUri?: string;
+
+  roles: UserRole[];
+
+  department?: string;
+  title?: string;
+
+  allowSigninFlag: boolean;
+  skipHostNotification: boolean;
+
+  deleted: boolean;
+
+  createTime: string;   // ISO timestamp
+  modifyTime: string;   // ISO timestamp
+}

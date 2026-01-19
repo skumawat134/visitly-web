@@ -35,7 +35,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1.5"
+            className="tw:block tw:text-sm tw:font-medium  tw:mb-1.5"
           >
             {label}
           </label>
