@@ -13,8 +13,7 @@
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
 
 
-
-
-#angular-container .topbar {
-    background: red;
-}
+/* 2. Apply to the whole page */
+html, body {
+    font-family: 'Inter', sans-serif;
+  }

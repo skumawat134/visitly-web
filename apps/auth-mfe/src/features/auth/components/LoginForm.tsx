@@ -1,12 +1,13 @@
 import { useAuthStore } from '@visitly/app-store';
 import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { Input, Button, Card, CardHeader, CardTitle, CardContent } from '@visitly/ui';
+import { Input, Button, Card, CardHeader, CardTitle, CardContent, Spinner } from '@visitly/ui';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import useLogin from '../hooks/useLogin';
+import { Link } from 'react-router-dom';
 
 const LoginForm = () => {
-    const { handleSubmit, initialValues, isSubmitting, showPassword, validationSchema, setShowPassword } = useLogin();
+    const { handleSubmit, isSubmitting, showPassword, setShowPassword, touched, errors, values, showPasswordField, handleBlur, handleChange, setStep, ssoUrl } = useLogin();
     return (
         <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:justify-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8">
             {/* Visitly Logo */}
@@ -24,120 +25,125 @@ const LoginForm = () => {
             </div>
 
             {/* Card Container */}
-            <Card className="tw:max-w-md tw:w-full">
+            <Card className="tw:max-w-lg tw:w-full tw:px-10">
                 <CardHeader>
-                    <CardTitle className="tw:text-2xl tw:font-bold tw:text-slate-900">
+                    <CardTitle className="tw:text-2xl tw:font-bold tw:text-slate-900 tw:mb-4">
                         Please Sign In
                     </CardTitle>
                 </CardHeader>
 
                 <CardContent>
-                    <Formik
-                        initialValues={initialValues}
-                        validationSchema={validationSchema}
-                        onSubmit={handleSubmit}
-                    >
-                        {({ errors, touched }) => (
-                            <Form className="tw:space-y-6">
-                                {/* Email Field */}
-                                <Field name="email">
-                                    {({ field }: any) => (
-                                        <Input
-                                            {...field}
-                                            type="email"
-                                            label="Username or Company Email"
-                                            placeholder="Enter your email"
-                                            error={touched.email && errors.email ? errors.email : undefined}
-                                            leftIcon={<Mail className="tw:h-4 tw:w-4" />}
-                                            className="tw:bg-[#eff4ff] tw:border-none focus:tw:ring-2 focus:tw:ring-indigo-500"
-                                        />
-                                    )}
-                                </Field>
+                    <form className="tw:space-y-7" onSubmit={handleSubmit}>
+                        <Input
+                            name="email"
+                            type="email"
+                            label="Username or Company Email"
+                            placeholder="Enter your email"
+                            error={touched.email && errors.email ? errors.email : undefined}
+                            leftIcon={<Mail className="tw:h-4 tw:w-4" />}
+                            value={values.email}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className="tw:bg-[#eff4ff] tw:border-none focus:tw:ring-2 focus:tw:ring-indigo-500"
+                        />
 
-                                {/* Password Field */}
-                                <Field name="password">
-                                    {({ field }: any) => (
-                                        <Input
-                                            {...field}
-                                            type={showPassword ? 'text' : 'password'}
-                                            label="Password"
-                                            placeholder="Enter your password"
-                                            error={touched.password && errors.password ? errors.password : undefined}
-                                            leftIcon={<Lock className="tw:h-4 tw:w-4" />}
-                                            rightIcon={
-                                                showPassword ? (
-                                                    <EyeOff className="tw:h-4 tw:w-4" />
-                                                ) : (
-                                                    <Eye className="tw:h-4 tw:w-4" />
-                                                )
-                                            }
-                                            rightIconClickable
-                                            onRightIconClick={() => setShowPassword(!showPassword)}
-                                            className="tw:bg-[#eff4ff] tw:border-none focus:tw:ring-2 focus:tw:ring-indigo-500"
-                                        />
-                                    )}
-                                </Field>
-
-                                {/* Forgot Password */}
-                                <div className="tw:flex tw:items-center">
-                                    <a
-                                        href="#"
-                                        className="tw:text-sm tw:font-bold tw:text-slate-900 hover:tw:underline"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            // TODO: Implement forgot password flow
-                                            console.log('Forgot password clicked');
-                                        }}
-                                    >
-                                        Forgot password?
-                                    </a>
-                                </div>
-
-                                {/* Submit Button */}
-                                <Button
-                                    type="submit"
-                                    variant="primary"
-                                    size="lg"
-                                    isLoading={isSubmitting}
-                                    className="tw:w-full tw:bg-[#5a44ff] hover:tw:bg-[#4a36e6] tw:shadow-md"
-                                    disabled={isSubmitting}
+                        {/* Password Field */}
+                        {showPasswordField && (
+                            <Input
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                label="Password"
+                                placeholder="Enter your password"
+                                error={touched.password && errors.password ? errors.password : undefined}
+                                leftIcon={<Lock className="tw:h-4 tw:w-4" />}
+                                rightIcon={
+                                    showPassword ? (
+                                        <EyeOff className="tw:h-4 tw:w-4" />
+                                    ) : (
+                                        <Eye className="tw:h-4 tw:w-4" />
+                                    )
+                                }
+                                rightIconClickable
+                                onRightIconClick={() => setShowPassword(!showPassword)}
+                                className="tw:bg-[#eff4ff] tw:border-none focus:tw:ring-2 focus:tw:ring-indigo-500"
+                                value={values.password}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                            />)
+                        }
+                        {
+                            ssoUrl &&
+                            <span className='tw:flex tw:justify-center tw:gap-4'>
+                                <Lock />
+                                <p
+                                    className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
                                 >
-                                    Login
-                                </Button>
+                                    Single sign-on enabled
+                                </p>
+                            </span>
 
-                                {/* Secondary Actions */}
-                                <div className="tw:space-y-4 tw:text-center tw:pt-2">
-                                    <a
-                                        href="#"
-                                        className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            // TODO: Implement SSO flow
-                                            console.log('SSO clicked');
-                                        }}
-                                    >
-                                        Use single sign-on instead
-                                    </a>
-                                    <div className="tw:text-sm tw:text-slate-500">
-                                        Don't have an account?{' '}
-                                        <a
-                                            href="#"
-                                            className="tw:font-bold tw:text-indigo-600 hover:tw:underline"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                // TODO: Navigate to signup
-                                                console.log('Sign up clicked');
-                                            }}
-                                        >
-                                            Join Us
-                                        </a>
-                                    </div>
-                                </div>
-                            </Form>
-                        )}
-                    </Formik>
+                        }
+                        {/* Forgot Password */}
+                        <div className="tw:flex tw:items-center">
+                            <a
+                                href="#"
+                                className="tw:text-sm tw:font-bold tw:text-slate-900 hover:tw:underline"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    // TODO: Implement forgot password flow
+                                    console.log('Forgot password clicked');
+                                }}
+                            >
+                                Forgot password?
+                            </a>
+                        </div>
+
+                        {/* Submit Button */}
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            size="md"
+                            isLoading={isSubmitting}
+                            className="tw:w-full tw:bg-[#5E2CED]! hover:tw:bg-[#4a36e6] tw:shadow-md"
+                            disabled={isSubmitting}
+                        >
+                            Login
+                        </Button>
+
+                        {/* Secondary Actions */}
+                        <div className="tw:space-y-4 tw:text-center tw:pt-2">
+                            {
+                                ssoUrl &&
+                                <a
+                                //    href='/visitly/login'
+                                    className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
+                                    onClick={(e) => {
+                                        setStep("email");
+                                    }}
+                                >
+                                    Use password instead
+                                </a>
+                            }
+                            <div className="tw:text-sm tw:text-slate-500">
+                                Don't have an account?{' '}
+                                <Link
+                                    to={'/visitly/signup'}
+                                    className="tw:font-bold tw:text-indigo-600 hover:tw:underline"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        // TODO: Navigate to signup
+                                        console.log('Sign up clicked');
+                                    }}
+                                >
+                                    Join Us
+                                </Link>
+                            </div>
+                        </div>
+                    </form>
+
                 </CardContent>
             </Card>
+            <Spinner />
         </div>
     );
 };

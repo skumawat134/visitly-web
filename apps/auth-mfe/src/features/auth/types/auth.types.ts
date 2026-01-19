@@ -13,3 +13,8 @@ export interface LoginResponse {
         name?: string;
     };
 }
+
+export interface SSOCheckResponse {
+    enabledSso : boolean;
+    ssoRequestUrl : string;
+}

@@ -1,5 +1,5 @@
 import { getApiClient } from "@visitly/api-client";
-import { LoginPayload, LoginResponse } from "../types/auth.types";
+import { LoginPayload, LoginResponse, SSOCheckResponse } from "../types/auth.types";
 
 export async function loginApi(
   payload: LoginPayload
@@ -10,3 +10,13 @@ export async function loginApi(
   );
   return data;
 }
+
+export async function ssoCheckApi(
+    payload: Pick<LoginPayload , "email">
+  ): Promise<SSOCheckResponse> {
+    const { data } = await getApiClient().post<SSOCheckResponse>(
+      "/users/check-email",
+      payload
+    );
+    return data;
+  }
