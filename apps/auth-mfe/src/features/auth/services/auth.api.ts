@@ -2,7 +2,9 @@ import { getApiClient } from "@visitly/api-client";
 import {
   LoginPayload, LoginResponse, ConfirmEmailPayload, ConfirmEmailResponse, ForgotPasswordPayload, ForgotPasswordResponse,
   VerifyEmailPayload, VerifyEmailResponse, ResetPasswordPayload, SSOCheckResponse,
-  UserResponse
+  UserResponse,
+  SignUpPayload,
+  SignupResponse
 } from "../types/auth.types";
 
 export async function loginApi(
@@ -76,3 +78,10 @@ export async function createHubSpotApi(
   });
   return data;
 }  
+
+export async function createUserApi(
+  payload: SignUpPayload
+): Promise<SignupResponse> {
+ const {data} =  await getApiClient().post<SignupResponse>("/account", payload);
+ return data;
+}
