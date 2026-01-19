@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useVerifyEmail } from '../hooks/useVerifyEmail';
-const LOGO_URL = 'assets/images/logo.png';
+import appLogo from '@/assets/images/logo.png';
 export const VerifyEmail: React.FC = () => {
     console.log("VerifyEmail component rendered");
     const { isResendMail, handleResend, resendMutation } = useVerifyEmail();
@@ -9,7 +9,7 @@ export const VerifyEmail: React.FC = () => {
         return (
             <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:flex-col tw:items-center tw:p-4" data-testid="check-inbox-page">
                 <div className="tw:mt-12 tw:mb-12">
-                    <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
+                    <img src={appLogo} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
                 </div>
                 <div className="tw:max-w-md tw:w-full tw:bg-white tw:p-8 tw:rounded-lg tw:shadow-md tw:text-center"
                     style={{ boxShadow: '0 0 5px 0 rgb(159, 159, 159)' }}
@@ -36,7 +36,7 @@ export const VerifyEmail: React.FC = () => {
     return (
         <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:flex-col tw:items-center tw:p-4" data-testid="verify-email-page">
             <div className="tw:mt-12 tw:mb-12">
-                <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
+                <img src={appLogo} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
             </div>
             <div className="tw:max-w-md tw:w-full tw:bg-white tw:p-8 tw:rounded-lg tw:shadow-md tw:text-center"
                 style={{ boxShadow: '0 0 5px 0 rgb(159, 159, 159)' }}

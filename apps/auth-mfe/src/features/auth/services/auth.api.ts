@@ -1,8 +1,9 @@
 import { getApiClient } from "@visitly/api-client";
-import { LoginPayload, LoginResponse, ConfirmEmailPayload , ConfirmEmailResponse, ForgotPasswordPayload, ForgotPasswordResponse,
-  VerifyEmailPayload , VerifyEmailResponse , ResetPasswordPayload , SSOCheckResponse,
+import {
+  LoginPayload, LoginResponse, ConfirmEmailPayload, ConfirmEmailResponse, ForgotPasswordPayload, ForgotPasswordResponse,
+  VerifyEmailPayload, VerifyEmailResponse, ResetPasswordPayload, SSOCheckResponse,
   UserResponse
-  } from "../types/auth.types";
+} from "../types/auth.types";
 
 export async function loginApi(
   payload: LoginPayload
@@ -38,8 +39,8 @@ export async function forgotPassword(
 export async function resetPasswordApi(
   payload: ResetPasswordPayload
 ): Promise<void> {
- const {data} =  await getApiClient().post("/users/password/reset", payload);
- return data;
+  const { data } = await getApiClient().post("/users/password/reset", payload);
+  return data;
 }
 
 export async function verifyEmailApi(
@@ -52,16 +53,26 @@ export async function verifyEmailApi(
   return data;
 }
 export async function ssoCheckApi(
-    payload: Pick<LoginPayload , "email">
-  ): Promise<SSOCheckResponse> {
-    const { data } = await getApiClient().post<SSOCheckResponse>(
-      "/users/check-email",
-      payload
-    );
-    return data;
-  }
+  payload: Pick<LoginPayload, "email">
+): Promise<SSOCheckResponse> {
+  const { data } = await getApiClient().post<SSOCheckResponse>(
+    "/users/check-email",
+    payload
+  );
+  return data;
+}
 
-  export async function getUserInfoApi (){
-    const { data } = await getApiClient().get<UserResponse>("/users/userinfo"  );
-    return data;
-  }
+export async function getUserInfoApi() {
+  const { data } = await getApiClient().get<UserResponse>("/users/userinfo");
+  return data;
+}
+
+export async function createHubSpotApi(
+  payload: any
+): Promise<any> {
+  const { data } = await getApiClient().post<any>("", payload, {
+    baseURL: 'https://api.hsforms.com/submissions/v3/integration/submit/23980162/86782110-3546-4e90-bdfd-3b61b3f10fbb',
+    headers: {}
+  });
+  return data;
+}  

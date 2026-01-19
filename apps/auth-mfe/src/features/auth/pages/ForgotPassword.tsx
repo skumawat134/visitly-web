@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useForgotPassword } from '../hooks/useForgotPassword';
-const LOGO_URL = 'assets/images/logo.png';
+import appLogo from '@/assets/images/logo.png';
  export const ForgotPassword: React.FC = () => {
     const {
         isSSOLoginEnabled,
@@ -41,11 +41,11 @@ const LOGO_URL = 'assets/images/logo.png';
     };
     return (
         <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:flex-col tw:items-center tw:p-4" data-testid="forgot-password-page">
-           <div className='tw:h-[100vh] tw:w-[100vw] tw:flex tw:flex-col tw:items-center tw:justify-center'>
-             <div className=" tw:mb-8">
-                <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
+           {/* <div className='tw:h-[100vh] tw:w-[100vw] tw:flex tw:flex-col tw:items-center tw:justify-center'> */}
+             <div className="tw:mt-12">
+                <img src={appLogo} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
             </div>
-            <div className="tw:max-w-3xl tw:w-full tw:bg-[#fff] tw:p-8 tw:rounded-lg tw:shadow-xl" data-testid="forgot-password-form-container">
+            <div className="tw:max-w-3xl tw:mt-12 tw:w-full tw:bg-[#fff] tw:p-8 tw:rounded-lg tw:shadow-xl" data-testid="forgot-password-form-container">
                 <div className=" tw:mb-4">
                     <h2 className=" tw:text-center tw:text-2xl tw:font-bold tw:text-gray-900 tw:mb-3" data-testid="page-title">Reset Password</h2>
                     <p className="tw:text-gray-500 tw:text-[14px] tw:leading-relaxed" data-testid="instruction-text">
@@ -78,7 +78,7 @@ const LOGO_URL = 'assets/images/logo.png';
                                 <button
                                     type="submit"
                                     disabled={!formik.isValid || !formik.values.email || forgotPwdMutation.isPending}
-                                    className="tw:bg-[#4c32e9] tw:hover:tw:bg-[#3b27b8] tw:text-white tw:px-3 tw:py-2 tw:rounded-md tw:font-sm tw:transition-colors tw:disabled:tw:opacity-50 tw:disabled:tw:cursor-not-allowed"
+                                    className="tw:bg-primary-100 tw:hover:tw:bg-[#3b27b8] tw:text-white tw:px-3 tw:py-2 tw:rounded-md tw:font-sm tw:transition-colors tw:disabled:tw:opacity-50 tw:disabled:tw:cursor-not-allowed"
                                     data-testid="reset-password-button"
                                 >
                                     {forgotPwdMutation.isPending ? 'Sending...' : 'Send'}
@@ -125,7 +125,7 @@ const LOGO_URL = 'assets/images/logo.png';
                     </div>
                 </form>
             </div>
-           </div>
+           {/* </div> */}
         </div>
     );
 };

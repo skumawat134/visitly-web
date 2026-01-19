@@ -3,7 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useResetPassword, } from '../hooks/useResetPassword';
 import { Eye, EyeOff } from 'lucide-react';
-const LOGO_URL = 'assets/images/logo.png';
+import appLogo from '@/assets/images/logo.png';
 const ResetPassword: React.FC = () => {
     const { email, resetMutation , code } = useResetPassword();
     const [showPassword, setShowPassword] = useState(false);
@@ -37,9 +37,9 @@ const ResetPassword: React.FC = () => {
         <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:flex-col tw:items-center tw:p-4" data-testid="reset-password-page">
            {/* <div className='tw:h-[100vh] tw:w-[100vw] tw:flex tw:flex-col tw:items-center tw:justify-center tw:gap-12'> */}
              <div className="tw:mt-12 tw:mb-12">
-                <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
+                <img src={appLogo} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
             </div>
-            <div className="tw:max-w-xl tw:w-full tw:bg-white tw:rounded-lg tw:shadow-md tw:overflow-hidden"
+            <div className="tw:max-w-lg tw:mt-12 tw:w-full tw:bg-white tw:rounded-lg tw:shadow-md tw:overflow-hidden"
                 style={{ boxShadow: '0 0 5px 0 rgb(159, 159, 159)' }}
                 data-testid="reset-password-container">
                 <div className="tw:p-8">
@@ -110,7 +110,7 @@ const ResetPassword: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={!formik.isValid || !formik.values.password || resetMutation.isPending}
-                                className="tw:w-full tw:bg-[#4c32e9] tw:hover:tw:bg-[#3b27b8] tw:text-white tw:py-2 tw:rounded-md tw:font-medium tw:transition-colors tw:disabled:tw:opacity-50 tw:disabled:tw:cursor-not-allowed tw:shadow-sm"
+                                className="tw:w-full tw:bg-primary-100 tw:hover:tw:bg-[#3b27b8] tw:text-white tw:py-2 tw:rounded-md tw:font-medium tw:transition-colors tw:disabled:tw:opacity-50 tw:disabled:tw:cursor-not-allowed tw:shadow-sm"
                                 data-testid="reset-password-button"
                             >
                                 {resetMutation.isPending ? 'Resetting...' : 'Reset password'}

@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignupFormValues } from '../components/SignupForm';
+import { useMutation } from '@tanstack/react-query';
+import { createUserApi, createHubSpotApi } from '../services/auth.api';
 
 export interface User {
   firstName: string;
@@ -66,20 +68,15 @@ export const useSignup = () => {
     setFlagForPasswordHideShow(!flagForPasswordHideShow);
   };
 
-  const goToStep2 = (values: SignupFormValues, errors: any, touched: any) => {
-    const requiredFields = ['firstName', 'lastName', 'email', 'password', 'phoneNumber'];
-    let hasErrors = false;
+   useEffect(() => {
+        // Initial GA Tracking
+        console.log('GA Tracking for signup page');
+        if ((window as any).ga) {
+            (window as any).ga('set', 'page', 'signup page');
+            (window as any).ga('send', 'pageview');
+        }
+    }, []);
 
-    requiredFields.forEach(field => {
-      if (errors[field]) {
-        hasErrors = true;
-      }
-    });
-
-    if (!hasErrors) {
-      setCurrentStep(2);
-    }
-  };
 
   const signupUser = async (values: SignupFormValues) => {
     setIsLoading(true);
@@ -96,19 +93,11 @@ export const useSignup = () => {
         companyName: values.companyName,
       };
 
-      // Here you would call your API
-      // Example:
-      // const response = await apiService.createUser(userObj);
-      
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Navigate to confirmation page on success
-      navigate('/confirmation');
-      
+      const response = await signUpMutation.mutate(userObj);
+
       // Integration with external services (FreshSales/HubSpot)
       if (window.location.hostname.toLowerCase() === 'app.visitly.io') {
-        // createHubSpot(userObj);
+       createHubSpot(userObj);
       }
       
     } catch (error: any) {
@@ -131,27 +120,91 @@ export const useSignup = () => {
     }
   };
 
+  const signUpMutation = useMutation({
+        mutationFn: createUserApi,
+        onSuccess: () => {
+             if (window.location.hostname.toLowerCase() === 'app.visitly.io') {
+             // createHubSpot(userObj);
+            }
+            
+            navigate('/visitly/confirmation', { relative: 'path' });
+        },
+        onError: (error: any) => {
+         
+           if (error.status === 409) {
+            //    toast.error('An account already exists with this email. Please log in.');
+            } else {
+             //   toast.error(error.message || 'We have encountered an error. Please contact Visitly Support.');
+            }
+
+        }
+    });
+
   const createHubSpot = async (user: User) => {
-    // HubSpot integration logic here
-    const payload = {
-      submittedAt: Date.now(),
-      fields: [
-        { name: 'email', value: user.email },
-        { name: 'lastname', value: user.lastName },
-        { name: 'firstname', value: user.firstName },
-        { name: 'company', value: user.companyName },
-        { name: 'phone', value: user.phoneNumber || '' },
-      ],
-      context: {
-        pageUri: window.location.href,
-        pageName: 'Sign Up',
-      },
-      skipValidation: false,
+        const date = new Date();
+        const now_utc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+        date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+
+        const hutk = getCookieValue("hubspotutk");
+        const utm_source = getCookieValue("utm_source");
+        const utm_medium = getCookieValue("utm_medium");
+        const utm_campaign = getCookieValue("utm_campaign");
+        const utm_term = getCookieValue("utm_term");
+        const utm_content = getCookieValue("utm_content");
+        const gclid = getCookieValue("gclid");
+
+        const fields = [
+            { name: "email", value: user.email },
+            { name: "lastname", value: user.lastName },
+            { name: "firstname", value: user.firstName },
+            { name: "company", value: user.companyName },
+            { name: "phone", value: user.phoneNumber || '' }
+        ];
+
+        if (utm_source) fields.push({ name: "utm_source", value: utm_source });
+        if (utm_medium) fields.push({ name: "utm_medium", value: utm_medium });
+        if (utm_campaign) fields.push({ name: "utm_campaign", value: utm_campaign });
+        if (utm_term) fields.push({ name: "utm_term", value: utm_term });
+        if (utm_content) fields.push({ name: "utm_content", value: utm_content });
+        if (gclid) fields.push({ name: "gclid", value: gclid });
+
+        const payload = {
+            submittedAt: now_utc,
+            fields,
+            context: {
+                pageUri: window.location.href,
+                pageName: "Sign Up",
+                ...(hutk && { hutk })
+            },
+            skipValidation: false
+        };
+
+        try {
+           hubspotMutation.mutate(payload);
+        } catch (error) {
+            console.error('HubSpot Tracking Error:', error);
+        }
     };
-    
-    // Send to HubSpot
-    // await apiService.sendToHubSpot(payload);
-  };
+
+
+const hubspotMutation = useMutation({
+    mutationFn: createHubSpotApi,
+
+    onSuccess: () => {
+      //  console.log('HubSpot integration successful');
+    },
+
+    onError: (error: any) => {
+        console.error('HubSpot integration error:', error);
+    }
+});
+
+const getCookieValue = (name : string) => {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : "";
+}
+
+
 
   const sendEvent = (event: string) => {
     if (typeof window !== 'undefined' && (window as any).ga) {
@@ -223,7 +276,7 @@ export const useSignup = () => {
     isLoading,
     validationPatterns,
     validationMessages,
-    goToStep2,
+    
     signupUser,
     sendEvent,
     validateForm,
