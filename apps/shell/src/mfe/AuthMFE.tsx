@@ -9,7 +9,6 @@ export default function AuthMFE() {
   return (
     <MFEWrapper
       mfe={AuthApp}
-      fallback={<div>Loading authentication…</div>}
     />
   );
 }

@@ -48,3 +48,7 @@ export interface ResetPasswordPayload {
     password: string;
     confirmPassword: string;
 }
+export interface SSOCheckResponse {
+    enabledSso : boolean;
+    ssoRequestUrl : string;
+}

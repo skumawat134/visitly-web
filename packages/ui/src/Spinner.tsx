@@ -21,7 +21,7 @@ export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
       >
         <svg
           className={cn(
-            "tw:animate-spin tw:text-blue-600",
+            "tw:animate-spin tw:text-primary-100",
             sizes[size]
           )}
           xmlns="http://www.w3.org/2000/svg"
