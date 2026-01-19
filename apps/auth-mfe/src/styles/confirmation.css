@@ -1,0 +1,15 @@
+@keyframes scroll-logos {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.logos-track {
+  animation: scroll-logos 30s linear infinite;
+}
+.logos-carousel:hover .logos-track {
+  animation-play-state: paused;
+}
+
+.font-inter{
+  font-family: "Inter, sans-serif" !important;
+}
