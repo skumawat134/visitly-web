@@ -52,3 +52,17 @@ export interface SSOCheckResponse {
     enabledSso : boolean;
     ssoRequestUrl : string;
 }
+
+export interface SignUpPayload{
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phoneNumber: string;
+    companyName: string;
+    confirmPassword: string;
+}
+
+export interface SignupResponse {
+    message: string;
+}

@@ -5,6 +5,7 @@ import { Input, Button, Card, CardHeader, CardTitle, CardContent } from '@visitl
 
 import { useSignup } from '../hooks/useSignup';
 import { Link } from 'react-router-dom';
+import appLogo from '@/assets/images/logo.png';
 
 export interface SignupFormValues {
   firstName: string;
@@ -22,7 +23,7 @@ const Signup: React.FC = () => {
     togglePasswordVisibility,
     isLoading,
     signupUser,
-    sendEvent,
+    sendEvent,  
     validateForm,
   } = useSignup();
 
@@ -49,7 +50,7 @@ const Signup: React.FC = () => {
         {/* Logo Row */}
         <div className="tw:flex tw:justify-center tw:mb-10">
           <img 
-            src="/assets/images/logo.png" 
+            src={appLogo} 
             alt="Visitly Logo" 
             width="196" 
             height="50"
@@ -60,7 +61,7 @@ const Signup: React.FC = () => {
 
         {/* Main Content Row */}
         <div className="tw:flex tw:justify-center">
-          <div className="tw:w-full lg:tw:w-10/12">
+          <div className="tw:w-4/5 lg:tw:w-10/12">
             {/* Auth Box */}
             <div className="tw:bg-white tw:rounded-lg tw:shadow-sm tw:overflow-hidden">
               <Formik
@@ -69,15 +70,15 @@ const Signup: React.FC = () => {
                 onSubmit={handleSubmit}
               >
                 {({ values, errors, touched, handleChange, handleBlur }) => (
-                  <Form className="tw:flex tw:flex-col lg:tw:flex-row" data-testid="signup-form" autoComplete="off">
+                  <Form className="tw:flex  lg:tw:flex-row" data-testid="signup-form" autoComplete="off">
                     {/* Left Panel - Branding */}
                     <div 
-                      className="tw:w-full lg:tw:w-5/12 tw:bg-[#F5F1FF] tw:p-6 lg:tw:p-8 tw:pt-8"
+                      className="tw:w-2/3 lg:tw:w-3/12 tw:bg-[#F5F1FF] tw:p-4 py-6 md:tw:p-8 tw:pt-8"
                       data-testid="branding-panel"
                     >
                       <div data-testid="step1-branding">
                         <h1 
-                          className="tw:text-2xl tw:font-bold tw:mb-4 tw:text-gray-900"
+                          className="tw:text-4xl tw:mt-4 tw:font-bold tw:mb-8 tw:text-gray-900"
                           data-testid="step1-title"
                         >
                           Get Started With Visitly
@@ -93,7 +94,7 @@ const Signup: React.FC = () => {
 
                         {/* Brand Logos */}
                         <div 
-                          className="tw:flex tw:justify-center tw:gap-4 tw:mt-10"
+                          className="tw:flex tw:justify-center  tw:mt-10"
                           data-testid="step1-logos"
                         >
                           <img 
@@ -131,9 +132,9 @@ const Signup: React.FC = () => {
                     >
                       <div data-testid="step1-content">
                         {/* Name Row */}
-                        <div className="tw:grid tw:grid-cols-1 md:tw:grid-cols-2 tw:gap-4 tw:mb-4">
+                        <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-4 tw:mb-4">
                           {/* First Name */}
-                          <div>
+                          <div className='tw:flex-1'>
                             <label 
                               htmlFor="firstName" 
                               className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
@@ -162,7 +163,7 @@ const Signup: React.FC = () => {
                           </div>
 
                           {/* Last Name */}
-                          <div>
+                          <div className='tw:flex-1'>
                             <label 
                               htmlFor="lastName" 
                               className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
@@ -339,7 +340,7 @@ const Signup: React.FC = () => {
                               By signing up, I agree to Visitly{' '}
                               <a
                                 href="https://www.visitly.io/tos/"
-                                className="tw:text-blue-600 hover:tw:underline"
+                                className="tw:text-primary-100 hover:tw:underline"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 data-testid="terms-link"
@@ -349,7 +350,7 @@ const Signup: React.FC = () => {
                               and{' '}
                               <a
                                 href="https://www.visitly.io/privacy/"
-                                className="tw:text-blue-600 hover:tw:underline"
+                                className="tw:text-primary-100 hover:tw:underline"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 data-testid="privacy-link"
@@ -368,14 +369,14 @@ const Signup: React.FC = () => {
                         </div>
 
                         {/* Bottom Section */}
-                        <div className="tw:flex tw:flex-col sm:tw:flex-row tw:justify-between tw:items-center tw:mt-6">
+                        <div className="tw:flex tw:flex-col sm:tw:flex-row tw:md:flex-row tw:justify-between tw:items-center tw:mt-6">
                           <div className="tw:mb-4 sm:tw:mb-0">
                             <p className="tw:text-sm tw:text-gray-700" data-testid="login-redirect-text">
                               Already have an Account ?{' '}
                               <Link
                                 to="/visitly/login"
                                 onClick={() => sendEvent('signin')}
-                                className="tw:text-blue-600 hover:tw:underline tw:font-semibold"
+                                className="tw:text-primary-100 hover:tw:underline tw:font-semibold"
                                 data-testid="login-link"
                               >
                                 Login
@@ -387,7 +388,7 @@ const Signup: React.FC = () => {
                             type="submit"
                             variant="primary"
                             isLoading={isLoading}
-                            className="tw:bg-blue-600 hover:tw:bg-blue-700 tw:text-white tw:px-6 tw:py-2 tw:rounded tw:font-medium"
+                            className="hover:tw:bg-blue-700 tw:text-white tw:text-sm tw:px-4 tw:py-2 tw:rounded tw:font-medium"
                             data-testid="signup-submit-button"
                           >
                             Start my trial

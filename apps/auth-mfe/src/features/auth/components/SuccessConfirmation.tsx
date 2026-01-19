@@ -1,11 +1,24 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
- const LOGO_URL = '/assets/images/logo.png';
+import appLogo from '@/assets/images/logo.png';
+import Company1 from '@/assets/images/companies1.png';
+import Company2 from '@/assets/images/companies2.png';
+import Company3 from '@/assets/images/companies3.png';
+import Company4 from '@/assets/images/companies4.png';
+import Company5 from '@/assets/images/companies5.png';
+import Company6 from '@/assets/images/companies6.png';
+import HitachiLogo from '@/assets/images/Hitachi.svg';
+import HyundaiLogo from '@/assets/images/Hyundai.svg';
+
 const COMPANY_LOGOS = [
-    'assets/images/companies1.png', 'assets/images/companies2.png',
-    'assets/images/companies3.png', 'assets/images/companies4.png',
-    'assets/images/companies5.png', 'assets/images/companies6.png',
-    'assets/images/Hitachi.svg', 'assets/images/Hyundai.svg'
+    Company1,
+    Company2,
+    Company3,
+    Company4,
+    Company5,
+    Company6,
+    HitachiLogo,
+    HyundaiLogo
 ];
 
 const SuccessConfirmation : React.FC<{viewState: string | null}> = ({viewState}) => {
@@ -16,7 +29,7 @@ const SuccessConfirmation : React.FC<{viewState: string | null}> = ({viewState})
                 <div className="tw:w-full tw:max-w-md tw:flex tw:p-6 tw:flex-col tw:items-start">
                     {/* Logo */}
                     <div className="tw:w-full tw:mb-6 tw:pt-1 tw:px-2">
-                        <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-9 tw:w-auto" />
+                        <img src={appLogo} alt="Visitly Logo" className="tw:h-9 tw:w-auto" />
                     </div>
                     {/* Content */}
                     <div className="tw:w-full tw:mb-8 ">

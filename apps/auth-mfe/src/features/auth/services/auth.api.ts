@@ -1,7 +1,8 @@
 import { getApiClient } from "@visitly/api-client";
 import { LoginPayload, LoginResponse, ConfirmEmailPayload , ConfirmEmailResponse, ForgotPasswordPayload, ForgotPasswordResponse,
-  VerifyEmailPayload , VerifyEmailResponse , ResetPasswordPayload , SSOCheckResponse
+  VerifyEmailPayload , VerifyEmailResponse , ResetPasswordPayload , SSOCheckResponse , SignUpPayload, SignupResponse
   } from "../types/auth.types";
+import { User } from "../hooks/useSignup";
 
 export async function loginApi(
   payload: LoginPayload
@@ -59,3 +60,20 @@ export async function ssoCheckApi(
     );
     return data;
   }
+
+
+export async function createUserApi(
+  payload: SignUpPayload
+): Promise<SignupResponse> {
+ const {data} =  await getApiClient().post<SignupResponse>("/account", payload);
+ return data;
+}
+
+export async function createHubSpotApi(
+  payload: any
+): Promise<any> {
+ const {data} =  await getApiClient().post<any>("", payload, {
+    baseURL: 'https://api.hsforms.com/submissions/v3/integration/submit/23980162/86782110-3546-4e90-bdfd-3b61b3f10fbb',
+    headers: {    }}  );
+ return data;
+}  

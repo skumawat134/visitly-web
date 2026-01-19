@@ -1,15 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useMailInbox } from '../hooks/useMailInbox';
-const LOGO_URL = 'assets/images/logo.png';
+import appLogo from '@/assets/images/logo.png';
+
 export const MailInbox = () => {
     const { email, handleResend, resendMutation } = useMailInbox();
     return (
         <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:flex-col tw:items-center tw:p-4">
             <div className="tw:mt-12 tw:mb-12">
-                <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo-image" />
+                <img src={appLogo} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo-image" />
             </div>
-            <div className="tw:max-w-md tw:w-full tw:bg-white tw:p-8 tw:rounded-lg tw:shadow-md tw:text-center"
+            <div className="tw:max-w-xl tw:w-full tw:bg-white tw:p-8 tw:rounded-lg tw:shadow-md tw:text-center"
                 style={{ boxShadow: '0 0 5px 0 rgb(159, 159, 159)' }}
                 data-testid="mail-inbox-container">
                 <h2 className="tw:text-lg tw:font-bold tw:text-gray-900 tw:mb-4" data-testid="form-title">

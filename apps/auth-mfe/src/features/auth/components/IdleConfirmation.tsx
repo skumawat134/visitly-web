@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import React from "react";
+import appLogo from '@/assets/images/logo.png';
+
 
 
 const IdleConfirmation : React.FC<{}> = () => {
-    const LOGO_URL = '/assets/images/logo.png';
    return (
             <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:items-center tw:justify-center tw:px-4">
                 <div className="tw:max-w-3xl tw:w-full tw:bg-white tw:p-6 tw:rounded-lg tw:shadow-sm">
                     <div className="tw:mb-5 tw:px-2">
-                        <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-9 tw:w-auto" />
+                        <img src={appLogo} alt="Visitly Logo" className="tw:h-9 tw:w-auto" />
                     </div>
                     <div className="tw:px-1">
                         <h2 className="tw:text-2xl tw:font-bold tw:text-gray-900 tw:mb-2 font-inter">You're Almost There!</h2>

@@ -1,12 +1,12 @@
 import React from 'react';
+import appLogo from '@/assets/images/logo.png';
 
 const ErrorConfirmation = () => {
-    const LOGO_URL = './assets/images/logo.png';
    return (
      <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:items-center tw:justify-center tw:p-2">
                 <div className="tw:max-w-3xl tw:w-full tw:bg-[#fff] tw:p-4 tw:rounded-lg">
                     <div className="tw:mb-8 tw:px-4 tw:mt-2">
-                        <img src={LOGO_URL} alt="Visitly Logo" className="tw:h-9 tw:w-auto" />
+                        <img src={appLogo} alt="Visitly Logo" className="tw:h-9 tw:w-auto" />
                     </div>
                     <div className="tw:px-4">
                         <h2 className="tw:text-2xl tw:font-bold tw:text-gray-900 tw:mb-6">Verify Registration</h2>
