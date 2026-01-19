@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_741" data-name="Rectangle 741" width="20" height="20" transform="translate(1410 380)" fill="#fff" stroke="#707070" stroke-width="1"/>
+    </clipPath>
+  </defs>
+  <g id="Mask_Group_32" data-name="Mask Group 32" transform="translate(-1410 -380)" clip-path="url(#clip-path)">
+    <g id="tick" transform="translate(1410 380)">
+      <circle id="Ellipse_66" data-name="Ellipse 66" cx="10" cy="10" r="10" transform="translate(0 0)" fill="#32ba7c"/>
+      <path id="Path_796" data-name="Path 796" d="M7.445,14.511l5.142,5.142A9.993,9.993,0,0,0,20,10V9.716L15.962,5.994Z" fill="#0aa06e"/>
+      <g id="Group_1315" data-name="Group 1315">
+        <path id="Path_797" data-name="Path 797" d="M10.252,12.24a1.181,1.181,0,0,1,0,1.64l-.915.915a1.181,1.181,0,0,1-1.64,0L3.691,10.757a1.181,1.181,0,0,1,0-1.64L4.606,8.2a1.181,1.181,0,0,1,1.64,0Z" fill="#fff"/>
+        <path id="Path_798" data-name="Path 798" d="M13.754,5.268a1.181,1.181,0,0,1,1.64,0l.915.915a1.181,1.181,0,0,1,0,1.64l-6.94,6.909a1.181,1.181,0,0,1-1.64,0l-.915-.915a1.181,1.181,0,0,1,0-1.64Z" fill="#fff"/>
+      </g>
+    </g>
+  </g>
+</svg>

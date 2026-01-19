@@ -1,31 +1,22 @@
 import { useAuthStore } from '@visitly/app-store';
 import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { Input, Button, Card, CardHeader, CardTitle, CardContent, Spinner } from '@visitly/ui';
+import { Input, Button, Card, CardHeader, CardTitle, CardContent, Spinner, Image } from '@visitly/ui';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import useLogin from '../hooks/useLogin';
 import { Link } from 'react-router-dom';
-
+import appLogo from '@/assets/images/logo.png';
 const LoginForm = () => {
     const { handleSubmit, isSubmitting, showPassword, setShowPassword, touched, errors, values, showPasswordField, handleBlur, handleChange, setStep, ssoUrl } = useLogin();
     return (
-        <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:justify-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8">
+        <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8">
             {/* Visitly Logo */}
-            <div className="tw:flex tw:items-center tw:gap-2 tw:mb-8">
-                <svg
-                    className="tw:w-10 tw:h-10 tw:text-[#2d2a6e]"
-                    viewBox="0 0 40 40"
-                    fill="currentColor"
-                >
-                    <path d="M20 0L37.32 10V30L20 40L2.68 30V10L20 0ZM20 6.6L8.66 13.15V26.85L20 33.4L31.34 26.85V13.15L20 6.6ZM20 13.2L25.85 16.58V23.42L20 26.8L14.15 23.42V16.58L20 13.2Z" />
-                </svg>
-                <span className="tw:text-4xl tw:font-bold tw:text-[#2d2a6e]">
-                    visitly<span className="tw:text-[#6366f1]">.</span>
-                </span>
+            <div className="tw:flex tw:items-center tw:gap-2 tw:my-12">
+                 <Image src={appLogo}  alt='visity-web-logo' width={196}/>
             </div>
 
             {/* Card Container */}
-            <Card className="tw:max-w-lg tw:w-full tw:px-10">
+            <Card className=" tw:w-full tw:px-10 tw:mt-12 tw:max-w-136">
                 <CardHeader>
                     <CardTitle className="tw:text-2xl tw:font-bold tw:text-slate-900 tw:mb-4">
                         Please Sign In

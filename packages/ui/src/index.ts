@@ -97,6 +97,6 @@ export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem } from "./Breadcr
 export { Spinner, type SpinnerProps } from "./Spinner";
 export { Skeleton, type SkeletonProps } from "./Skeleton";
 export { Progress, type ProgressProps } from "./Progress";
-
+export {Image , type ImageProps } from "./Image";
 // Utils
 export { cn } from "./utils";
