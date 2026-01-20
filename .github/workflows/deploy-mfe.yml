@@ -229,38 +229,12 @@ jobs:
               ;;
           esac
 
-      - name: Determine invalidation paths for ${{ matrix.env }}
-        id: paths
-        shell: bash
-        run: |
-          case "${{ inputs.mfe_selection }}" in
-            both)
-              echo "paths=/* /auth-mfe/*" >> "$GITHUB_OUTPUT"
-              echo "description=Shell and Auth MFE" >> "$GITHUB_OUTPUT"
-              ;;
-            shell)
-              echo "paths=/*" >> "$GITHUB_OUTPUT"
-              echo "description=Shell only" >> "$GITHUB_OUTPUT"
-              ;;
-            auth-mfe)
-              echo "paths=/auth-mfe/*" >> "$GITHUB_OUTPUT"
-              echo "description=Auth MFE only" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "paths=" >> "$GITHUB_OUTPUT"
-              echo "description=None" >> "$GITHUB_OUTPUT"
-              ;;
-          esac
-
       - name: Invalidate CloudFront cache for MFEs (${{ matrix.env }})
-        if: steps.pick.outputs.dist_id != '' && steps.paths.outputs.paths != ''
         run: |
-          echo "Creating CloudFront invalidation for distribution: ${{ steps.pick.outputs.dist_id }}"
-          echo "Invalidating paths: ${{ steps.paths.outputs.paths }}"
-          echo "MFE selection: ${{ steps.paths.outputs.description }}"
+          echo "Creating CloudFront invalidation"
           aws cloudfront create-invalidation \
             --distribution-id "${{ steps.pick.outputs.dist_id }}" \
-            --paths ${{ steps.paths.outputs.paths }}
+            --paths "/*"
           echo "✅ CloudFront invalidation created successfully!"
 
   slack-update:
