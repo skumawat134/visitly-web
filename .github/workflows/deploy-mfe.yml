@@ -78,7 +78,7 @@ jobs:
               echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             development)
-              echo "command=build" >> "$GITHUB_OUTPUT"
+              echo "command=dev" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "command=build" >> "$GITHUB_OUTPUT"
@@ -86,14 +86,22 @@ jobs:
           esac
 
       - name: Build shell app
-        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
-        run: yarn workspace @visitly/shell run ${{ steps.shell-build.outputs.command }}
+        if: inputs.mfe_selection == 'shell'
+        run: yarn ${{ steps.shell-build.outputs.command }} --filter @visitly/shell
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
       - name: Build auth-mfe
-        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
-        run: yarn workspace @visitly/auth-mfe run build
+        if: inputs.mfe_selection == 'auth-mfe'
+        run: yarn ${{ steps.shell-build.outputs.command }} --filter @visitly/auth-mfe
+        env:
+          VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+
+      - name: Build auth-mfe
+        if: inputs.mfe_selection == 'both'
+        run: yarn ${{ steps.shell-build.outputs.command }}
+        env:
+          VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
       - name: Upload shell build artifacts
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
