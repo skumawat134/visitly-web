@@ -1,0 +1,365 @@
+name: Deploy Micro Frontends to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      mfe_selection:
+        description: 'Which MFE(s) to deploy'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - shell
+          - auth-mfe
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  NODE_OPTIONS: --openssl-legacy-provider
+
+jobs:
+  determine-targets:
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.set.outputs.targets }}
+    timeout-minutes: 2
+    steps:
+      - id: set
+        run: |
+          # Decide which envs to deploy/invalidate
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.environment }}" == "production" ]]; then
+            echo 'targets=["production"]' >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.environment }}" == "staging" ]]; then
+            echo 'targets=["development","staging"]' >> "$GITHUB_OUTPUT"   # dev first, then staging
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.environment }}" == "development" ]]; then
+            echo 'targets=["development"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'targets=[]' >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: determine-targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Determine shell build command
+        id: shell-build
+        run: |
+          case "${{ inputs.environment }}" in
+            production)
+              echo "command=build" >> "$GITHUB_OUTPUT"
+              ;;
+            staging)
+              echo "command=build:staging" >> "$GITHUB_OUTPUT"
+              ;;
+            development)
+              echo "command=build:dev-test" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "command=build" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Build shell app
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
+        run: npm run ${{ steps.shell-build.outputs.command }} --workspace=@visitly/shell
+        env:
+          VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+
+      - name: Build auth-mfe
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
+        run: npm run build --workspace=@visitly/auth-mfe
+
+      - name: Upload shell build artifacts
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
+        uses: actions/upload-artifact@v5
+        with:
+          name: shell-dist
+          path: apps/shell/dist/
+          retention-days: 7
+
+      - name: Upload auth-mfe build artifacts
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
+        uses: actions/upload-artifact@v5
+        with:
+          name: auth-mfe-dist
+          path: apps/auth-mfe/dist/
+          retention-days: 7
+
+  deploy-shell:
+    needs: [determine-targets, build]
+    if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
+      max-parallel: 1
+    environment: ${{ matrix.env }}
+    steps:
+      - name: Download shell build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: shell-dist
+          path: dist/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
+          role-session-name: GitHubActions-Deploy-Shell-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify AWS credentials
+        run: |
+          echo "Environment: ${{ matrix.env }}"
+          echo "✅ AWS credentials configured successfully!"
+          echo "Current AWS identity:"
+          aws sts get-caller-identity
+          echo "Deploying shell MFE to ${{ matrix.env }} environment"
+
+      - name: Deploy shell to S3
+        run: |
+          echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/shell/"
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/shell/ --delete
+          echo "✅ Shell MFE deployed successfully!"
+
+  deploy-auth-mfe:
+    needs: [determine-targets, build]
+    if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
+      max-parallel: 1
+    environment: ${{ matrix.env }}
+    steps:
+      - name: Download auth-mfe build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: auth-mfe-dist
+          path: dist/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
+          role-session-name: GitHubActions-Deploy-AuthMFE-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify AWS credentials
+        run: |
+          echo "Environment: ${{ matrix.env }}"
+          echo "✅ AWS credentials configured successfully!"
+          echo "Current AWS identity:"
+          aws sts get-caller-identity
+          echo "Deploying auth-mfe to ${{ matrix.env }} environment"
+
+      - name: Deploy auth-mfe to S3
+        run: |
+          echo "Deploying auth-mfe to s3://${{ secrets.S3_BUCKET_NAME }}/auth-mfe/"
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/auth-mfe/ --delete
+          echo "✅ Auth MFE deployed successfully!"
+
+  invalidate:
+    needs: [determine-targets, build, deploy-shell, deploy-auth-mfe]
+    if: always() && needs.determine-targets.result == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
+      max-parallel: 1
+    environment: ${{ matrix.env }}
+    timeout-minutes: 5
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
+          role-session-name: GitHubActions-Invalidate-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify AWS credentials
+        run: |
+          echo "Environment: ${{ matrix.env }}"
+          echo "✅ AWS credentials configured successfully!"
+          echo "Current AWS identity:"
+          aws sts get-caller-identity
+          echo "Preparing CloudFront invalidation for ${{ matrix.env }} environment"
+
+      - name: Pick distribution ID for ${{ matrix.env }}
+        id: pick
+        shell: bash
+        run: |
+          case "${{ matrix.env }}" in
+            production)
+              echo "dist_id=${{ secrets.CLOUD_FRONT_DISTRIBUTION_ID }}" >> "$GITHUB_OUTPUT"
+              ;;
+            staging)
+              echo "dist_id=${{ secrets.STG_CLOUD_FRONT_DISTRIBUTION_ID }}" >> "$GITHUB_OUTPUT"
+              ;;
+            development)
+              echo "dist_id=${{ secrets.DEV_CLOUD_FRONT_DISTRIBUTION_ID }}" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "dist_id=" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Determine invalidation paths for ${{ matrix.env }}
+        id: paths
+        shell: bash
+        run: |
+          case "${{ inputs.mfe_selection }}" in
+            both)
+              echo "paths=/shell/* /auth-mfe/*" >> "$GITHUB_OUTPUT"
+              echo "description=Shell and Auth MFE" >> "$GITHUB_OUTPUT"
+              ;;
+            shell)
+              echo "paths=/shell/*" >> "$GITHUB_OUTPUT"
+              echo "description=Shell only" >> "$GITHUB_OUTPUT"
+              ;;
+            auth-mfe)
+              echo "paths=/auth-mfe/*" >> "$GITHUB_OUTPUT"
+              echo "description=Auth MFE only" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "paths=" >> "$GITHUB_OUTPUT"
+              echo "description=None" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Invalidate CloudFront cache for MFEs (${{ matrix.env }})
+        if: steps.pick.outputs.dist_id != '' && steps.paths.outputs.paths != ''
+        run: |
+          echo "Creating CloudFront invalidation for distribution: ${{ steps.pick.outputs.dist_id }}"
+          echo "Invalidating paths: ${{ steps.paths.outputs.paths }}"
+          echo "MFE selection: ${{ steps.paths.outputs.description }}"
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.pick.outputs.dist_id }}" \
+            --paths ${{ steps.paths.outputs.paths }}
+          echo "✅ CloudFront invalidation created successfully!"
+
+  slack-update:
+    name: Slack Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [determine-targets, invalidate]
+    if: always()
+    steps:
+      - name: Extract and format environment list
+        id: extract
+        env:
+          TARGETS: ${{ needs.determine-targets.outputs.targets }}
+        run: |
+          echo "Raw targets: $TARGETS"
+          ENVIRONMENTS=$(echo "$TARGETS" | jq -r '. | join(", ")')
+          echo "ENVIRONMENTS=$ENVIRONMENTS" >> "$GITHUB_ENV"
+
+      - name: Determine deployment status
+        id: status
+        run: |
+          if [[ "${{ needs.invalidate.result }}" == "success" ]]; then
+            echo "STATUS_ICON=🟢" >> "$GITHUB_ENV"
+            echo "STATUS_MESSAGE=Micro Frontend deployment completed for: ${{ env.ENVIRONMENTS }}" >> "$GITHUB_ENV"
+          else
+            echo "STATUS_ICON=🔴" >> "$GITHUB_ENV"
+            echo "STATUS_MESSAGE=Micro Frontend deployment failed for: ${{ env.ENVIRONMENTS }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Format deployed MFEs
+        id: mfes
+        run: |
+          case "${{ inputs.mfe_selection }}" in
+            both)
+              echo "deployed=Shell, Auth MFE" >> "$GITHUB_OUTPUT"
+              ;;
+            shell)
+              echo "deployed=Shell" >> "$GITHUB_OUTPUT"
+              ;;
+            auth-mfe)
+              echo "deployed=Auth MFE" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "deployed=Unknown" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Send Slack notification
+        if: vars.SLACK_WEBHOOK != '' || secrets.SLACK_WEBHOOK != ''
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          EVENT: ${{ github.event_name }}
+          ENVIRONMENTS: ${{ env.ENVIRONMENTS }}
+          RUN_ID: ${{ github.run_id }}
+          STATUS_ICON: ${{ env.STATUS_ICON }}
+          STATUS_MESSAGE: ${{ env.STATUS_MESSAGE }}
+          DEPLOYED_MFES: ${{ steps.mfes.outputs.deployed }}
+        run: |
+          set -euo pipefail
+
+          INVAL_TAG="CloudFront invalidation triggered. Run ID: $RUN_ID"
+
+          payload=$(jq -n \
+            --arg title "$STATUS_ICON $STATUS_MESSAGE" \
+            --arg repo "$REPO" \
+            --arg branch "$BRANCH" \
+            --arg envs "$ENVIRONMENTS" \
+            --arg event "$EVENT" \
+            --arg actor "$ACTOR" \
+            --arg runid "$RUN_ID" \
+            --arg cf "$INVAL_TAG" \
+            --arg mfes "$DEPLOYED_MFES" \
+            '{
+              text: $title,
+              blocks: [
+                {
+                  "type": "section",
+                  "text": {
+                     "type": "mrkdwn",
+                     "text": (
+                       "*\($title)*\n" +
+                       "*Repository:* \($repo)\n" +
+                       "*Branch:* \($branch)\n" +
+                       "*Environment(s):* \($envs)\n" +
+                       "*Triggered by:* \($actor)\n" +
+                       "*Event Type:* \($event)\n" +
+                       "*CloudFront:* \($cf)\n" +
+                       "*Deployed MFEs:* \($mfes)"
+                     )
+                  }
+                }
+              ]
+            }'
+          )
+
+          curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK"
+          echo "✅ Slack notification sent successfully!"
