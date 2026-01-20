@@ -3,6 +3,9 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
 const Dotenv = require("dotenv-webpack");
+const tailwindPostcssModule = require("@tailwindcss/postcss");
+const tailwindPostcssPlugin =
+  (tailwindPostcssModule && tailwindPostcssModule.default) || tailwindPostcssModule;
 // const envFile = `./.env.${process.env.NODE_ENV || "development"}`;
 // require('dotenv').config({ path: envFile });
 
@@ -55,7 +58,8 @@ module.exports = (env) => {
               loader: "postcss-loader",
               options: {
                 postcssOptions: {
-                  plugins: [require("@tailwindcss/postcss")],
+                  // Tailwind v4 PostCSS plugin (CJS/ESM-safe)
+                  plugins: [tailwindPostcssPlugin],
                 },
               },
             },
