@@ -99,9 +99,39 @@ jobs:
 
       - name: Build Both
         if: inputs.mfe_selection == 'both'
-        run: yarn ${{ steps.shell-build.outputs.command }}
+        #run: yarn ${{ steps.shell-build.outputs.command }}
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          echo "=== Current directory ==="
+          pwd
+
+          echo "=== Root contents ==="
+          ls -la
+
+          echo "=== apps ==="
+          ls -la apps || true
+          ls -la apps/auth-mfe || true
+          ls -la apps/auth-mfe/dist || true
+          ls -la apps/shell || true
+          ls -la apps/shell/dist || true
+
+          echo "=== packages ==="
+          ls -la packages || true
+          ls -la packages/ui || true
+          ls -la packages/ui/dist || true
+
+          echo "=== node_modules/@visitly/ui ==="
+          ls -la node_modules/@visitly || true
+          ls -la node_modules/@visitly/ui || true
+          ls -la node_modules/@visitly/ui/dist || true
+          cat node_modules/@visitly/ui/package.json || true
+
+          echo "=== Running build from repo root ==="
+          yarn ${{ steps.shell-build.outputs.command }}  
 
       - name: Upload shell build artifacts
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
