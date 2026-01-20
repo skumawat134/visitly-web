@@ -8,8 +8,8 @@
     "watch": "webpack --watch"
   },
   "dependencies": {
-    "@visitly/app-store": "^0.0.1",
     "@visitly/api-client": "*",
+    "@visitly/app-store": "^0.0.1",
     "@visitly/ui": "*",
     "formik": "^2.4.9",
     "react": "18.3.1",
@@ -36,6 +36,7 @@
     "ts-loader": "^9.x",
     "typescript": "^5.9.2",
     "webpack": "^5.104.1",
+    "webpack-bundle-analyzer": "^5.1.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2",
     "workbox-webpack-plugin": "^7.4.0"

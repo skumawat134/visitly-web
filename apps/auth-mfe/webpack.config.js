@@ -84,7 +84,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const {ModuleFederationPlugin} = require("webpack").container;
-
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 module.exports = {
   entry: "./src/index.tsx",
   output: {
@@ -169,6 +169,11 @@ module.exports = {
           },
       },
   }),
+  new BundleAnalyzerPlugin({
+    analyzerMode: 'static',           // or 'server'
+    openAnalyzer: true,
+    reportFilename: 'bundle-report.html'
+  })
   ],
   devServer: {
      proxy: [
