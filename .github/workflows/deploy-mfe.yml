@@ -319,6 +319,7 @@ jobs:
           esac
 
       - name: Send Slack notification
+        if: inputs.mfe_selection == 'none'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           REPO: ${{ github.repository }}
