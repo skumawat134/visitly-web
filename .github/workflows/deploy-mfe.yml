@@ -78,7 +78,7 @@ jobs:
               echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             development)
-              echo "command=dev" >> "$GITHUB_OUTPUT"
+              echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "command=build" >> "$GITHUB_OUTPUT"
