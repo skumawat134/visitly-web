@@ -19,7 +19,7 @@ module.exports = (env) => {
     output: {
       filename: "[name].[contenthash].js",
       path: path.resolve(__dirname, "dist"),
-      publicPath: "/", // Important: "/" for host (relative paths work best in prod)
+      publicPath: "auto", // Auto-detect publicPath for Module Federation
     },
     resolve: {
       extensions: [".tsx", ".ts", ".js"],
