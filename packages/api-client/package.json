@@ -17,8 +17,10 @@
     "author": "skumawat@visitly.io",
     "license": "MIT",
     "private": true,
+    "peerDependencies" :{
+      "@tanstack/react-query": "^5.90.17"
+    },
     "dependencies": {
-      "@tanstack/react-query": "^5.90.17",
       "axios": "^1.13.2"
     },
     "devDependencies": {

@@ -83,7 +83,7 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const {ModuleFederationPlugin} = require("webpack").container;
+const { ModuleFederationPlugin } = require("webpack").container;
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 module.exports = {
   entry: "./src/index.tsx",
@@ -120,14 +120,14 @@ module.exports = {
       {
         test: /\.css$/i,
         use: [
-            "style-loader",
-            {
-              loader: "css-loader",
-              options: { 
-                importLoaders: 1 // Crucial: passes @imports back to postcss-loader
-              },
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              importLoaders: 1 // Crucial: passes @imports back to postcss-loader
             },
-            
+          },
+
         ],
       },
       {
@@ -139,6 +139,11 @@ module.exports = {
       },
     ],
   },
+  "externals": {
+    "react": "React",
+    "react-dom": "ReactDOM",
+    "react/jsx-runtime": "JSXRuntime"
+  },
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
@@ -148,47 +153,47 @@ module.exports = {
       name: "auth_mfe",
       filename: "remoteEntry.js",
       exposes: {
-          // './Login': './src/Login',
-          // './About': './src/components/About',
-          './AppRouter': './src/App',
+        // './Login': './src/Login',
+        // './About': './src/components/About',
+        './AppRouter': './src/App',
       },
       shared: {
-          react: { singleton: true, requiredVersion: '^18.2.0' },
-          'react-router-dom': { singleton: true, requiredVersion: false },
-          "react-dom": { singleton: true, requiredVersion: '^18.2.0' },
-          'react/jsx-runtime': {
-            singleton: true,
-            requiredVersion: false,
-          },
-          zustand: { singleton: true, requiredVersion: '^5.0.10'},
-          "@visitly/app-store" : {singleton : true},
-          "@visitly/api-client": { singleton: true },
-          "@tanstack/react-query": {
-            singleton: true,
-            requiredVersion: "^5.90.17"
-          },
+        react: { singleton: true, requiredVersion: '^18.2.0' },
+        'react-router-dom': { singleton: true, requiredVersion: false },
+        "react-dom": { singleton: true, requiredVersion: '^18.2.0' },
+        'react/jsx-runtime': {
+          singleton: true,
+          requiredVersion: false,
+        },
+        zustand: { singleton: true, requiredVersion: '^5.0.10' },
+        "@visitly/app-store": { singleton: true },
+        "@visitly/api-client": { singleton: true },
+        "@tanstack/react-query": {
+          singleton: true,
+          requiredVersion: "^5.90.17"
+        },
       },
-  }),
-  new BundleAnalyzerPlugin({
-    analyzerMode: 'static',           // or 'server'
-    openAnalyzer: true,
-    reportFilename: 'bundle-report.html'
-  })
+    }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',           // or 'server'
+      openAnalyzer: true,
+      reportFilename: 'bundle-report.html'
+    })
   ],
   devServer: {
-     proxy: [
-             {
-               context: ['/assets', '/styles.css','/data-table.woff','/data-table.ttf'],
-               target: 'http://localhost:4200', // Redirect requests for /assets to the Auth MFE
-               changeOrigin: true,
-             },
-           ],
+    proxy: [
+      {
+        context: ['/assets', '/styles.css', '/data-table.woff', '/data-table.ttf'],
+        target: 'http://localhost:4200', // Redirect requests for /assets to the Auth MFE
+        changeOrigin: true,
+      },
+    ],
     static: "./dist",
     hot: true,
     historyApiFallback: true,
     port: 3006,
     open: true,
   },
-  
+
   mode: "development",
 };
