@@ -200,7 +200,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
           role-session-name: GitHubActions-Invalidate-${{ matrix.env }}-${{ github.run_id }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Verify AWS credentials
         run: |
