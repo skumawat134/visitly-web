@@ -176,7 +176,7 @@ module.exports = {
     }),
     new BundleAnalyzerPlugin({
       analyzerMode: 'static',           // or 'server'
-      openAnalyzer: true,
+      openAnalyzer: false,
       reportFilename: 'bundle-report.html'
     })
   ],
@@ -195,5 +195,5 @@ module.exports = {
     open: true,
   },
 
-  mode: "development",
+  //mode: "development",
 };
