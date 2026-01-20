@@ -148,14 +148,6 @@ jobs:
           role-session-name: GitHubActions-portal-web-Shell-${{ matrix.env }}-${{ github.run_id }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Verify AWS credentials
-        run: |
-          echo "Environment: ${{ matrix.env }}"
-          echo "✅ AWS credentials configured successfully!"
-          echo "Current AWS identity:"
-          aws sts get-caller-identity
-          echo "Deploying shell MFE to ${{ matrix.env }} environment"
-
       - name: Deploy shell to S3
         run: |
           echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/shell/"
@@ -185,14 +177,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
           role-session-name: GitHubActions-Deploy--portal-web-AuthMFE-${{ matrix.env }}-${{ github.run_id }}
           aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Verify AWS credentials
-        run: |
-          echo "Environment: ${{ matrix.env }}"
-          echo "✅ AWS credentials configured successfully!"
-          echo "Current AWS identity:"
-          aws sts get-caller-identity
-          echo "Deploying auth-mfe to ${{ matrix.env }} environment"
 
       - name: Deploy auth-mfe to S3
         run: |
