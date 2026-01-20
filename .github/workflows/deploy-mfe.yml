@@ -118,11 +118,10 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          pwd
-          echo "=== find apps (maxdepth 4) ==="
-          find apps -maxdepth 4 -type d -print
-          echo "=== find dist folders ==="
-          find apps -maxdepth 6 -type d -name dist -print    
+          echo "=== dist directories ==="
+          find apps -maxdepth 6 -type d -name dist -print
+          echo "=== dist files (top 50) ==="
+          find apps -maxdepth 6 -type d -name dist -print0 | xargs -0 -I{} sh -c 'echo "--- {} ---"; ls -la "{}" | head -n 50'
 
       - name: Verify UI dist output
         shell: bash
