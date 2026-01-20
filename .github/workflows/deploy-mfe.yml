@@ -150,8 +150,8 @@ jobs:
 
       - name: Deploy shell to S3
         run: |
-          echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/shell/"
-          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/shell/ --delete
+          echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/ (root, excluding auth-mfe)"
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --exclude "auth-mfe/*"
           echo "✅ Shell MFE deployed successfully!"
 
   deploy-auth-mfe:
@@ -235,11 +235,11 @@ jobs:
         run: |
           case "${{ inputs.mfe_selection }}" in
             both)
-              echo "paths=/shell/* /auth-mfe/*" >> "$GITHUB_OUTPUT"
+              echo "paths=/* /auth-mfe/*" >> "$GITHUB_OUTPUT"
               echo "description=Shell and Auth MFE" >> "$GITHUB_OUTPUT"
               ;;
             shell)
-              echo "paths=/shell/*" >> "$GITHUB_OUTPUT"
+              echo "paths=/*" >> "$GITHUB_OUTPUT"
               echo "description=Shell only" >> "$GITHUB_OUTPUT"
               ;;
             auth-mfe)
