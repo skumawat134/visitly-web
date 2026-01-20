@@ -311,7 +311,6 @@ jobs:
           esac
 
       - name: Send Slack notification
-        if: secrets.SLACK_WEBHOOK != ''
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           REPO: ${{ github.repository }}
