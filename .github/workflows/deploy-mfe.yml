@@ -61,11 +61,11 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --frozen-lockfile
 
       - name: Determine shell build command
         id: shell-build
@@ -75,10 +75,10 @@ jobs:
               echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             staging)
-              echo "command=build:staging" >> "$GITHUB_OUTPUT"
+              echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             development)
-              echo "command=build:dev-test" >> "$GITHUB_OUTPUT"
+              echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "command=build" >> "$GITHUB_OUTPUT"
@@ -87,13 +87,13 @@ jobs:
 
       - name: Build shell app
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
-        run: npm run ${{ steps.shell-build.outputs.command }} --workspace=@visitly/shell
+        run: yarn workspace @visitly/shell run ${{ steps.shell-build.outputs.command }}
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
       - name: Build auth-mfe
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
-        run: npm run build --workspace=@visitly/auth-mfe
+        run: yarn workspace @visitly/auth-mfe run build
 
       - name: Upload shell build artifacts
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
@@ -311,7 +311,6 @@ jobs:
           esac
 
       - name: Send Slack notification
-        if: vars.SLACK_WEBHOOK != '' || secrets.SLACK_WEBHOOK != ''
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           REPO: ${{ github.repository }}
