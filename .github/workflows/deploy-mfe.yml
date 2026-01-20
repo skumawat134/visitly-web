@@ -75,10 +75,10 @@ jobs:
               echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             staging)
-              echo "command=build:staging" >> "$GITHUB_OUTPUT"
+              echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             development)
-              echo "command=build:dev-test" >> "$GITHUB_OUTPUT"
+              echo "command=build" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "command=build" >> "$GITHUB_OUTPUT"
