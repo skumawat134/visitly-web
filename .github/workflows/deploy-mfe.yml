@@ -102,36 +102,12 @@ jobs:
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
-      - name: Show apps tree (pre-build)
-        shell: bash
-        run: |
-          find apps -maxdepth 4 -type d -print
-          
       - name: Build Both
         if: inputs.mfe_selection == 'both'
         run: yarn ${{ steps.shell-build.outputs.command }}
-        continue-on-error: true
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
-      - name: Show apps tree
-        shell: bash
-        run: |
-          set -euxo pipefail
-          echo "=== dist directories ==="
-          find apps -maxdepth 6 -type d -name dist -print
-          echo "=== dist files (top 50) ==="
-          find apps -maxdepth 6 -type d -name dist -print0 | xargs -0 -I{} sh -c 'echo "--- {} ---"; ls -la "{}" | head -n 50'
-
-      - name: Verify UI dist output
-        shell: bash
-        run: |
-          set -euxo pipefail
-          ls -la packages/ui || true
-          ls -la packages/ui/dist || true
-          test -f packages/ui/dist/index.js
-          test -f packages/ui/dist/index.d.ts
-          
       - name: Upload shell build artifacts
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
         uses: actions/upload-artifact@v5
@@ -169,8 +145,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
-          role-session-name: GitHubActions-Deploy-Shell-${{ matrix.env }}-${{ github.run_id }}
-          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: GitHubActions-portal-web-Shell-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Verify AWS credentials
         run: |
@@ -207,8 +183,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
-          role-session-name: GitHubActions-Deploy-AuthMFE-${{ matrix.env }}-${{ github.run_id }}
-          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: GitHubActions-Deploy--portal-web-AuthMFE-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Verify AWS credentials
         run: |
