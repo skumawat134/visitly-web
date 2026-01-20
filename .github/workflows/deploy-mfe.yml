@@ -97,7 +97,7 @@ jobs:
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
-      - name: Build auth-mfe
+      - name: Build Both
         if: inputs.mfe_selection == 'both'
         run: yarn ${{ steps.shell-build.outputs.command }}
         env:
