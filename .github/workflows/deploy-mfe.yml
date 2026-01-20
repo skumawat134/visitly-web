@@ -102,42 +102,27 @@ jobs:
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
+      - name: Show apps tree (pre-build)
+        shell: bash
+        run: |
+          find apps -maxdepth 4 -type d -print
+          
       - name: Build Both
         if: inputs.mfe_selection == 'both'
-        #run: yarn ${{ steps.shell-build.outputs.command }}
+        run: yarn ${{ steps.shell-build.outputs.command }}
         continue-on-error: true
         env:
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+
+      - name: Show apps tree
         shell: bash
         run: |
           set -euxo pipefail
-
-          echo "=== Current directory ==="
           pwd
-
-          echo "=== Root contents ==="
-          ls -la
-
-          echo "=== apps ==="
-          ls -la apps || true
-          ls -la apps/auth-mfe || true
-          ls -la apps/auth-mfe/dist || true
-          ls -la apps/shell || true
-          ls -la apps/shell/dist || true
-
-          echo "=== packages ==="
-          ls -la packages || true
-          ls -la packages/ui || true
-          ls -la packages/ui/dist || true
-
-          echo "=== node_modules/@visitly/ui ==="
-          ls -la node_modules/@visitly || true
-          ls -la node_modules/@visitly/ui || true
-          ls -la node_modules/@visitly/ui/dist || true
-          cat node_modules/@visitly/ui/package.json || true
-
-          echo "=== Running build from repo root ==="
-          yarn ${{ steps.shell-build.outputs.command }}  
+          echo "=== find apps (maxdepth 4) ==="
+          find apps -maxdepth 4 -type d -print
+          echo "=== find dist folders ==="
+          find apps -maxdepth 6 -type d -name dist -print    
 
       - name: Verify UI dist output
         shell: bash
