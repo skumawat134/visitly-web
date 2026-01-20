@@ -52,6 +52,11 @@ jobs:
   build:
     needs: determine-targets
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
+      max-parallel: 1
+    environment: ${{ matrix.env }}
     timeout-minutes: 10
     steps:
       - name: Checkout code
@@ -137,17 +142,17 @@ jobs:
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
         uses: actions/upload-artifact@v5
         with:
-          name: shell-dist
+          name: shell-dist-${{ matrix.env }}
           path: apps/shell/dist/
-          retention-days: 7
+          retention-days: 1
 
       - name: Upload auth-mfe build artifacts
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
         uses: actions/upload-artifact@v5
         with:
-          name: auth-mfe-dist
+          name: auth-mfe-dist-${{ matrix.env }}
           path: apps/auth-mfe/dist/
-          retention-days: 7
+          retention-days: 1
 
   deploy-shell:
     needs: [determine-targets, build]
@@ -163,7 +168,7 @@ jobs:
       - name: Download shell build artifacts
         uses: actions/download-artifact@v6
         with:
-          name: shell-dist
+          name: shell-dist-${{ matrix.env }}
           path: dist/
 
       - name: Configure AWS credentials
@@ -201,7 +206,7 @@ jobs:
       - name: Download auth-mfe build artifacts
         uses: actions/download-artifact@v6
         with:
-          name: auth-mfe-dist
+          name: auth-mfe-dist-${{ matrix.env }}
           path: dist/
 
       - name: Configure AWS credentials
