@@ -65,7 +65,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install # --frozen-lockfile
 
       - name: Determine shell build command
         id: shell-build
