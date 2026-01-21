@@ -1,22 +1,36 @@
-import { useMutation } from "@tanstack/react-query";
-import { loginApi } from "../services/auth.api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getUserInfoApi, loginApi } from "../services/auth.api";
 import type { LoginPayload, LoginResponse } from "../types/auth.types";
 import { useAuthStore } from "@visitly/app-store";
 import { useUserInfoQuery } from "./useFetchUserInfo";
+import { getProductInfo } from "./entitlement.api";
 
 export function useLoginMutation() {
-    // const setUser = useAuthStore((s) => s.setUser);
-  const setTokens = useAuthStore((s) => s.setTokens);
-
+    const queryClient = useQueryClient();
+    const qc = queryClient;
+    const setTokens = useAuthStore((s) => s.setTokens);
     return useMutation<LoginResponse, Error, LoginPayload>({
         mutationKey: ["auth", "login"],
         mutationFn: loginApi,
-        onSuccess(data) {
+        onSuccess: async (data) => {
             setTokens({
                 accessToken: data.accessToken,
                 refreshToken: data.refreshToken,
+            });
+            sessionStorage.setItem('accessToken', `Bearer ${data.accessToken}`);
+            // 2. Prefetch user profile → creates/fills cache
+            const user = await qc.fetchQuery({
+                queryKey: ['auth', 'me'],
+                queryFn: getUserInfoApi,
               });
-              sessionStorage.setItem('accessToken', `Bearer ${data.accessToken}`);
+              
+              // Now user is available
+              if (user?.orgId) {
+                await qc.fetchQuery({
+                  queryKey: ['entitlements', user.orgId],
+                  queryFn: () => getProductInfo(user.orgId),
+                });
+              }
         },
         onError: (error) => {
             console.error("Login failed", error.message);

@@ -9,7 +9,7 @@ const useLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [step, setStep] = useState<'email' | 'password' | 'sso'>('email');
     const [ssoUrl, setSsoUrl] = useState<string | null>(null);
-    const { mutate } = useLoginMutation();
+    const { mutateAsync: login } = useLoginMutation();
     const checkSSO = useSsoMutation();
     const navigate = useNavigate();
     const validationSchema = Yup.object({
@@ -29,7 +29,7 @@ const useLogin = () => {
             password: '',
         },
         validationSchema,
-        onSubmit: (values, { setSubmitting }) => {
+        onSubmit: async (values, { setSubmitting }) => {
             if (step === 'sso') {
                 if (ssoUrl) window.location.href = ssoUrl;
                 return;
@@ -39,14 +39,10 @@ const useLogin = () => {
                 // If we haven't asked for password yet and it's not SSO, technically we should check logic.
                 // But for this single page flow, we'll assume we submit credentials together or check password presence
                 if (!values.password) return; // Should be handled by YUP but double check
-                mutate({ email: values.email, password: values.password }, 
-                    {
-                    onSuccess: () => {
-                        setSubmitting(false);
-                        navigate('/admin')
-                    }
-                })
-
+                await login({ email: values.email, password: values.password });
+                debugger
+                setSubmitting(false);
+                navigate('/admin')
             }
         },
     });
