@@ -4,8 +4,9 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**"]
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "**/.env*"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_AUTH_MFE_REMOTE_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]

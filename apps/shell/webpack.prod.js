@@ -8,7 +8,7 @@ module.exports = (env) => {
   return (merge(common(env), {
     mode: "production",
     output: {
-      publicPath: "/",
+      publicPath: "auto",
       filename: "[name].[contenthash].js", // Content hash for caching
       clean: true,
     },

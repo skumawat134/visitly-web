@@ -3,6 +3,9 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
 const Dotenv = require("dotenv-webpack");
+const tailwindPostcssModule = require("@tailwindcss/postcss");
+const tailwindPostcssPlugin =
+  (tailwindPostcssModule && tailwindPostcssModule.default) || tailwindPostcssModule;
 // const envFile = `./.env.${process.env.NODE_ENV || "development"}`;
 // require('dotenv').config({ path: envFile });
 
@@ -16,7 +19,7 @@ module.exports = (env) => {
     output: {
       filename: "[name].[contenthash].js",
       path: path.resolve(__dirname, "dist"),
-      publicPath: "/", // Important: "/" for host (relative paths work best in prod)
+      publicPath: "auto", // Auto-detect publicPath for Module Federation
     },
     resolve: {
       extensions: [".tsx", ".ts", ".js"],
@@ -55,7 +58,8 @@ module.exports = (env) => {
               loader: "postcss-loader",
               options: {
                 postcssOptions: {
-                  plugins: [require("@tailwindcss/postcss")],
+                  // Tailwind v4 PostCSS plugin (CJS/ESM-safe)
+                  plugins: [tailwindPostcssPlugin],
                 },
               },
             },
@@ -81,7 +85,7 @@ module.exports = (env) => {
         name: "shell",
         filename: "remoteEntry.js",
         remotes: {
-          'AuthMFE': `auth_mfe@${process.env.VITE_AUTH_MFE_REMOTE_URL}/remoteEntry.js`,        // Add other remotes here as needed
+          'AuthMFE': `auth_mfe@${process.env.VITE_AUTH_MFE_REMOTE_URL || 'http://localhost:3006'}/remoteEntry.js`,        // Add other remotes here as needed
           'visitlyAngular': 'visitlyAngular@http://localhost:4200/remoteEntry.js',
         },
         shared: {

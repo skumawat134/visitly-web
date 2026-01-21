@@ -2,6 +2,9 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
+const tailwindPostcssModule = require("@tailwindcss/postcss");
+const tailwindPostcssPlugin =
+  (tailwindPostcssModule && tailwindPostcssModule.default) || tailwindPostcssModule;
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -49,10 +52,8 @@ module.exports = {
             loader: "postcss-loader",
             options: {
               postcssOptions: {
-                plugins: [
-                  // Explicitly require the v4 plugin here
-                  require("@tailwindcss/postcss"),
-                ],
+                // Tailwind v4 PostCSS plugin (CJS/ESM-safe)
+                plugins: [tailwindPostcssPlugin],
               },
             },
           },
