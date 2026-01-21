@@ -10,7 +10,7 @@ export const MailInbox = () => {
             <div className="tw:mt-12 tw:mb-12">
                 <img src={appLogo} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo-image" />
             </div>
-            <div className="tw:max-w-xl tw:w-full tw:bg-white tw:p-8 tw:rounded-lg tw:shadow-md tw:text-center"
+            <div className="tw:max-w-md tw:w-full tw:bg-white tw:p-8 tw:rounded-lg tw:shadow-md tw:text-center"
                 style={{ boxShadow: '0 0 5px 0 rgb(159, 159, 159)' }}
                 data-testid="mail-inbox-container">
                 <h2 className="tw:text-lg tw:font-bold tw:text-gray-900 tw:mb-4" data-testid="form-title">

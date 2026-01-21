@@ -10,6 +10,7 @@ export interface InputProps
   rightIcon?: React.ReactNode;
   rightIconClickable?: boolean;
   onRightIconClick?: () => void;
+  required?: boolean;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -24,6 +25,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       rightIconClickable = false,
       onRightIconClick,
       id,
+      required = false,
       ...props
     },
     ref
@@ -37,7 +39,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             htmlFor={inputId}
             className="tw:block tw:text-sm tw:font-medium  tw:mb-1.5"
           >
-            {label}
+           {required && <span className="tw:text-red-500">*</span>} {label}
           </label>
         )}
         <div className="tw:relative">

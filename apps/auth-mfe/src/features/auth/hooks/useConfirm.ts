@@ -28,7 +28,7 @@ export const useConfirm = () => {
             initCalendly(email || '');
         },
         onError: () => {
-            setViewState('error');
+           // setViewState('error');
         }
     });
 
@@ -37,7 +37,6 @@ export const useConfirm = () => {
 
     useEffect(() => {
         if (code && email) {
-             console.log('inside useEffect');
             setViewState('verifying');
             confirmMutation.mutate({ code, email });
         } else {

@@ -20,12 +20,12 @@ const COMPANY_LOGOS = [
     HitachiLogo,
     HyundaiLogo
 ];
-
+import '../css/confirm.css'
 const SuccessConfirmation : React.FC<{viewState: string | null}> = ({viewState}) => {
     return (
-         <div className="tw:min-h-screen tw:bg-white tw:flex  min-[992px]:tw:flex-row">
+         <div className="tw:min-h-screen tw:bg-white tw:flex tw:flex-col tw:min-[992px]:flex-row">
             {/* Left Panel */}
-            <div className="tw:w-full min-[992px]:tw:w-2/3 tw:flex tw:flex-col tw:justify-center tw:p-8 lg:tw:p-12 min-[992px]:tw:border-r tw:border-gray-100 tw:bg-white tw:z-10 tw:min-h-[50vh] min-[992px]:tw:min-h-screen min-[992px]:tw:w-1/2 tw:max-w-lg tw:mx-auto">
+            <div className="tw:w-full tw:min-[992px]:w-2/3 tw:flex tw:flex-col tw:justify-center tw:p-1 tw:lg:p-8 tw:min-[992px]:border-r tw:border-gray-100 tw:bg-white tw:z-10 tw:min-h-[50vh] tw:min-[992px]:min-h-screen tw:min-[992px]:w-1/2 tw:max-w-lg tw:mx-auto">
                 <div className="tw:w-full tw:max-w-md tw:flex tw:p-6 tw:flex-col tw:items-start">
                     {/* Logo */}
                     <div className="tw:w-full tw:mb-6 tw:pt-1 tw:px-2">
@@ -33,14 +33,10 @@ const SuccessConfirmation : React.FC<{viewState: string | null}> = ({viewState})
                     </div>
                     {/* Content */}
                     <div className="tw:w-full tw:mb-8 ">
-                        <h3 className="tw:text-2xl tw:font-bold tw:text-gray-900 tw:mb-3">Email Confirmation</h3>
-                        {viewState === 'verifying' ? (
-                            <p className="tw:text-gray-500 tw:animate-pulse">Verifying your email...</p>
-                        ) : (
-                            <p className="tw:text-[rgba(50, 53, 55, 0.7)] tw:text-[14px] tw:leading-relaxed">
+                        <h3 className="tw:text-[20px] tw:font-bold tw:text-gray-900 tw:mb-3">Email Confirmation</h3>
+                            <p className="gray tw:text-[14px] tw:leading-relaxed">
                                 You've successfully registered with Visitly! Click the button below to log in and get started.
                             </p>
-                        )}
                     </div>
                     {/* Action Button */}
                     <div className="tw:w-full tw:mb-10">
