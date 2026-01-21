@@ -85,8 +85,8 @@ module.exports = (env) => {
         name: "shell",
         filename: "remoteEntry.js",
         remotes: {
-          'AuthMFE': `auth_mfe@${process.env.VITE_AUTH_MFE_REMOTE_URL || 'http://localhost:3006'}/remoteEntry.js`,        // Add other remotes here as needed
-          'visitlyAngular': 'visitlyAngular@http://localhost:4200/remoteEntry.js',
+          'AuthMFE': `auth_mfe@${process.env.VITE_AUTH_MFE_REMOTE_URL}`,        // Add other remotes here as needed
+          'visitlyAngular': `visitlyAngular@${process.env.VITE_ANGULAR_MFE_REMOTE_URL}`,
         },
         shared: {
           react: { singleton: true, requiredVersion: "^18.2.0" },
