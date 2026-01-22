@@ -5,6 +5,9 @@ import { ssoCheckApi } from './auth.api';
 export const useSsoMutation = () => {
     return useMutation<SSOCheckResponse, Error, Pick<LoginPayload, "email">>({
         mutationKey: ["auth", "login"],
-        mutationFn: ssoCheckApi
+        mutationFn: ssoCheckApi,
+        meta :{
+            showLoader : false
+        }
     });
 }

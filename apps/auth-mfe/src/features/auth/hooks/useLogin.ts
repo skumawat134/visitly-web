@@ -86,7 +86,16 @@ const useLogin = () => {
 
   // Debounce email check for SSO
   useEffect(() => {
-    if (!formik.values.email || formik.errors.email) return;
+   const email = formik.values.email?.trim();
+
+  // ✅ RESET when email is cleared
+  if (!email) {
+    if (step === 'sso') {
+      setStep('email');
+      setSsoUrl(null);
+    }
+    return;
+  }
     const handler = setTimeout(() => {
       if (checkSSO.isPending) return;
       checkSSO.mutate(

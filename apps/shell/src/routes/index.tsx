@@ -5,6 +5,7 @@ import AuthMFE from '../mfe/AuthMFE';
 import Header from '@/components/Header';
 import { useState } from 'react';
 import LegacyMFE from '@/mfe/LegacyMFE';
+import NotFound from '@/components/NotFound';
 
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
@@ -14,10 +15,10 @@ function AppRouter() {
     <BrowserRouter>
      {/* <Header />  */}
         <Routes>
-          {/* <Route path="/visitly/" element={<LegacyMFE />} /> */}
           <Route path="/" element={<Navigate to="/visitly" replace />} />
           <Route path="/visitly/*" element={<AuthMFE />} />
           <Route path="/admin/*" element={<LegacyMFE />} />
+          <Route path="*" element = {<NotFound />} />
         </Routes>
     </BrowserRouter>
     </>

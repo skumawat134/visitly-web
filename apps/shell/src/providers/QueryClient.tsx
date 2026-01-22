@@ -6,7 +6,8 @@ import {
 } from "@visitly/api-client";
 import { toast } from "react-toastify";
 import { AuthState } from "@visitly/app-store";
-
+import { GlobalLoader } from "@/components/GlobalLoader";
+import FullScreenLoader from "@/components/FullScreenLoader";
 interface ZustandState <T>{
     state : T
 }
@@ -45,6 +46,8 @@ initApiClient({
 export function QueryClient({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
+      <GlobalLoader />
+      <FullScreenLoader />
       {children}
     </QueryClientProvider>
   );

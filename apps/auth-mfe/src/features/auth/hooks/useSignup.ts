@@ -183,7 +183,9 @@ export const useSignup = () => {
 
   const hubspotMutation = useMutation({
     mutationFn: createHubSpotApi,
-
+     meta: {
+    showLoader: false,
+     },
     onSuccess: () => {
       //  console.log('HubSpot integration successful');
     },
