@@ -160,7 +160,7 @@ jobs:
       - name: Deploy shell to S3
         run: |
           echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/ (root, excluding auth-mfe)"
-          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --exclude "auth-mfe/*"
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --exclude "auth-mfe/*" --exclude "angular-mfe/*"
           echo "✅ Shell MFE deployed successfully!"
 
   deploy-auth-mfe:
