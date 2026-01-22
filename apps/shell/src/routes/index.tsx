@@ -5,7 +5,10 @@ import AuthMFE from '../mfe/AuthMFE';
 import Header from '@/components/Header';
 import { useState } from 'react';
 import LegacyMFE from '@/mfe/LegacyMFE';
-import ProtectedRoute from '@/providers/AuthGuard';
+import  { RequireCapability } from '@/providers/RequireCapability';
+import AppLayout from '@/providers/AppLayout';
+import AuthInitializer from '@/providers/AuthInitializer';
+import { NavigationResolver } from '@/providers/NavigationResolver';
 
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
@@ -14,13 +17,18 @@ function AppRouter() {
     <>
       <BrowserRouter>
         {/* <Header />  */}
+         <AuthInitializer />      
+        <NavigationResolver />     
         <Routes>
           {/* <Route path="/visitly/" element={<LegacyMFE />} /> */}
           <Route path="/" element={<Navigate to="/visitly" replace />} />
           <Route path="/visitly/*" element={<AuthMFE />} />
-          <Route element={<ProtectedRoute />}>
-          <Route path="/admin/*" element={<LegacyMFE />} />
-          
+          <Route element={<AppLayout />}>
+            <Route path="/admin/*" element={
+              <RequireCapability  cap="ADMIN_ACCESS">
+                <LegacyMFE />
+              </RequireCapability>
+            } />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -5,12 +5,13 @@ import { useEffect } from "react";
 import { getUserInfoApi } from "@/shared/services/auth.api";
 
 export function useFetchUserInfo() {
-  const accessToken = useAuthStore((s) => s.tokens.accessToken);
+  const auth = useAuthStore();
   const setUser = useAuthStore((s) => s.setUser);
+  const enabled = auth.status === 'checking' && !!auth.tokens?.accessToken;
   const query = useQuery<UserResponse, Error>({
     queryKey: ['auth', 'me'],
     queryFn: getUserInfoApi,
-    enabled: !!accessToken,
+    enabled: enabled,
   });
   const { data: user } = query;
   

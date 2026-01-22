@@ -3,11 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { EntitlementsResponse } from '../types/entitlement.type';
 import { getProductInfo } from '../services/entitlement.api';
 
-export const useFetchEntitlements = (orgId?: string, enabled = false) => {
+export const useFetchEntitlements = (orgId?: string) => {
+  
     const query = useQuery<EntitlementsResponse, Error>({
         queryKey: ['entitlements', orgId],
         queryFn: () => getProductInfo(orgId!),
-        enabled: !!orgId && enabled,
+        enabled: !!orgId,
     });
     const { data } = query;
     useEffect(() => {
@@ -15,6 +16,7 @@ export const useFetchEntitlements = (orgId?: string, enabled = false) => {
         sessionStorage.setItem('entitlement', JSON.stringify(data));
         sessionStorage.setItem('flagForMenu' ,"false");
     }, [data]);
+    return query;
 };
 
 export default useFetchEntitlements

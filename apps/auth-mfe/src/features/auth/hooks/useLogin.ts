@@ -40,9 +40,8 @@ const useLogin = () => {
                 // But for this single page flow, we'll assume we submit credentials together or check password presence
                 if (!values.password) return; // Should be handled by YUP but double check
                 await login({ email: values.email, password: values.password });
-                debugger
                 setSubmitting(false);
-                navigate('/admin')
+                // navigate('/admin')
             }
         },
     });

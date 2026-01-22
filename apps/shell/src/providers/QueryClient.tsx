@@ -6,6 +6,8 @@ import {
 } from "@visitly/api-client";
 import { toast } from "react-toastify";
 import { AuthState } from "@visitly/app-store";
+import AuthInitializer from "./AuthInitializer";
+import { NavigationResolver } from "./NavigationResolver";
 
 interface ZustandState <T>{
     state : T
@@ -45,6 +47,8 @@ initApiClient({
 export function QueryClient({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
+      {/* <AuthInitializer />      
+      <NavigationResolver />      */}
       {children}
     </QueryClientProvider>
   );

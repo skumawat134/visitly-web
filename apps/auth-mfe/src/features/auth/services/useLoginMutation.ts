@@ -9,6 +9,7 @@ export function useLoginMutation() {
     const queryClient = useQueryClient();
     const qc = queryClient;
     const setTokens = useAuthStore((s) => s.setTokens);
+    const setChecking = useAuthStore((s)=>s.setChecking);
     return useMutation<LoginResponse, Error, LoginPayload>({
         mutationKey: ["auth", "login"],
         mutationFn: loginApi,
@@ -18,19 +19,20 @@ export function useLoginMutation() {
                 refreshToken: data.refreshToken,
             });
             sessionStorage.setItem('accessToken', `Bearer ${data.accessToken}`);
-            // 2. Prefetch user profile → creates/fills cache
-            const user = await qc.fetchQuery({
-                queryKey: ['auth', 'me'],
-                queryFn: getUserInfoApi,
-              });
+            // // 2. Prefetch user profile → creates/fills cache
+            // const user = await qc.fetchQuery({
+            //     queryKey: ['auth', 'me'],
+            //     queryFn: getUserInfoApi,
+            //   });
               
-              // Now user is available
-              if (user?.orgId) {
-                await qc.fetchQuery({
-                  queryKey: ['entitlements', user.orgId],
-                  queryFn: () => getProductInfo(user.orgId),
-                });
-              }
+            //   // Now user is available
+            //   if (user?.orgId) {
+            //     await qc.fetchQuery({
+            //       queryKey: ['entitlements', user.orgId],
+            //       queryFn: () => getProductInfo(user.orgId),
+            //     });
+            //   }
+            setChecking();
         },
         onError: (error) => {
             console.error("Login failed", error.message);
