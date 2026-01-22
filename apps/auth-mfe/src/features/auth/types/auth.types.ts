@@ -115,3 +115,12 @@ export interface SignUpPayload{
 export interface SignupResponse {
     message: string;
 }
+
+export interface samlAuthenticationPayload {
+    samlResponse : string,
+}
+
+export interface samlAuthenticationResponse{
+    accessToken: string;
+    refreshToken?: string;
+}

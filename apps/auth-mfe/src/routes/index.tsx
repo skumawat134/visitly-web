@@ -8,6 +8,7 @@ import  {ForgotPassword}  from '../features/auth/pages/ForgotPassword';
 import  ResetPassword  from '../features/auth/pages/ResetPassword';
 import { MailInbox } from '../features/auth/pages/MailInbox';
 import { VerifyEmail } from '../features/auth/pages/VerifyEmail';
+import Saml from '@/features/auth/pages/Saml';
 
 function AppRouter() {
   return (
@@ -18,6 +19,7 @@ function AppRouter() {
         <Route path="login" element={<LoginPage />} />
          <Route path="signup" element={<SignupPage />} />
          <Route path="confirmation" element={<ConfirmationPage />} />
+         <Route path="saml" element={<Saml />} />
          <Route path="forgot-password" element={<ForgotPassword />} />
          <Route path="reset-password" element={<ResetPassword />} />
          <Route path='mail-inbox' element={ <MailInbox /> } />
