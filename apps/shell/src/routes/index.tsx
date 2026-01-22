@@ -30,7 +30,7 @@ function AppRouter() {
               </RequireCapability>
             } />
           </Route>
-          <Route path="/saml" element={<Navigate to="/visitly/saml" replace />} />
+          <Route path="/saml" element={<Navigate to={`/visitly/saml${window.location.search}`} replace />} />
           <Route path="*" element = {<NotFound />} />
         </Routes>
       </BrowserRouter>

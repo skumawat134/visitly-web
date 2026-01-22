@@ -117,7 +117,7 @@ export interface SignupResponse {
 }
 
 export interface samlAuthenticationPayload {
-    samlResponse : string,
+    SAMLResponse : string,
 }
 
 export interface samlAuthenticationResponse{
