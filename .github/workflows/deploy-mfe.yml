@@ -106,12 +106,16 @@ jobs:
           esac
 
       - name: Build shell app
-        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
+        if: inputs.mfe_selection == 'shell'
         run: yarn workspace @visitly/shell run ${{ steps.shell-build.outputs.command }}         
 
       - name: Build auth-mfe
-        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
-        run: yarn workspace @visitly/auth-mfe run build
+        if: inputs.mfe_selection == 'auth-mfe'
+        run: yarn workspace @visitly/auth-mfe run ${{ steps.shell-build.outputs.command }} 
+
+      - name: Build Both
+        if: inputs.mfe_selection == 'both' 
+        run: yarn ${{ steps.shell-build.outputs.command }}   
 
       - name: Upload shell build artifacts
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
