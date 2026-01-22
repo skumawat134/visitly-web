@@ -14,6 +14,7 @@ import NotFound from '@/components/NotFound';
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
 function AppRouter() {
+  console.log("process.env.VITE_ANGULAR_MFE_REMOTE_URL" , process.env.VITE_ANGULAR_MFE_REMOTE_URL)
   return (
     <>
       <BrowserRouter>

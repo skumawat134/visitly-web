@@ -13,7 +13,7 @@ module.exports = (env) => {
   const nodeEnv = env.NODE_ENV || "development";
   const envPath = path.resolve(__dirname, `./.env.${nodeEnv}`);
   require('dotenv').config({ path: envPath });
-  console.log('Build Context:', nodeEnv, 'Remote:', process.env.VITE_AUTH_MFE_REMOTE_URL);
+  console.log('Build Context:', nodeEnv, 'Remote:', process.env.VITE_ANGULAR_MFE_REMOTE_URL);
   return {
     entry: "./src/index.tsx",
     output: {
