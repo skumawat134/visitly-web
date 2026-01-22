@@ -49,7 +49,7 @@ export async function verifyEmailApi(
   payload: VerifyEmailPayload
 ): Promise<VerifyEmailResponse> {
   const { data } = await getApiClient().post<VerifyEmailResponse>(
-    "/users/verify-email",
+    "/users/activate",
     payload
   );
   return data;

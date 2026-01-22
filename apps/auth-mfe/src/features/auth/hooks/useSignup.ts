@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { SignupFormValues } from '../components/SignupForm';
 import { useMutation } from '@tanstack/react-query';
 import { createUserApi, createHubSpotApi } from '../services/auth.api';
-
+import * as Yup from 'yup';
+import { toast } from 'react-toastify';
 export interface User {
   firstName: string;
   lastName: string;
@@ -16,6 +17,7 @@ export interface User {
 
 interface ValidationPatterns {
   PATTERN_FOR_ALPHABATES_AND_SPACE: RegExp;
+  PATTERN_FOR_ALPHABATES_AND_ORG_NAME : RegExp;
   PATTERN_FOR_EMAIL: RegExp;
   PATTERN_FOR_PASSWORD: RegExp;
   PATTERN_FOR_PHONE_NO: RegExp;
@@ -35,52 +37,52 @@ interface ValidationMessages {
   MOBILE_NUMBER_INVALID: string;
 }
 
+const validationPatterns: ValidationPatterns = {
+  PATTERN_FOR_ALPHABATES_AND_SPACE: /^([a-zA-Z][a-zA-Z ]*)$/, 
+  PATTERN_FOR_ALPHABATES_AND_ORG_NAME : /^([a-zA-Z][a-zA-Z .&$@]*)$/,
+  PATTERN_FOR_EMAIL: /[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,50}/,
+  PATTERN_FOR_PASSWORD: /^.{8,60}$/,
+  PATTERN_FOR_PHONE_NO: /^[0-9]{6,12}$/, // E.164 format
+};
+
+// Validation messages
+const validationMessages: ValidationMessages = {
+  FIRST_NAME_REQUIRED: 'First name is required',
+  FIRST_NAME_INVALID: 'First name can only contain letters and spaces',
+  LAST_NAME_REQUIRED: 'Last name is required',
+  LAST_NAME_INVALID: 'Last name can only contain letters and spaces',
+  ORGANIZATION_NAME_REQUIRED: 'Organization name is required',
+  EMAIL_REQUIRED: 'Email is required',
+  EMAIL_INVALID: 'Please enter a valid email address',
+  PASSWORD_REQUIRED: 'Password is required',
+  PASSWORD_INVALID: 'Password must be between 8 and 60 characters in length',
+  MOBILE_NUMBER_REQUIRED: 'Phone number is required',
+  MOBILE_NUMBER_INVALID: 'Please enter a valid phone number',
+};
+
+
 export const useSignup = () => {
   const [flagForPasswordHideShow, setFlagForPasswordHideShow] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Validation patterns (matching your Angular service)
-  const validationPatterns: ValidationPatterns = {
-    PATTERN_FOR_ALPHABATES_AND_SPACE: /^[a-zA-Z\s]*$/,
-    PATTERN_FOR_EMAIL: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-    PATTERN_FOR_PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    PATTERN_FOR_PHONE_NO: /^\+?[1-9]\d{1,14}$/, // E.164 format
-  };
-
-  // Validation messages
-  const validationMessages: ValidationMessages = {
-    FIRST_NAME_REQUIRED: 'First name is required',
-    FIRST_NAME_INVALID: 'First name can only contain letters and spaces',
-    LAST_NAME_REQUIRED: 'Last name is required',
-    LAST_NAME_INVALID: 'Last name can only contain letters and spaces',
-    ORGANIZATION_NAME_REQUIRED: 'Organization name is required',
-    EMAIL_REQUIRED: 'Email is required',
-    EMAIL_INVALID: 'Please enter a valid email address',
-    PASSWORD_REQUIRED: 'Password is required',
-    PASSWORD_INVALID: 'Password must be at least 8 characters with uppercase, lowercase, number, and special character',
-    MOBILE_NUMBER_REQUIRED: 'Phone number is required',
-    MOBILE_NUMBER_INVALID: 'Please enter a valid phone number',
-  };
+  useEffect(() => {
+    // Initial GA Tracking
+    console.log('GA Tracking for signup page');
+    if ((window as any).ga) {
+      (window as any).ga('set', 'page', 'signup page');
+      (window as any).ga('send', 'pageview');
+    }
+  }, []);
 
   const togglePasswordVisibility = () => {
     setFlagForPasswordHideShow(!flagForPasswordHideShow);
   };
 
-   useEffect(() => {
-        // Initial GA Tracking
-        console.log('GA Tracking for signup page');
-        if ((window as any).ga) {
-            (window as any).ga('set', 'page', 'signup page');
-            (window as any).ga('send', 'pageview');
-        }
-    }, []);
-
-
   const signupUser = async (values: SignupFormValues) => {
     setIsLoading(true);
-    
+
     try {
       // Prepare user object
       const userObj: User = {
@@ -93,116 +95,110 @@ export const useSignup = () => {
         companyName: values.companyName,
       };
 
-      const response = await signUpMutation.mutate(userObj);
+     signUpMutation.mutate(userObj);
 
-      // Integration with external services (FreshSales/HubSpot)
-      if (window.location.hostname.toLowerCase() === 'app.visitly.io') {
-       createHubSpot(userObj);
-      }
-      
+
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('Signup error:', error.status, error.message  );
       // Handle different error statuses
-      switch (error?.response?.status) {
-        case 400:
-          // Show error toast
-          break;
-        case 409:
-          // Show account exists error
-          break;
-        case 500:
-        case 504:
-          // Show server error
-          break;
-      }
+     
     } finally {
       setIsLoading(false);
     }
   };
 
   const signUpMutation = useMutation({
-        mutationFn: createUserApi,
-        onSuccess: () => {
-             if (window.location.hostname.toLowerCase() === 'app.visitly.io') {
-             // createHubSpot(userObj);
-            }
-            
-            navigate('/visitly/confirmation', { relative: 'path' });
-        },
-        onError: (error: any) => {
-         
-           if (error.status === 409) {
-            //    toast.error('An account already exists with this email. Please log in.');
-            } else {
-             //   toast.error(error.message || 'We have encountered an error. Please contact Visitly Support.');
-            }
-
-        }
-    });
+    mutationFn: createUserApi,
+    onSuccess: (data , variables) => {
+      console.log('Signup successful:------------------------------------------>', data, variables);
+      if (window.location.hostname.toLowerCase() === 'app.visitly.io') {
+         createHubSpot(variables);
+      }
+      toast.success('Signup successful! Please check your email to confirm your account.');
+      navigate('/visitly/confirmation', { relative: 'path' });
+    },
+    onError: (error: any) => {
+      console.log('Signup mutation error:', error , error.status  , error.message  );
+       switch (error?.status) {
+        case 400:
+        toast(error?.message ? error?.message : 'Bad Request');
+          break;
+        case 409:
+          toast('An account already exists with this email. Please log in.');
+          break;
+        case 500:
+        case 504:
+        toast('We have encountered an error. If the problem persists, please contact Visitly Support at <a href="mailto:support@visitly.io">support@visitly.io</a>');
+        break;
+      }
+    }
+  });
 
   const createHubSpot = async (user: User) => {
-        const date = new Date();
-        const now_utc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
-        date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+    const date = new Date();
+    const now_utc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+      date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
 
-        const hutk = getCookieValue("hubspotutk");
-        const utm_source = getCookieValue("utm_source");
-        const utm_medium = getCookieValue("utm_medium");
-        const utm_campaign = getCookieValue("utm_campaign");
-        const utm_term = getCookieValue("utm_term");
-        const utm_content = getCookieValue("utm_content");
-        const gclid = getCookieValue("gclid");
+    const hutk = getCookieValue("hubspotutk");
+    const utm_source = getCookieValue("utm_source");
+    const utm_medium = getCookieValue("utm_medium");
+    const utm_campaign = getCookieValue("utm_campaign");
+    const utm_term = getCookieValue("utm_term");
+    const utm_content = getCookieValue("utm_content");
+    const gclid = getCookieValue("gclid");
 
-        const fields = [
-            { name: "email", value: user.email },
-            { name: "lastname", value: user.lastName },
-            { name: "firstname", value: user.firstName },
-            { name: "company", value: user.companyName },
-            { name: "phone", value: user.phoneNumber || '' }
-        ];
+    const fields = [
+      { name: "email", value: user.email },
+      { name: "lastname", value: user.lastName },
+      { name: "firstname", value: user.firstName },
+      { name: "company", value: user.companyName },
+      { name: "phone", value: user.phoneNumber || '' }
+    ];
 
-        if (utm_source) fields.push({ name: "utm_source", value: utm_source });
-        if (utm_medium) fields.push({ name: "utm_medium", value: utm_medium });
-        if (utm_campaign) fields.push({ name: "utm_campaign", value: utm_campaign });
-        if (utm_term) fields.push({ name: "utm_term", value: utm_term });
-        if (utm_content) fields.push({ name: "utm_content", value: utm_content });
-        if (gclid) fields.push({ name: "gclid", value: gclid });
+    if (utm_source) fields.push({ name: "utm_source", value: utm_source });
+    if (utm_medium) fields.push({ name: "utm_medium", value: utm_medium });
+    if (utm_campaign) fields.push({ name: "utm_campaign", value: utm_campaign });
+    if (utm_term) fields.push({ name: "utm_term", value: utm_term });
+    if (utm_content) fields.push({ name: "utm_content", value: utm_content });
+    if (gclid) fields.push({ name: "gclid", value: gclid });
 
-        const payload = {
-            submittedAt: now_utc,
-            fields,
-            context: {
-                pageUri: window.location.href,
-                pageName: "Sign Up",
-                ...(hutk && { hutk })
-            },
-            skipValidation: false
-        };
-
-        try {
-           hubspotMutation.mutate(payload);
-        } catch (error) {
-            console.error('HubSpot Tracking Error:', error);
-        }
+    const payload = {
+      submittedAt: now_utc,
+      fields,
+      context: {
+        pageUri: window.location.href,
+        pageName: "Sign Up",
+        ...(hutk && { hutk })
+      },
+      skipValidation: false
     };
 
+    try {
+      hubspotMutation.mutate(payload);
+    } catch (error) {
+      console.error('HubSpot Tracking Error:', error);
+    }
+  };
 
-const hubspotMutation = useMutation({
+
+  const hubspotMutation = useMutation({
     mutationFn: createHubSpotApi,
-
+     meta: {
+    showLoader: false,
+     },
     onSuccess: () => {
       //  console.log('HubSpot integration successful');
     },
 
     onError: (error: any) => {
-        console.error('HubSpot integration error:', error);
+      console.error('HubSpot integration error:', error);
     }
-});
+  });
 
-const getCookieValue = (name : string) => {
-  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-  return match ? decodeURIComponent(match[2]) : "";
-}
+  const getCookieValue = (name: string) => {
+    const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+    return match ? decodeURIComponent(match[2] || "") : "";
+  }
 
 
 
@@ -217,56 +213,43 @@ const getCookieValue = (name : string) => {
     }
   };
 
-  const validateForm = (values: SignupFormValues) => {
-    const errors: Partial<SignupFormValues> = {};
 
-    // First Name validation
-    if (!values.firstName) {
-      errors.firstName = validationMessages.FIRST_NAME_REQUIRED;
-    } else if (!validationPatterns.PATTERN_FOR_ALPHABATES_AND_SPACE.test(values.firstName)) {
-      errors.firstName = validationMessages.FIRST_NAME_INVALID;
-    }
 
-    // Last Name validation
-    if (!values.lastName) {
-      errors.lastName = validationMessages.LAST_NAME_REQUIRED;
-    } else if (!validationPatterns.PATTERN_FOR_ALPHABATES_AND_SPACE.test(values.lastName)) {
-      errors.lastName = validationMessages.LAST_NAME_INVALID;
-    }
+  const signupValidationSchema = Yup.object({
+    firstName: Yup.string()
+      .required('First name is required')
+      .matches(validationPatterns.PATTERN_FOR_ALPHABATES_AND_SPACE, 'First name can only contain letters and spaces'),
 
-    // Organization Name validation
-    if (!values.companyName) {
-      errors.companyName = validationMessages.ORGANIZATION_NAME_REQUIRED;
-    }
+    lastName: Yup.string()
+      .required('Last name is required')
+      .matches(validationPatterns.PATTERN_FOR_ALPHABATES_AND_SPACE, 'Last name can only contain letters and spaces'),
 
-    // Email validation
-    if (!values.email) {
-      errors.email = validationMessages.EMAIL_REQUIRED;
-    } else if (!validationPatterns.PATTERN_FOR_EMAIL.test(values.email)) {
-      errors.email = validationMessages.EMAIL_INVALID;
-    }
+    companyName: Yup.string()
+      .required('Organization name is required'),
 
-    // Password validation
-    if (!values.password) {
-      errors.password = validationMessages.PASSWORD_REQUIRED;
-    } else if (!validationPatterns.PATTERN_FOR_PASSWORD.test(values.password)) {
-      errors.password = validationMessages.PASSWORD_INVALID;
-    }
+    email: Yup.string()
+      .required('Email is required')
+      .matches(
+       new RegExp('[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,50}'),
+        'Please enter a valid email address'
+      ),
 
-    // Phone validation
-    if (!values.phoneNumber) {
-      errors.phoneNumber = validationMessages.MOBILE_NUMBER_REQUIRED;
-    } else if (!validationPatterns.PATTERN_FOR_PHONE_NO.test(values.phoneNumber)) {
-      errors.phoneNumber = validationMessages.MOBILE_NUMBER_INVALID;
-    }
+    password: Yup.string()
+      .required('Password is required')
+      .matches(
+        validationPatterns.PATTERN_FOR_PASSWORD,
+        'Password must be between 8 and 60 characters in length'
+      ),
 
-    // Terms validation
-    if (!values.terms) {
-    //   errors.terms = 'You must accept the terms and conditions';
-    }
+    phoneNumber: Yup.string()
+      .required('Phone number is required')
+      .matches(
+        validationPatterns.PATTERN_FOR_PHONE_NO,
+        'Please enter a valid phone number'
+      ),
 
-    return errors;
-  };
+    terms: Yup.boolean().oneOf([true], ''),
+  });
 
   return {
     flagForPasswordHideShow,
@@ -276,9 +259,8 @@ const getCookieValue = (name : string) => {
     isLoading,
     validationPatterns,
     validationMessages,
-    
     signupUser,
     sendEvent,
-    validateForm,
+    signupValidationSchema,
   };
 };

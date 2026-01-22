@@ -1,11 +1,13 @@
-import React from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { Eye, EyeOff } from 'lucide-react';
-import { Input, Button, Card, CardHeader, CardTitle, CardContent } from '@visitly/ui';
+import React from "react";
+import { Formik, Form } from "formik";
+import { Eye, EyeOff } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { useSignup } from '../hooks/useSignup';
-import { Link } from 'react-router-dom';
-import appLogo from '@/assets/images/logo.png';
+import { Input, Button, Image } from "@visitly/ui";
+import { useSignup } from "../hooks/useSignup";
+
+import appLogo from "@/assets/images/logo.png";
+import SignUpSidePanel from "./SignUpSidePanel";
 
 export interface SignupFormValues {
   firstName: string;
@@ -23,383 +25,231 @@ const Signup: React.FC = () => {
     togglePasswordVisibility,
     isLoading,
     signupUser,
-    sendEvent,  
-    validateForm,
+    sendEvent,
+    signupValidationSchema,
   } = useSignup();
 
   const initialValues: SignupFormValues = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phoneNumber: '',
-    companyName: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+    companyName: "",
     terms: false,
   };
 
-  const handleSubmit = (values: SignupFormValues) => {
-    signupUser(values);
-  };
-
   return (
-    <div 
+    <div
       className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:items-center tw:justify-center tw:p-4"
       data-testid="signup-page"
     >
-      <div className="tw:container tw:max-w-6xl tw:mx-auto">
-        {/* Logo Row */}
-        <div className="tw:flex tw:justify-center tw:mb-10">
-          <img 
-            src={appLogo} 
-            alt="Visitly Logo" 
-            width="196" 
+      <div className="tw:container tw:max-w-6xl">
+        {/* Logo */}
+        <div className="tw:flex tw:justify-center tw:mb-10 tw:mt-6">
+          <Image
+            src={appLogo}
+            alt="visity-web-logo"
+            width="196"
             height="50"
-            className="tw:max-w-full tw:h-auto"
             data-testid="logo"
           />
         </div>
 
-        {/* Main Content Row */}
         <div className="tw:flex tw:justify-center">
-          <div className="tw:w-4/5 lg:tw:w-10/12">
-            {/* Auth Box */}
-            <div className="tw:bg-white tw:rounded-lg tw:shadow-sm tw:overflow-hidden">
-              <Formik
-                initialValues={initialValues}
-                validate={validateForm}
-                onSubmit={handleSubmit}
-              >
-                {({ values, errors, touched, handleChange, handleBlur }) => (
-                  <Form className="tw:flex  lg:tw:flex-row" data-testid="signup-form" autoComplete="off">
-                    {/* Left Panel - Branding */}
-                    <div 
-                      className="tw:w-2/3 lg:tw:w-3/12 tw:bg-[#F5F1FF] tw:p-4 py-6 md:tw:p-8 tw:pt-8"
-                      data-testid="branding-panel"
-                    >
-                      <div data-testid="step1-branding">
-                        <h1 
-                          className="tw:text-4xl tw:mt-4 tw:font-bold tw:mb-8 tw:text-gray-900"
-                          data-testid="step1-title"
-                        >
-                          Get Started With Visitly
-                        </h1>
-                        <p 
-                          className="tw:text-gray-700 tw:mb-6 tw:leading-relaxed"
-                          data-testid="step1-description"
-                        >
-                          Free 14-day trial – No credit card required <br />
-                          Secure, compliant, and reliable <br />
-                          Easy setup, ready in minutes
+          <div className="tw:w-full tw:md:w-4/5 lg:tw:w-10/12 tw:bg-white tw:rounded-lg tw:shadow-sm tw:overflow-hidden">
+            <Formik
+              initialValues={initialValues}
+              validationSchema={signupValidationSchema}
+              onSubmit={signupUser}
+            >
+              {({
+                values,
+                errors,
+                touched,
+                handleChange,
+                handleBlur,
+                setFieldValue,
+              }) => (
+                <Form
+                  className="tw:flex tw:flex-col tw:md:flex-row  tw:lg:flex-row"
+                  autoComplete="off"
+                >
+                  {/* Left Panel */}
+                  <SignUpSidePanel />
+
+                  {/* Right Panel */}
+                  <div className="tw:w-full lg:tw:w-7/12 tw:p-4 tw:md:p-8">
+                    {/* Name */}
+                    <div className="tw:flex tw:flex-col  tw:md:flex-row tw:gap-4 tw:mb-4">
+                      <Input
+                        label="First Name"
+                        name="firstName"
+                        value={values.firstName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        required
+                        error={touched.firstName ? errors.firstName : undefined}
+                        data-testid="first-name-input"
+                      />
+
+                      <Input
+                        label="Last Name"
+                        name="lastName"
+                        value={values.lastName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        required
+                        error={touched.lastName ? errors.lastName : undefined}
+                        data-testid="last-name-input"
+                      />
+                    </div>
+
+                    {/* Company */}
+                    <div className="tw:mb-4">
+                      <Input
+                        label="Organization Name"
+                        name="companyName"
+                        value={values.companyName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={
+                          touched.companyName ? errors.companyName : undefined
+                        }
+                        required
+                        data-testid="company-name-input"
+                      />
+                    </div>
+
+                    {/* Email */}
+                    <div className="tw:mb-4">
+                      <Input
+                        label="Email "
+                        type="email"
+                        name="email"
+                        value={values.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        required
+                        error={touched.email ? errors.email : undefined}
+                        data-testid="email-input"
+                      />
+                    </div>
+
+                    {/* Password */}
+                    <div className="tw:mb-4">
+                      <Input
+                        label="Password"
+                        name="password"
+                        type={flagForPasswordHideShow ? "password" : "text"}
+                        value={values.password}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.password ? errors.password : undefined}
+                        rightIcon={
+                          flagForPasswordHideShow ? (
+                            <EyeOff className="tw:w-4 tw:h-4" />
+                          ) : (
+                            <Eye className="tw:w-4 tw:h-4" />
+                          )
+                        }
+                        required
+                        rightIconClickable
+                        onRightIconClick={togglePasswordVisibility}
+                        data-testid="password-input"
+                      />
+                    </div>
+
+                    {/* Phone */}
+                    <div className="tw:mb-4">
+                      <Input
+                        label="Phone Number"
+                        name="phoneNumber"
+                        value={values.phoneNumber}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={
+                          touched.phoneNumber ? errors.phoneNumber : undefined
+                        }
+                        data-testid="phone-input"
+                        required
+                      />
+                    </div>
+
+                    {/* Terms */}
+                    <div className="tw:mb-6">
+                      <div className="tw:flex tw:items-start tw:gap-2">
+                        {/* Checkbox */}
+                        <input
+                          type="checkbox"
+                          checked={values.terms}
+                          onChange={(e) =>
+                            setFieldValue("terms", e.target.checked)
+                          }
+                          className="tw:mt-1 tw:h-4 tw:w-4 tw:shrink-0"
+                        />
+
+                        {/* Text */}
+                        <label className="tw:text-sm tw:leading-relaxed">
+                          By signing up, I agree to Visitly{" "}
+                          <a
+                            href="https://www.visitly.io/tos/"
+                            className="tw:text-primary-100 hover:tw:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-testid="terms-link"
+                          >
+                            <b>Terms of Service</b>
+                          </a>{" "}
+                          and{" "}
+                          <a
+                            href="https://www.visitly.io/privacy/"
+                            className="tw:text-primary-100 hover:tw:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-testid="privacy-link"
+                          >
+                            <b>Privacy Policy</b>
+                          </a>
+                        </label>
+                      </div>
+
+                      {touched.terms && errors.terms && (
+                        <p className="tw:mt-1 tw:text-sm tw:text-red-600">
+                          {errors.terms}
                         </p>
+                      )}
+                    </div>
 
-                        {/* Brand Logos */}
-                        <div 
-                          className="tw:flex tw:justify-center  tw:mt-10"
-                          data-testid="step1-logos"
+                    {/* Footer */}
+                    <div className="tw:flex tw:flex-row tw:sm:flex-row tw:justify-between tw:sm:justify-between tw:sm:items-center tw:gap-4 tw:sm:gap-0">
+                      {/* Login text */}
+                      <p className="tw:text-sm tw:text-center sm:tw:text-left">
+                        Already have an account?{" "}
+                        <Link
+                          to="/visitly/login"
+                          onClick={() => sendEvent("signin")}
+                          className="tw:text-primary-100 tw:font-semibold hover:tw:underline"
                         >
-                          <img 
-                            src="https://visitly-web-assets.s3.us-west-2.amazonaws.com/assets/img/badge1.png"
-                            alt="Brand Logo 1" 
-                            width="80" 
-                            height="90"
-                            className="tw:mx-2"
-                            data-testid="badge1"
-                          />
-                          <img 
-                            src="https://visitly-web-assets.s3.us-west-2.amazonaws.com/assets/img/badge2.png"
-                            alt="Brand Logo 2" 
-                            width="80" 
-                            height="90"
-                            className="tw:mx-2"
-                            data-testid="badge2"
-                          />
-                          <img 
-                            src="https://visitly-web-assets.s3.us-west-2.amazonaws.com/assets/img/badge3.png"
-                            alt="Brand Logo 3" 
-                            width="70" 
-                            height="90"
-                            className="tw:mx-2"
-                            data-testid="badge3"
-                          />
-                        </div>
-                      </div>
+                          Login
+                        </Link>
+                      </p>
+
+                      {/* Submit button */}
+                      <Button
+                        type="submit"
+                        size="sm"
+                        isLoading={isLoading}
+                        data-testid="signup-submit-button"
+                        className="tw:w-auto tw:sm:w-auto tw:rounded-sm tw:cursor-pointer"
+                      >
+                        Start my trial
+                      </Button>
                     </div>
-
-                    {/* Right Panel - Form */}
-                    <div 
-                      className="tw:w-full lg:tw:w-7/12 tw:p-6 lg:tw:p-8"
-                      data-testid="form-panel"
-                    >
-                      <div data-testid="step1-content">
-                        {/* Name Row */}
-                        <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-4 tw:mb-4">
-                          {/* First Name */}
-                          <div className='tw:flex-1'>
-                            <label 
-                              htmlFor="firstName" 
-                              className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
-                              data-testid="first-name-label"
-                            >
-                              <span className="tw:text-red-500">*</span>First Name
-                            </label>
-                            <Field
-                              type="text"
-                              name="firstName"
-                              id="firstName"
-                              className={`
-                                tw:w-full tw:border tw:rounded tw:px-3 tw:py-2 tw:text-sm
-                                focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-blue-500 focus:tw:border-blue-500
-                                ${errors.firstName && touched.firstName ? 'tw:border-red-500 focus:tw:border-red-500 focus:tw:ring-red-500' : 'tw:border-gray-300'}
-                              `}
-                              data-testid="first-name-input"
-                            />
-                            <ErrorMessage name="firstName">
-                              {msg => (
-                                <p className="tw:mt-1 tw:text-sm tw:text-red-600" data-testid="first-name-error">
-                                  {msg}
-                                </p>
-                              )}
-                            </ErrorMessage>
-                          </div>
-
-                          {/* Last Name */}
-                          <div className='tw:flex-1'>
-                            <label 
-                              htmlFor="lastName" 
-                              className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
-                              data-testid="last-name-label"
-                            >
-                              <span className="tw:text-red-500">*</span>Last Name
-                            </label>
-                            <Field
-                              type="text"
-                              name="lastName"
-                              id="lastName"
-                              className={`
-                                tw:w-full tw:border tw:rounded tw:px-3 tw:py-2 tw:text-sm
-                                focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-blue-500 focus:tw:border-blue-500
-                                ${errors.lastName && touched.lastName ? 'tw:border-red-500 focus:tw:border-red-500 focus:tw:ring-red-500' : 'tw:border-gray-300'}
-                              `}
-                              data-testid="last-name-input"
-                            />
-                            <ErrorMessage name="lastName">
-                              {msg => (
-                                <p className="tw:mt-1 tw:text-sm tw:text-red-600" data-testid="last-name-error">
-                                  {msg}
-                                </p>
-                              )}
-                            </ErrorMessage>
-                          </div>
-                        </div>
-
-                        {/* Organization Name */}
-                        <div className="tw:mb-4">
-                          <label 
-                            htmlFor="companyName" 
-                            className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
-                            data-testid="company-name-label"
-                          >
-                            <span className="tw:text-red-500">*</span>Organization Name
-                          </label>
-                          <Field
-                            type="text"
-                            name="companyName"
-                            id="companyName"
-                            className={`
-                              tw:w-full tw:border tw:rounded tw:px-3 tw:py-2 tw:text-sm
-                              focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-blue-500 focus:tw:border-blue-500
-                              ${errors.companyName && touched.companyName ? 'tw:border-red-500 focus:tw:border-red-500 focus:tw:ring-red-500' : 'tw:border-gray-300'}
-                            `}
-                            data-testid="company-name-input"
-                          />
-                          <ErrorMessage name="companyName">
-                            {msg => (
-                              <p className="tw:mt-1 tw:text-sm tw:text-red-600" data-testid="company-name-error">
-                                {msg}
-                              </p>
-                            )}
-                          </ErrorMessage>
-                        </div>
-
-                        {/* Email */}
-                        <div className="tw:mb-4">
-                          <label 
-                            htmlFor="email" 
-                            className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
-                            data-testid="email-label"
-                          >
-                            <span className="tw:text-red-500">*</span>Email
-                          </label>
-                          <Field
-                            type="email"
-                            name="email"
-                            id="email"
-                            className={`
-                              tw:w-full tw:border tw:rounded tw:px-3 tw:py-2 tw:text-sm
-                              focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-blue-500 focus:tw:border-blue-500
-                              ${errors.email && touched.email ? 'tw:border-red-500 focus:tw:border-red-500 focus:tw:ring-red-500' : 'tw:border-gray-300'}
-                            `}
-                            data-testid="email-input"
-                          />
-                          <ErrorMessage name="email">
-                            {msg => (
-                              <p className="tw:mt-1 tw:text-sm tw:text-red-600" data-testid="email-error">
-                                {msg}
-                              </p>
-                            )}
-                          </ErrorMessage>
-                        </div>
-
-                        {/* Password */}
-                        <div className="tw:mb-4">
-                          <label 
-                            htmlFor="password" 
-                            className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
-                            data-testid="password-label"
-                          >
-                            <span className="tw:text-red-500">*</span>Password
-                          </label>
-                          <div className="tw:relative">
-                            <Field
-                              type={flagForPasswordHideShow ? 'password' : 'text'}
-                              name="password"
-                              id="password"
-                              className={`
-                                tw:w-full tw:border tw:rounded tw:px-3 tw:py-2 tw:text-sm tw:pr-10
-                                focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-blue-500 focus:tw:border-blue-500
-                                ${errors.password && touched.password ? 'tw:border-red-500 focus:tw:border-red-500 focus:tw:ring-red-500' : 'tw:border-gray-300'}
-                              `}
-                              data-testid="password-input"
-                            />
-                            <button
-                              type="button"
-                              className="tw:absolute tw:right-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-gray-600"
-                              onClick={togglePasswordVisibility}
-                              data-testid="toggle-password-visibility"
-                            >
-                              {flagForPasswordHideShow ? (
-                                <EyeOff className="tw:w-4 tw:h-4" />
-                              ) : (
-                                <Eye className="tw:w-4 tw:h-4" />
-                              )}
-                            </button>
-                          </div>
-                          <ErrorMessage name="password">
-                            {msg => (
-                              <p className="tw:mt-1 tw:text-sm tw:text-red-600" data-testid="password-error">
-                                {msg}
-                              </p>
-                            )}
-                          </ErrorMessage>
-                        </div>
-
-                        {/* Phone Number */}
-                        <div className="tw:mb-4">
-                          <label 
-                            htmlFor="phoneNumber" 
-                            className="tw:block tw:text-sm tw:font-medium tw:text-gray-700 tw:mb-1"
-                            data-testid="phone-label"
-                          >
-                            <span className="tw:text-red-500">*</span>Phone Number
-                          </label>
-                          <Field
-                            type="tel"
-                            name="phoneNumber"
-                            id="phoneNumber"
-                            className={`
-                              tw:w-full tw:border tw:rounded tw:px-3 tw:py-2 tw:text-sm
-                              focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-blue-500 focus:tw:border-blue-500
-                              ${errors.phoneNumber && touched.phoneNumber ? 'tw:border-red-500 focus:tw:border-red-500 focus:tw:ring-red-500' : 'tw:border-gray-300'}
-                            `}
-                            data-testid="phone-input"
-                          />
-                          <ErrorMessage name="phoneNumber">
-                            {msg => (
-                              <p className="tw:mt-1 tw:text-sm tw:text-red-600" data-testid="phone-error">
-                                {msg}
-                              </p>
-                            )}
-                          </ErrorMessage>
-                        </div>
-
-                        {/* Terms & Privacy */}
-                        <div className="tw:mb-6">
-                          <div className="tw:flex tw:items-start">
-                            <Field
-                              type="checkbox"
-                              name="terms"
-                              id="terms"
-                              className="tw:h-4 tw:w-4 tw:mt-1 tw:mr-2 tw:text-blue-600 focus:tw:ring-blue-500 tw:border-gray-300 tw:rounded"
-                              data-testid="terms-checkbox"
-                            />
-                            <label 
-                              htmlFor="terms" 
-                              className="tw:text-sm tw:text-gray-700"
-                              data-testid="terms-label"
-                            >
-                              By signing up, I agree to Visitly{' '}
-                              <a
-                                href="https://www.visitly.io/tos/"
-                                className="tw:text-primary-100 hover:tw:underline"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                data-testid="terms-link"
-                              >
-                                <b>Terms of Service</b>
-                              </a>{' '}
-                              and{' '}
-                              <a
-                                href="https://www.visitly.io/privacy/"
-                                className="tw:text-primary-100 hover:tw:underline"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                data-testid="privacy-link"
-                              >
-                                <b>Privacy Policy</b>
-                              </a>
-                            </label>
-                          </div>
-                          <ErrorMessage name="terms">
-                            {msg => (
-                              <p className="tw:mt-1 tw:text-sm tw:text-red-600">
-                                {msg}
-                              </p>
-                            )}
-                          </ErrorMessage>
-                        </div>
-
-                        {/* Bottom Section */}
-                        <div className="tw:flex tw:flex-col sm:tw:flex-row tw:md:flex-row tw:justify-between tw:items-center tw:mt-6">
-                          <div className="tw:mb-4 sm:tw:mb-0">
-                            <p className="tw:text-sm tw:text-gray-700" data-testid="login-redirect-text">
-                              Already have an Account ?{' '}
-                              <Link
-                                to="/visitly/login"
-                                onClick={() => sendEvent('signin')}
-                                className="tw:text-primary-100 hover:tw:underline tw:font-semibold"
-                                data-testid="login-link"
-                              >
-                                Login
-                              </Link>
-                            </p>
-                          </div>
-                          
-                          <Button
-                            type="submit"
-                            variant="primary"
-                            isLoading={isLoading}
-                            className="hover:tw:bg-blue-700 tw:text-white tw:text-sm tw:px-4 tw:py-2 tw:rounded tw:font-medium"
-                            data-testid="signup-submit-button"
-                          >
-                            Start my trial
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Form>
-                )}
-              </Formik>
-            </div>
+                  </div>
+                </Form>
+              )}
+            </Formik>
           </div>
         </div>
       </div>

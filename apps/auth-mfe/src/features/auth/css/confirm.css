@@ -1,0 +1,9 @@
+.gray{
+   color : rgba(50, 53, 55, 0.7) !important
+}
+
+@media (max-width: 991px) {
+    iframe{
+        height : 80vh;
+    }
+}
