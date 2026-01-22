@@ -57,6 +57,21 @@ jobs:
         env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
       max-parallel: 1
     environment: ${{ matrix.env }}
+    env:
+      VITE_ANGULAR_MFE_REMOTE_URL: ${{ secrets.VITE_ANGULAR_MFE_REMOTE_URL }}
+      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+      VITE_SLACK_URL: ${{ secrets.VITE_SLACK_URL }}
+      VITE_GOOGLE_HANGOUT_URL: ${{ secrets.VITE_GOOGLE_HANGOUT_URL }}
+      VITE_FRESH_SALE_URL: ${{ secrets.VITE_FRESH_SALE_URL }}
+      VITE_HUBSPOT_URL: ${{ secrets.VITE_HUBSPOT_URL }}
+      VITE_HUBSPOT_CONTACT_URL: ${{ secrets.VITE_HUBSPOT_CONTACT_URL }}
+      VITE_GOOGLE_HANGOUTS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_HANGOUTS_CLIENT_ID }}
+      PERMA_LINK_FRONT_URI: ${{ secrets.PERMA_LINK_FRONT_URI }}
+      LANGUAGE_JSON_S3_URI: ${{ secrets.LANGUAGE_JSON_S3_URI }}
+      VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+      VITE_ENV: ${{ matrix.env }}
+      PLAN_PROD: false
+
     timeout-minutes: 10
     steps:
       - name: Checkout code
@@ -92,9 +107,7 @@ jobs:
 
       - name: Build shell app
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
-        run: yarn workspace @visitly/shell run ${{ steps.shell-build.outputs.command }}
-        env:
-          VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+        run: yarn workspace @visitly/shell run ${{ steps.shell-build.outputs.command }}         
 
       - name: Build auth-mfe
         if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
