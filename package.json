@@ -4,6 +4,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "serve:shell" : "npx serve apps/shell/dist -p 4201 --single",
+    "serve:auth" : "npx serve apps/auth-mfe/dist -p 3006 --single",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""

@@ -1,58 +1,131 @@
-# Turborepo Tailwind CSS starter
+# portal-web
+Re-write of existing angular 15 application in React 18 with a micro-frontend architecture using Turborepo for monorepo management. This project implements a scalable frontend solution for the Visitly platform, featuring a shell application that orchestrates multiple micro-frontends.
 
-This Turborepo starter is maintained by the Turborepo core team.
+## High-Level Overview
 
-## Using this example
+Portal-web is structured as a monorepo using Turborepo, containing:
 
-Run the following command:
+- **Shell Application**: The main container application that hosts micro-frontends and provides shared routing, state management, and UI components.
+- **Authentication Micro-Frontend (MFE)**: A dedicated micro-frontend handling user authentication flows.
+- **Shared Packages**: Reusable libraries for API client, state management, UI components, and configuration.
 
+The architecture leverages:
+- React 18 for component development
+- TypeScript for type safety
+- Tailwind CSS for styling
+- Webpack for bundling
+- Module Federation for micro-frontend integration
+- Zustand for state management
+- TanStack Query for data fetching
+
+## Directory Structure
+
+```
+portal-web/
+├── apps/                          # Application modules
+│   ├── auth-mfe/                  # Authentication micro-frontend
+│   │   ├── src/
+│   │   │   ├── features/auth/     # Auth-specific features
+│   │   │   ├── routes/            # Routing configuration
+│   │   │   └── shared/components/ # Shared components
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   └── webpack.config.js
+│   └── shell/                     # Main shell application
+│       ├── src/
+│       │   ├── components/        # UI components
+│       │   ├── mfe/               # Micro-frontend integrations
+│       │   ├── providers/         # React providers
+│       │   ├── routes/            # Application routes
+│       │   └── styles/            # Global styles
+│       ├── public/                # Static assets
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── webpack configs
+├── packages/                      # Shared packages
+│   ├── api-client/                # API client library
+│   ├── app-store/                 # State management (Zustand)
+│   ├── eslint-config/             # ESLint configurations
+│   ├── tailwind-config/           # Tailwind CSS configuration
+│   ├── typescript-config/         # TypeScript configurations
+│   └── ui/                        # Shared UI component library
+├── package.json                   # Root package.json
+├── turbo.json                     # Turborepo configuration
+└── README.md
+```
+
+## Setup
+
+### Prerequisites
+
+- Node.js >= 18
+- Yarn (version 1.22.22)
+
+### Installation
+
+1. Clone the repository:
+   ```sh
+   git clone <repository-url>
+   cd portal-web
+   ```
+
+2. Install dependencies:
+   ```sh
+   yarn install
+   ```
+
+3. Set up environment variables:
+   - Copy `.env` files from the respective apps if needed
+   - Ensure `VITE_AUTH_MFE_REMOTE_URL` is configured for production builds
+
+## Running the Application
+
+### Development
+
+Start all applications in development mode:
 ```sh
-npx create-turbo@latest -e with-tailwind
+yarn dev
 ```
 
-## What's inside?
+This will start the shell and auth-mfe applications concurrently using Turborepo.
 
-This Turborepo includes the following packages/apps:
+### Building
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `web`: another [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `ui`: a stub React component library with [Tailwind CSS](https://tailwindcss.com/) shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@visitly/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Building packages/ui
-
-This example is set up to produce compiled styles for `ui` components into the `dist` directory. The component `.tsx` files are consumed by the Next.js apps directly using `transpilePackages` in `next.config.ts`. This was chosen for several reasons:
-
-- Make sharing one `tailwind.config.ts` to apps and packages as easy as possible.
-- Make package compilation simple by only depending on the Next.js Compiler and `tailwindcss`.
-- Ensure Tailwind classes do not overwrite each other. The `ui` package uses a `ui-` prefix for it's classes.
-- Maintain clear package export boundaries.
-
-Another option is to consume `packages/ui` directly from source without building. If using this option, you will need to update the `tailwind.config.ts` in your apps to be aware of your package locations, so it can find all usages of the `tailwindcss` class names for CSS compilation.
-
-For example, in [tailwind.config.ts](packages/tailwind-config/tailwind.config.ts):
-
-```js
-  content: [
-    // app content
-    `src/**/*.{js,ts,jsx,tsx}`,
-    // include packages if not transpiling
-    "../../packages/ui/*.{js,ts,jsx,tsx}",
-  ],
+Build all applications:
+```sh
+yarn build
 ```
 
-If you choose this strategy, you can remove the `tailwindcss` and `autoprefixer` dependencies from the `ui` package.
+Build outputs will be in `dist/` directories within each app.
 
-### Utilities
+### Serving Built Applications
 
-This Turborepo has some additional tools already setup for you:
+Serve the shell application:
+```sh
+yarn serve:shell
+```
+This serves the built shell app on port 4201.
 
-- [Tailwind CSS](https://tailwindcss.com/) for styles
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+Serve the auth micro-frontend:
+```sh
+yarn serve:auth
+```
+This serves the auth MFE on port 3006.
+
+## Additional Commands
+
+- **Linting**: `yarn lint`
+- **Type Checking**: `yarn check-types`
+- **Formatting**: `yarn format`
+
+## Technologies Used
+
+- **Framework**: React 18
+- **Language**: TypeScript
+- **Build Tool**: Webpack with Module Federation
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand
+- **Data Fetching**: TanStack React Query
+- **Routing**: React Router DOM
+- **Monorepo Tool**: Turborepo
+- **Code Quality**: ESLint, Prettier
