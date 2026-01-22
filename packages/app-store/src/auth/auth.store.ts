@@ -1,61 +1,135 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { AuthState, User } from './auth.types';
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import type { StateCreator } from 'zustand'
+
+import type { AuthState, AuthStatus, User, AuthTokens, PersistedAuthState } from './auth.types'
+
+
+const authSlice: StateCreator<
+  AuthState,
+  [],
+  [],
+  AuthState
+> = (set, get) => ({
+  // ── State ─────────────────────────────────────
+  status: 'checking',
+  user: null,
+  tokens: {
+    accessToken: null,
+    refreshToken: null,
+  },
+  isAuthenticated: false,
+  callbackUrl: null,
+
+  // ── Actions ───────────────────────────────────
+  setUser: (user: User | null) => {
+    set({
+      user,
+      isAuthenticated: !!user,
+      // Optional: reset status if user becomes null
+      ...(user === null && { status: 'unauthenticated' }),
+    })
+  },
+
+  setTokens: (tokens: AuthTokens) =>
+    set({
+      tokens: {
+        accessToken: tokens.accessToken ?? null,
+        refreshToken: tokens.refreshToken ?? null,
+      },
+    }),
+
+  startAuth: (callbackUrl?: string) =>
+    set({
+      status: 'checking',
+      callbackUrl: callbackUrl ?? null,
+    }),
+
+  setChecking: () => set({ status: 'checking' }),
+
+  setAuthenticated: ({ user, tokens }: { user: User; tokens: AuthTokens }) =>
+    set({
+      status: 'authenticated',
+      user,
+      tokens: {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken ?? null,
+      },
+      isAuthenticated: true,
+      callbackUrl: null,
+    }),
+
+  setUnauthenticated: () =>
+    set({
+      status: 'unauthenticated',
+      user: null,
+      tokens: { accessToken: null, refreshToken: null },
+      isAuthenticated: false,
+      callbackUrl: null,
+    }),
+
+  failAuth: () =>
+    set({
+      status: 'unauthenticated', // or 'error' if you want to distinguish
+      user: null,
+      tokens: { accessToken: null, refreshToken: null },
+      isAuthenticated: false,
+      callbackUrl: null,
+    }),
+
+  logout: () =>
+    set({
+      status: 'unauthenticated',
+      user: null,
+      tokens: { accessToken: null, refreshToken: null },
+      isAuthenticated: false,
+      callbackUrl: null,
+    }),
+
+  clearCallback: () => set({ callbackUrl: null }),
+
+  // Placeholder — implement real permission logic later
+  can: (_capability: string) => get().isAuthenticated,
+
+  // Very naive path-based access — replace with real logic
+  canAccess: (_path: string) => get().isAuthenticated,
+})
+
+// ────────────────────────────────────────────────
+//              Persisted version
+// ────────────────────────────────────────────────
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
-      user: null,
-      tokens: {
-        accessToken: null,
-        refreshToken: null,
-      },
-      isAuthenticated: false,
-
-      setUser: (user) =>
-        set({
-          user,
-          isAuthenticated: !!user,
-        }),
-
-      setTokens: (tokens) =>
-        set({
-          tokens,
-          isAuthenticated: !!tokens?.accessToken,
-        }),
-
-      logout: () =>
-        set({
-          user: null,
-          tokens: {
-            accessToken: null,
-            refreshToken: null,
-          },
-          isAuthenticated: false,
-        }),
-    }),
+    authSlice,
     {
-      name: 'auth-session',
-      storage: {
-        getItem: (key) => {
-          const value = sessionStorage.getItem(key);
-          return value ? JSON.parse(value) : null;
-        },
-        setItem: (key, value) => {
-          sessionStorage.setItem(key, JSON.stringify(value));
-        },
-        removeItem: (key) => sessionStorage.removeItem(key),
-      },
-      partialize: (state) => ({
+      name: 'auth-session',              // key in sessionStorage
+      storage: createJSONStorage(() => sessionStorage),
+
+      // What actually gets persisted
+      partialize: (state): PersistedAuthState => ({
+        status: state.status,
         user: state.user,
         tokens: state.tokens,
         isAuthenticated: state.isAuthenticated,
-        setUser: state.setUser,
-        setTokens: state.setTokens,
-        logout: state.logout,
+        callbackUrl: state.callbackUrl,
       }),
-  
+
+
+      // Optional but recommended in most auth cases
+      onRehydrateStorage: () => {
+        // You can return a function that runs after rehydration
+        return (state, error) => {
+          if (error) {
+            console.error('Auth store rehydration failed:', error)
+            // You could call setUnauthenticated() here
+          }
+          if (state) {
+            // Optional: validate tokens age, etc.
+            console.debug('Auth store rehydrated')
+          }
+        }
+      },
     }
   )
-);
-
+)
