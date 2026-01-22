@@ -4,7 +4,7 @@ import {
   VerifyEmailPayload, VerifyEmailResponse, ResetPasswordPayload, SSOCheckResponse,
   UserResponse,
   SignUpPayload,
-  SignupResponse
+  SignupResponse , samlAuthenticationPayload , samlAuthenticationResponse
 } from "../types/auth.types";
 
 export async function loginApi(
@@ -84,4 +84,9 @@ export async function createUserApi(
 ): Promise<SignupResponse> {
  const {data} =  await getApiClient().post<SignupResponse>("/account", payload);
  return data;
+}
+
+export async function samlAuthenticationApi(payload : samlAuthenticationPayload) : Promise<samlAuthenticationResponse>{
+  const {data} = await getApiClient().post<samlAuthenticationResponse>('/saml/authenticate',payload)
+  return data;
 }

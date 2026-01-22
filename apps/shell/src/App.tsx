@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 const App = () => {
   return (
     <QueryClient>
+      
       <AppRouter />
       <ToastContainer 
         pauseOnFocusLoss={false}
