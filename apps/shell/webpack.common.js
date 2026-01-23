@@ -4,6 +4,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
 const Dotenv = require("dotenv-webpack");
 const tailwindPostcssModule = require("@tailwindcss/postcss");
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const tailwindPostcssPlugin =
   (tailwindPostcssModule && tailwindPostcssModule.default) || tailwindPostcssModule;
 // const envFile = `./.env.${process.env.NODE_ENV || "development"}`;
@@ -73,6 +74,14 @@ module.exports = (env) => {
       ],
     },
     plugins: [
+      new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'src/assets'),
+          to: 'assets'   // 👈 appears as /assets in dist
+        }
+      ]
+    }),
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
         template: "index.html",

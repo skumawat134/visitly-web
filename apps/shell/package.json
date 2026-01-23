@@ -19,6 +19,7 @@
     "@visitly/api-client": "*",
     "@visitly/app-store": "*",
     "@visitly/ui": "*",
+    "copy-webpack-plugin": "^13.0.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "^7.12.0",
