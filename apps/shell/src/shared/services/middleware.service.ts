@@ -54,8 +54,8 @@ class MiddlewareService {
 
     // Set user context for RUM using setAttributes
     // Middleware.io SDK uses setAttributes() to update user context after initialization
-    // Only non-PII attributes are captured: id, orgId, orgName, version
-    setUser(user: { id: string; [key: string]: unknown }): void {
+    // Only non-PII attributes are captured: id, orgId
+    setUser(user: { id?: string; orgId?: string; [key: string]: unknown }): void {
         if (!this.initialized || !this.middleware || !user) return;
 
         try {
@@ -64,8 +64,6 @@ class MiddlewareService {
             // Only capture non-PII attributes
             if (user.id) attributes['user.id'] = String(user.id);
             if (user.orgId != null) attributes['user.orgId'] = String(user.orgId);
-            if (user.orgName) attributes['user.orgName'] = String(user.orgName);
-            if (user.version) attributes['user.version'] = String(user.version);
 
             // Set all attributes at once
             if (Object.keys(attributes).length > 0) {
@@ -94,9 +92,7 @@ class MiddlewareService {
         try {
             this.middleware.setAttributes({
                 'user.id': '',
-                'user.orgId': '',
-                'user.orgName': '',
-                'user.version': ''
+                'user.orgId': ''
             });
         } catch (error) {
             console.warn('Middleware: Failed to clear user attributes', error);
