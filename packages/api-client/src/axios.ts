@@ -30,6 +30,31 @@ export function initApiClient(options: ApiClientOptions): AxiosInstance {
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add tracing headers for end-to-end observability
+    try {
+      // Get user info from session storage for tracing context
+      const authSessionStr = sessionStorage.getItem('auth-session');
+      if (authSessionStr && config.headers) {
+        const authSession = JSON.parse(authSessionStr);
+        const user = authSession?.state?.user;
+        if (user?.orgId) {
+          config.headers['orgid'] = user.orgId.toString();
+        }
+        if (user?.id) {
+          config.headers['userid'] = user.id.toString();
+        }
+      }
+
+      // Add device ID if available
+      const deviceId = sessionStorage.getItem('deviceId');
+      if (deviceId && config.headers) {
+        config.headers['deviceid'] = deviceId;
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+
     return config;
   });
 
