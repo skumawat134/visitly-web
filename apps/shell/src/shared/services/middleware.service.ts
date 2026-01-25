@@ -52,24 +52,51 @@ class MiddlewareService {
         }
     }
 
-    // Set user context for RUM
+    // Set user context for RUM using setAttributes
+    // Middleware.io SDK uses setAttributes() to update user context after initialization
     setUser(user: { id: string; name?: string; email?: string; [key: string]: unknown }): void {
-        if (this.initialized && this.middleware) {
-            this.middleware.setUser(user);
+        if (!this.initialized || !this.middleware || !user) return;
+
+        try {
+            const attributes: { [key: string]: string } = {};
+
+            // Build attributes object with available user properties
+            if (user.id) attributes['user.id'] = String(user.id);
+            if (user.name) attributes['user.name'] = String(user.name);
+            if (user.email) attributes['user.email'] = String(user.email);
+
+            // Set all attributes at once
+            if (Object.keys(attributes).length > 0) {
+                this.middleware.setAttributes(attributes);
+            }
+        } catch (error) {
+            console.warn('Middleware: Failed to set user attributes', error);
         }
     }
 
     // Set additional user properties
     setUserProperty(key: string, value: unknown): void {
-        if (this.initialized && this.middleware) {
-            this.middleware.setAttribute(key, value);
+        if (!this.initialized || !this.middleware) return;
+
+        try {
+            this.middleware.setAttributes({ [key]: String(value) });
+        } catch (error) {
+            console.warn('Middleware: Failed to set user property', error);
         }
     }
 
     // Clear user context (useful for logout)
     clearUser(): void {
-        if (this.initialized && this.middleware) {
-            this.middleware.setUser(null);
+        if (!this.initialized || !this.middleware) return;
+
+        try {
+            this.middleware.setAttributes({
+                'user.id': '',
+                'user.name': '',
+                'user.email': ''
+            });
+        } catch (error) {
+            console.warn('Middleware: Failed to clear user attributes', error);
         }
     }
 
