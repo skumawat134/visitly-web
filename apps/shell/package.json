@@ -19,7 +19,6 @@
     "@visitly/api-client": "*",
     "@visitly/app-store": "*",
     "@visitly/ui": "*",
-    "copy-webpack-plugin": "^13.0.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "^7.12.0",
@@ -52,6 +51,7 @@
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2",
     "webpack-merge": "^6.0.1",
-    "workbox-webpack-plugin": "^7.4.0"
+    "workbox-webpack-plugin": "^7.4.0",
+    "copy-webpack-plugin": "^13.0.1"
   }
 }
