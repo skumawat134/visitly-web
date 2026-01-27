@@ -6,7 +6,7 @@ export interface LoginPayload {
 
 export interface LoginResponse {
     accessToken: string;
-    refreshToken?: string;
+    refreshToken: string;
     user: {
         id: string;
         email: string;

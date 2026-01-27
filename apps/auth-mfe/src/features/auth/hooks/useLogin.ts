@@ -4,12 +4,13 @@ import { useLoginMutation } from "../services/useLoginMutation";
 import { useFormik } from "formik";
 import { useSsoMutation } from "../services/useSsoMutation";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useToastStore } from "@visitly/app-store";
 const useLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<"email" | "password" | "sso">("email");
   const [ssoUrl, setSsoUrl] = useState<string | null>(null);
   const { mutateAsync: login } = useLoginMutation();
+  const { showToast } = useToastStore()
   const checkSSO = useSsoMutation();
   const navigate = useNavigate();
   const validationSchema = Yup.object({
@@ -30,56 +31,51 @@ const useLogin = () => {
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
-      if (step === "sso") {
-        if (ssoUrl) window.location.href = ssoUrl;
-        return;
-      }
-      // If simple log in (assuming password is always required if not sso)
-      if (step === "email" || step === "password") {
-        // If we haven't asked for password yet and it's not SSO, technically we should check logic.
-        // But for this single page flow, we'll assume we submit credentials together or check password presence
-        if (!values.password) return; // Should be handled by YUP but double check
-        await login(
-          { email: values.email, password: values.password },
-          {
-            onError: (error: any) => {
-              console.log("Login failed", error.status);
-              setSubmitting(false);
+      try {
 
-              switch (error?.status) {
-                case 401:
-                case 417:
-                  toast.error("Email and password are invalid.");
-                  break;
-
-                case 400:
-                  localStorage.setItem(
-                    "isEmailVerifcationRequired",
-                    values.email,
-                  );
-                  navigate("/visitly/verify-email");
-                  break;
-
-                case 500:
-                case 504:
-                  toast.error(
-                    "We have encountered an error. If the problem persists, please contact Visitly Support at support@visitly.io",
-                  );
-                  break;
-
-                default:
-                  console.error("Unexpected error during login:", error);
-                  toast.error(
-                    "An unexpected error occurred. Please try again later.",
-                  );
-              }
-            },
-          },
-        );
+        if (step === "sso") {
+          if (ssoUrl) window.location.href = ssoUrl;
+          return;
+        }
+        // If simple log in (assuming password is always required if not sso)
+        if (step === "email" || step === "password") {
+          // If we haven't asked for password yet and it's not SSO, technically we should check logic.
+          // But for this single page flow, we'll assume we submit credentials together or check password presence
+          if (!values.password) return; // Should be handled by YUP but double check
+          await login(
+            { email: values.email, password: values.password },
+          );
+          showToast({message : "Log-in successful!"})
+        }
+      } catch (error: any) {
+        console.log("resp", error.response, error.message)
+        const err = error?.response?.data
+        switch (err?.status) {
+          case 401:
+          case 417: {
+            debugger;
+            showToast({ message: "Email and password are invalid.", type: "error" });
+            break;
+          }
+          case 400:
+            localStorage.setItem(
+              "isEmailVerifcationRequired",
+              values.email,
+            );
+            navigate("/visitly/verify-email");
+            break;
+          case 500:
+          case 504:
+            showToast({ message: "We have encountered an error. If the problem persists, please contact Visitly Support at support@visitly.io", type: "error" });
+            break;
+          default:
+            showToast({ message: "An unexpected error occurred. Please try again later.", type: "error" });
+        }
+      } finally {
         setSubmitting(false);
-        // navigate('/admin')
       }
-    },
+    }
+
   });
 
   // Debounce email check for SSO

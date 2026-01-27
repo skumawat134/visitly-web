@@ -4,7 +4,7 @@ import { SignupFormValues } from '../components/SignupForm';
 import { useMutation } from '@tanstack/react-query';
 import { createUserApi, createHubSpotApi } from '../services/auth.api';
 import * as Yup from 'yup';
-import { toast } from 'react-toastify';
+import { useToastStore } from '@visitly/app-store';
 export interface User {
   firstName: string;
   lastName: string;
@@ -17,7 +17,7 @@ export interface User {
 
 interface ValidationPatterns {
   PATTERN_FOR_ALPHABATES_AND_SPACE: RegExp;
-  PATTERN_FOR_ALPHABATES_AND_ORG_NAME : RegExp;
+  PATTERN_FOR_ALPHABATES_AND_ORG_NAME: RegExp;
   PATTERN_FOR_EMAIL: RegExp;
   PATTERN_FOR_PASSWORD: RegExp;
   PATTERN_FOR_PHONE_NO: RegExp;
@@ -38,8 +38,8 @@ interface ValidationMessages {
 }
 
 const validationPatterns: ValidationPatterns = {
-  PATTERN_FOR_ALPHABATES_AND_SPACE: /^([a-zA-Z][a-zA-Z ]*)$/, 
-  PATTERN_FOR_ALPHABATES_AND_ORG_NAME : /^([a-zA-Z][a-zA-Z .&$@]*)$/,
+  PATTERN_FOR_ALPHABATES_AND_SPACE: /^([a-zA-Z][a-zA-Z ]*)$/,
+  PATTERN_FOR_ALPHABATES_AND_ORG_NAME: /^([a-zA-Z][a-zA-Z .&$@]*)$/,
   PATTERN_FOR_EMAIL: /[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,50}/,
   PATTERN_FOR_PASSWORD: /^.{8,60}$/,
   PATTERN_FOR_PHONE_NO: /^[0-9]{6,12}$/, // E.164 format
@@ -65,6 +65,7 @@ export const useSignup = () => {
   const [flagForPasswordHideShow, setFlagForPasswordHideShow] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const showToast = useToastStore((s) => s.showToast)
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,13 +96,13 @@ export const useSignup = () => {
         companyName: values.companyName,
       };
 
-     signUpMutation.mutate(userObj);
+      signUpMutation.mutate(userObj);
 
 
     } catch (error: any) {
-      console.error('Signup error:', error.status, error.message  );
+      console.error('Signup error:', error.status, error.message);
       // Handle different error statuses
-     
+
     } finally {
       setIsLoading(false);
     }
@@ -109,27 +110,27 @@ export const useSignup = () => {
 
   const signUpMutation = useMutation({
     mutationFn: createUserApi,
-    onSuccess: (data , variables) => {
+    onSuccess: (data, variables) => {
       console.log('Signup successful:------------------------------------------>', data, variables);
       if (window.location.hostname.toLowerCase() === 'app.visitly.io') {
-         createHubSpot(variables);
+        createHubSpot(variables);
       }
-      toast.success('Signup successful! Please check your email to confirm your account.');
+      showToast({ message: 'Signup successful! Please check your email to confirm your account.', type: "success" });
       navigate('/visitly/confirmation', { relative: 'path' });
     },
     onError: (error: any) => {
-      console.log('Signup mutation error:', error , error.status  , error.message  );
-       switch (error?.status) {
+      console.log('Signup mutation error:', error, error.status, error.message);
+      switch (error?.status) {
         case 400:
-        toast(error?.message ? error?.message : 'Bad Request');
+          showToast({ message: error?.message ? error?.message : 'Bad Request', type: "error" });
           break;
         case 409:
-          toast('An account already exists with this email. Please log in.');
+          showToast({ message: 'An account already exists with this email. Please log in.', type: "error" });
           break;
         case 500:
         case 504:
-        toast('We have encountered an error. If the problem persists, please contact Visitly Support at <a href="mailto:support@visitly.io">support@visitly.io</a>');
-        break;
+          showToast({ message: 'We have encountered an error. If the problem persists, please contact Visitly Support at <a href="mailto:support@visitly.io">support@visitly.io</a>', type: "error" });
+          break;
       }
     }
   });
@@ -183,9 +184,9 @@ export const useSignup = () => {
 
   const hubspotMutation = useMutation({
     mutationFn: createHubSpotApi,
-     meta: {
-    showLoader: false,
-     },
+    meta: {
+      showLoader: false,
+    },
     onSuccess: () => {
       //  console.log('HubSpot integration successful');
     },
@@ -230,7 +231,7 @@ export const useSignup = () => {
     email: Yup.string()
       .required('Email is required')
       .matches(
-       new RegExp('[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,50}'),
+        new RegExp('[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,50}'),
         'Please enter a valid email address'
       ),
 
