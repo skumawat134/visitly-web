@@ -18,9 +18,8 @@ function AppRouter() {
   return (
     <>
       <BrowserRouter>
-        {/* <Header />  */}
          <AuthInitializer />      
-        <NavigationResolver />     
+        <NavigationResolver /> 
         <Routes>
           <Route path="/" element={<Navigate to="/visitly" replace />} />
           <Route path="/visitly/*" element={<AuthMFE />} />

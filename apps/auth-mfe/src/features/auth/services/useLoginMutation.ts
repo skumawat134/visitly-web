@@ -4,12 +4,13 @@ import type { LoginPayload, LoginResponse } from "../types/auth.types";
 import { useAuthStore } from "@visitly/app-store";
 import { useUserInfoQuery } from "./useFetchUserInfo";
 import { getProductInfo } from "./entitlement.api";
+import { setCookie } from "@/utils/cookie.utils";
 
 export function useLoginMutation() {
     const queryClient = useQueryClient();
     const qc = queryClient;
     const setTokens = useAuthStore((s) => s.setTokens);
-    const setChecking = useAuthStore((s)=>s.setChecking);
+    const setChecking = useAuthStore((s) => s.setChecking);
     return useMutation<LoginResponse, Error, LoginPayload>({
         mutationKey: ["auth", "login"],
         mutationFn: loginApi,
@@ -19,23 +20,25 @@ export function useLoginMutation() {
                 refreshToken: data.refreshToken,
             });
             sessionStorage.setItem('accessToken', `Bearer ${data.accessToken}`);
-            // // 2. Prefetch user profile → creates/fills cache
-            // const user = await qc.fetchQuery({
-            //     queryKey: ['auth', 'me'],
-            //     queryFn: getUserInfoApi,
-            //   });
-              
-            //   // Now user is available
-            //   if (user?.orgId) {
-            //     await qc.fetchQuery({
-            //       queryKey: ['entitlements', user.orgId],
-            //       queryFn: () => getProductInfo(user.orgId),
-            //     });
-            //   }
+            // Access token → 8 hours
+            const tokenTime = new Date();
+            tokenTime.setHours(tokenTime.getHours() + 8);
+            const token = `Bearer ${data.accessToken}`;
+            setCookie('accessToken', token, {
+                expires: tokenTime,
+                secure: true,
+                sameSite: 'Lax',
+            });
+            // LocalStorage copy (same as Angular)
+            localStorage.setItem('C', data.refreshToken);
+            // Refresh token → 30 days
+            setCookie('refreshToken', data.refreshToken, {
+                days: 30,
+                secure: true,
+                sameSite: 'Lax',
+            });
             setChecking();
-        },
-        onError: (error) => {
-            console.error("Login failed", error.message);
-        },
+        }
+      
     });
 }

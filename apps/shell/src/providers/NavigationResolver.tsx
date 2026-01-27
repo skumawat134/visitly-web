@@ -51,7 +51,7 @@ export function NavigationResolver() {
                 navigate(target, { replace: true });
             }
         }
-    }, [auth.status]);
+    }, [auth, auth.status, location.pathname, location.search, navigate]);
 
     return null;
 }
