@@ -30,7 +30,10 @@ function AppRouter() {
               </RequireCapability>
             } />
           </Route>
+          <Route path='/dashboard/wallboard' element={ <Navigate to="/admin/dashboard/wallboard" replace />  } />
+          <Route path='/impersonate/user' element={ <Navigate to="/admin/impersonate/user" replace />  } />
           <Route path="/saml" element={<Navigate to={`/visitly/saml${window.location.search}`} replace />} />
+          <Route path="/permaVisits/*" element={<Navigate to={`/admin/permaVisits${window.location.pathname.replace('/permaVisits', '')}${window.location.search}`} replace />}/>
           <Route path="*" element = {<NotFound />} />
         </Routes>
       </BrowserRouter>

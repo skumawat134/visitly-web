@@ -4,12 +4,23 @@ import { useLocation, useNavigate } from 'react-router-dom';
 // import { canAccessRoute } from './routeAccess';
 // import { resolveLanding } from './resolveLanding';
 
+ const SKIP_AUTH_PATHS = [
+  '/permaVisits',
+  '/admin/permaVisits',
+  '/impersonate/user',
+  '/admin/impersonate/user',
+];
+
 export function NavigationResolver() {
     const status = useAuthStore(s => s.status);
     const user = useAuthStore(s => s.user);
     const navigate = useNavigate();
     const location = useLocation();
     useEffect(() => {
+    if (SKIP_AUTH_PATHS.some(path => location.pathname.startsWith(path))) {
+    return;
+    }
+
       if (status === 'checking') return;
       const currentPath = location.pathname + location.search;
       if (status === 'unauthenticated') {
@@ -54,7 +65,7 @@ function resolveLanding(auth: AuthState) {
     const roles = auth.user?.roles;
     if (roles) {
         if (roles.find(x => (x.role === 'GLOBAL_INTERNAL_ADMIN'))) {
-            return '/internalAdmin/org-list';
+            return '/admin/internalAdmin/org-list';
         }
         else if (roles.find(x => (x.role === 'GLOBAL_ORG_ADMIN' || x.role === 'FRONTDESK_ADMIN' || x.role === 'SITE_ADMIN'))) {
 

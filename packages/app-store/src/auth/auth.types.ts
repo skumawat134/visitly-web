@@ -71,7 +71,7 @@ export type AuthState = {
   setAuthenticated: (payload: { user: User; tokens: AuthTokens }) => void;
   logout: () => void;
   can: (cap: string) => boolean;
-  canAccess: (path: string) => boolean;
+  canAccess: (cb:()=> boolean) => boolean;
   failAuth: (error?: string) => void; 
   clearCallback: () => void;
 };
