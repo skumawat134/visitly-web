@@ -86,10 +86,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn 
 
       - name: Determine shell build command
         id: shell-build
