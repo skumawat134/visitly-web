@@ -1,6 +1,7 @@
 const { baseConfig } = require("@visitly/webpack-config");
 const { ModuleFederationPlugin } = require("webpack").container;
 const { sharedDeps } = require("@visitly/webpack-config");
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require("path");
 module.exports = (env) => {
   const base = baseConfig(env);
@@ -22,6 +23,14 @@ module.exports = (env) => {
         },
         shared: sharedDeps,
       }),
+      new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'src/assets'),
+          to: 'assets'   // 👈 appears as /assets in dist
+        }
+      ]
+    }),
     ],
   };
 };
