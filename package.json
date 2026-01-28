@@ -4,8 +4,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "serve:shell" : "npx serve apps/shell/dist -p 4201 --single",
-    "serve:auth" : "npx serve apps/auth-mfe/dist -p 3006 --single",
+    "serve:shell": "npx serve apps/shell/dist -p 4201 --single",
+    "serve:auth": "npx serve apps/auth-mfe/dist -p 3006 --single",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
@@ -14,12 +14,12 @@
     "@types/minimatch": "^6.0.0",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.7.1",
-    "turbo": "^2.7.3"
+    "turbo": "2.7.5-canary.1"
   },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "yarn@4.12.0",
   "workspaces": [
     "apps/*",
     "packages/*"

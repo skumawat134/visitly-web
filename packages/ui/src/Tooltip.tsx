@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from "react";
+import React, { useState, type ReactNode } from "react";
 import { cn } from "./utils";
 
 export interface TooltipProps {
