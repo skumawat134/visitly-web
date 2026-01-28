@@ -1,0 +1,39 @@
+{
+  "name": "@visitly/webpack-config",
+  "version": "1.0.0",
+  "description": "common webpack config for entire monorepo",
+  "main": "index.js",
+  "author": "skumawat@visitly.io",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "lint": "eslint src --ext .js,.ts"
+  },
+  "peerDependencies": {
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "@babel/preset-react": "^7.20.0",
+    "@babel/preset-typescript": "^7.20.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "babel-loader": "^9.0.0 || ^10.0.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "css-loader": "^6.0.0 || ^7.0.0",
+    "dotenv-webpack": "^8.0.0",
+    "html-webpack-plugin": "^5.6.0",
+    "mini-css-extract-plugin": "^2.9.0",
+    "postcss-loader": "^7.0.0 || ^8.0.0",
+    "sass": "^1.60.0",
+    "sass-loader": "^14.0.0",
+    "style-loader": "^3.0.0 || ^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.0.0 || ^6.0.0",
+    "webpack-merge": "^5.10.0 || ^6.0.0"
+  },
+  "dependencies": {
+    "webpack-merge": "^6.0.1"
+  },
+  "devDependencies": {
+    "webpack": "^5.104.1"
+  }
+}

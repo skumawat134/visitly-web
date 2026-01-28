@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "webpack serve --config webpack.dev.js --env NODE_ENV=development",
     "start": "npm run dev",
-    "build:styles": "tailwindcss -i ./src/styles/global.css -o ./dist/styles.css",
+    "build:styles": "yarn dlx @tailwindcss/cli -i ./src/styles/global.css -o ./dist/styles.css",
     "build": "webpack --config webpack.prod.js --env NODE_ENV=production && yarn build:styles",
     "build:staging": "webpack --config webpack.prod.js --env NODE_ENV=staging",
     "build:dev-test": "webpack --config webpack.prod.js --env NODE_ENV=development",
@@ -21,6 +21,7 @@
     "@visitly/api-client": "*",
     "@visitly/app-store": "*",
     "@visitly/ui": "*",
+    "@visitly/webpack-config": "*",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "^7.12.0",

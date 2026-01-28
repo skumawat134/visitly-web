@@ -4,7 +4,7 @@ import {
   initApiClient,
   initQueryClient,
 } from "@visitly/api-client";
-import { AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
+import {type AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
 import { GlobalLoader } from "@/components/GlobalLoader";
 import FullScreenLoader from "@/components/FullScreenLoader";
 

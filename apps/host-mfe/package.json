@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "description": "Visitly auth mfe application for the Visitly platform",
-  "name": "@visitly/auth-mfe",
+  "name": "@visitly/host-mfe",
   "author": "skumawat@visitly.io",
   "license": "MIT",
   "scripts": {
@@ -22,7 +22,6 @@
     "@visitly/ui": "*",
     "@visitly/webpack-config": "*",
     "formik": "^2.4.9",
-    "lucide-react": "^0.563.0",
     "yup": "^1.7.1"
   },
   "devDependencies": {
