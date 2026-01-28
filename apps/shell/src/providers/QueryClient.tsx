@@ -36,7 +36,7 @@ initApiClient({
     showToast({ message: message, type: "error" });
   },
   getRefreshToken() {
-    return localStorage.getItem("C") || '' // refers to refresh token
+    return localStorage.getItem("refreshToken") || '' // refers to refresh token
   },
   onTokenRefresh: ({ accessToken }) => {
     const { tokens, setTokens } = useAuthStore.getState(); // should trigger entitilement,userinfo

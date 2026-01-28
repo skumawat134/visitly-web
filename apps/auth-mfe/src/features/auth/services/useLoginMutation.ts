@@ -30,7 +30,7 @@ export function useLoginMutation() {
                 sameSite: 'Lax',
             });
             // LocalStorage copy (same as Angular)
-            localStorage.setItem('C', data.refreshToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
             // Refresh token → 30 days
             setCookie('refreshToken', data.refreshToken, {
                 days: 30,
