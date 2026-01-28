@@ -39,6 +39,4 @@ env
 .env.*
 !.env.example
 yarn.lock
-.yarn/install-state.gz
-.yarn/releases/yarn-4.12.0.cjs
 yarn.lock
