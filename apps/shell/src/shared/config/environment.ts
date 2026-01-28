@@ -10,7 +10,6 @@ const isLocalDevelopment = (): boolean => {
 // Detect environment from URL
 const getEnvironment = (): 'dev' | 'stage' | 'prod' => {
     if (typeof window === 'undefined') return 'dev';
-
     const hostname = window.location.hostname;
     if (hostname.includes('app.visitly.io')) return 'prod';
     if (hostname.includes('stage.visitly.io')) return 'stage';
@@ -28,7 +27,8 @@ const getMiddlewareTarget = (): string => {
 // Check if Middleware should be enabled
 const isMiddlewareEnabled = (): boolean => {
     const env = getEnvironment();
-    return (env === 'prod' || env === 'stage' || env === 'dev') && !isLocalDevelopment();
+    // return (env === 'prod' || env === 'stage' || env === 'dev') && !isLocalDevelopment();
+    return true;
 };
 
 // Get API origin for CORS trace propagation
@@ -45,12 +45,14 @@ export const environment = {
     middleware: {
         // Middleware is DISABLED for local development to avoid noise
         enabled: isMiddlewareEnabled(),
-        accountKey: import.meta.env.VITE_MW_ACCOUNT_KEY || '',
+        accountKey: process.env.VITE_MW_ACCOUNT_KEY || '',
         target: getMiddlewareTarget(),
-        serviceName: 'portal-web',
-        projectName: `visitly-${getEnvironment()}`,
+        // serviceName: 'portal-web',
+        serviceName:"visitly-mfe",
+        projectName:"visitly-mfe",
+        // projectName: `visitly-${getEnvironment()}`,
         env: getEnvironment(),
-        version: import.meta.env.VITE_APP_VERSION || '1.0.0',
+        version: process.env.VITE_APP_VERSION || '1.0.0',
         // RUM/Session recording disabled by default - only traces are captured
         // Call middlewareService.enableSessionRecording() to enable on demand
         sessionRecording: false,
