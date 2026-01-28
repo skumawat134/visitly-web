@@ -69,6 +69,7 @@ jobs:
       PERMA_LINK_FRONT_URI: ${{ secrets.PERMA_LINK_FRONT_URI }}
       LANGUAGE_JSON_S3_URI: ${{ secrets.LANGUAGE_JSON_S3_URI }}
       VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+      VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
       VITE_ENV: ${{ matrix.env }}
       PLAN_PROD: false
 
@@ -128,6 +129,7 @@ jobs:
           PERMA_LINK_FRONT_URI: ${{ secrets.PERMA_LINK_FRONT_URI }}
           LANGUAGE_JSON_S3_URI: ${{ secrets.LANGUAGE_JSON_S3_URI }}
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
+          VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
           VITE_ENV: ${{ matrix.env }}
           PLAN_PROD: false
           
