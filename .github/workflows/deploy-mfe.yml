@@ -87,7 +87,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: yarn 
+        run: yarn install --frozen-lockfile 
 
       - name: Determine shell build command
         id: shell-build
