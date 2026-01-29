@@ -41,3 +41,4 @@ env
 yarn.lock
 yarn.lock
 .yarn/install-state.gz
+.yarn/install-state.gz

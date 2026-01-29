@@ -15,7 +15,7 @@ module.exports = (env) => {
     plugins: [
       ...base.plugins,
         new ModuleFederationPlugin({
-          name: "auth_mfe",
+          name: "host_mfe",
           filename: "remoteEntry.js",
           exposes: {
             './AppRouter': './src/App',

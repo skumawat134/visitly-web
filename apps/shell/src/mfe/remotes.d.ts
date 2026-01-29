@@ -9,3 +9,8 @@ declare module 'AuthMFE/AppRouter' {
 //     const AppRouter: ComponentType;
 //     export default AppRouter;
 //   }
+declare module 'HOSTMFE/AppRouter' {
+  import { ComponentType } from 'react';
+  const AppRouter: ComponentType;
+  export default AppRouter;
+}

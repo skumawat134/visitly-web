@@ -80,7 +80,7 @@ function resolveLanding(auth: AuthState) {
             return "/admin/work_area/delivery-manager/dashboard'"
         }
         else if (roles.find(x => (x.role === 'HOST' || x.role === 'EVAC_MANAGER'))) {
-            return '/admin/work_area/evacuation/past-visitors';
+            return '/host/work_area/evacuation/past-visitors';
         }
     }
     return "/admin";
