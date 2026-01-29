@@ -130,7 +130,7 @@ export const useAuthStore = create<AuthState>()(
             if(sessionStorage.getItem('userinfo') && sessionStorage.getItem('accessToken')){
             state.isAuthenticated = true;
             state.tokens.accessToken =  sessionStorage.getItem('accessToken')?.split(' ')[1] as string;
-            state.tokens.refreshToken = localStorage.getItem('C');
+            state.tokens.refreshToken = localStorage.getItem('refreshToken');
             state.status = "authenticated"
             state.user  = sessionStorage.getItem('userinfo') as unknown as User
           }
