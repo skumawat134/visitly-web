@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "webpack serve --config webpack.dev.js --env NODE_ENV=development",
     "start": "npm run dev",
-    "build:styles": "tailwindcss -i ./src/styles/global.css -o ./dist/styles.css",
+    "build:styles": "yarn dlx @tailwindcss/cli -i ./src/styles/global.css -o ./dist/styles.css",
     "build": "webpack --config webpack.prod.js --env NODE_ENV=production && yarn build:styles",
     "build:staging": "webpack --config webpack.prod.js --env NODE_ENV=staging",
     "build:dev-test": "webpack --config webpack.prod.js --env NODE_ENV=development",
@@ -15,10 +15,13 @@
     "lint": "eslint src --max-warnings=0"
   },
   "dependencies": {
+    "@datadog/browser-logs": "^6.25.4",
+    "@datadog/browser-rum": "^6.25.4",
     "@tanstack/react-query": "^5.90.17",
     "@visitly/api-client": "*",
     "@visitly/app-store": "*",
     "@visitly/ui": "*",
+    "@visitly/webpack-config": "*",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "^7.12.0",
@@ -36,6 +39,7 @@
     "@visitly/tailwind-config": "*",
     "babel-loader": "^10.0.0",
     "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",
     "dotenv-webpack": "^8.1.1",
     "html-webpack-plugin": "^5.6.5",

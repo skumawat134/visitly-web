@@ -1,0 +1,22 @@
+{
+    "extends": "@visitly/typescript-config/react-library.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "src/*"
+            ]
+        },
+        "types": [
+            "node"
+          ]
+    },
+    "files": ["../../packages/typescript-config/env.d.ts"],
+    "include": [
+        "**/*.ts",
+        "**/*.tsx"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

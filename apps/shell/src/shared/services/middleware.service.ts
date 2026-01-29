@@ -11,8 +11,9 @@ class MiddlewareService {
     private middleware: any = null;
 
     initialize(): void {
+        console.warn('initalizing the middleware' , window.Middleware);
         if (!environment.middleware.enabled || this.initialized) return;
-
+         
         // Check if Middleware SDK is loaded via CDN script in index.html
         if (typeof window.Middleware === 'undefined') {
             console.warn('Middleware SDK not loaded. Make sure the CDN script is added to index.html');

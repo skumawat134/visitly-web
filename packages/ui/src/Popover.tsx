@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, ReactNode } from "react";
+import React, { useState, useRef, useEffect, type ReactNode } from "react";
 import { cn } from "./utils";
 
 export interface PopoverProps {

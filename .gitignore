@@ -38,3 +38,6 @@ dist/
 env
 .env.*
 !.env.example
+yarn.lock
+yarn.lock
+.yarn/install-state.gz

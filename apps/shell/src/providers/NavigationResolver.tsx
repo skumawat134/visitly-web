@@ -4,57 +4,57 @@ import { useLocation, useNavigate } from 'react-router-dom';
 // import { canAccessRoute } from './routeAccess';
 // import { resolveLanding } from './resolveLanding';
 
+ const SKIP_AUTH_PATHS = [
+  '/permaVisits',
+  '/admin/permaVisits',
+  '/impersonate/user',
+  '/admin/impersonate/user',
+];
+
 export function NavigationResolver() {
-    const auth = useAuthStore();
+    const status = useAuthStore(s => s.status);
+    const user = useAuthStore(s => s.user);
     const navigate = useNavigate();
     const location = useLocation();
-
     useEffect(() => {
-        // 1️⃣ Still resolving auth → do nothing
-        if (auth.status === 'checking') return;
+    if (SKIP_AUTH_PATHS.some(path => location.pathname.startsWith(path))) {
+    return;
+    }
 
-        const currentPath = location.pathname + location.search;
-
-        // 2️⃣ Not authenticated → go to login
-        if (auth.status === 'unauthenticated') {
-            if (!location.pathname.startsWith('/visitly')) {
-                sessionStorage.setItem(
-                    'redirect_after_login',
-                    currentPath
-                );
-
-                navigate('/visitly', { replace: true });
-            }
-            return;
+      if (status === 'checking') return;
+      const currentPath = location.pathname + location.search;
+      if (status === 'unauthenticated') {
+        if (!location.pathname.startsWith('/visitly')) {
+          sessionStorage.setItem('redirect_after_login', currentPath);
+          navigate('/visitly', { replace: true });
         }
-
-        // 3️⃣ Authenticated → resolve redirect or landing
-        if (auth.status === 'authenticated') {
-            const redirect =
-                new URLSearchParams(location.search).get('redirect') ||
-                sessionStorage.getItem('redirect_after_login');
-
-            let target: string;
-
-            //   if (
-            //     redirect &&
-            //     canAccessRoute(redirect, auth.can)
-            //   ) {
-            //     target = redirect;
-            //   } else {
-            target = resolveLanding(auth);
-            //   }
-
-            sessionStorage.removeItem('redirect_after_login');
-
-            if (location.pathname !== target) {
-                navigate(target, { replace: true });
-            }
+        return;
+      }
+  
+      if (status === 'authenticated') {
+        // Already inside app → don't fight navigation
+        if (
+          location.pathname.startsWith('/admin') ||
+          location.pathname.startsWith('/internalAdmin')
+        ) {
+          return;
         }
-    }, [auth.status]);
-
+        const redirect =
+          new URLSearchParams(location.search).get('redirect') ||
+          sessionStorage.getItem('redirect_after_login');
+  
+        const target = redirect || resolveLanding({ user } as AuthState);
+  
+        sessionStorage.removeItem('redirect_after_login');
+  
+        if (location.pathname !== target) {
+          navigate(target, { replace: true });
+        }
+      }
+    }, [status, user, location.pathname, location.search, navigate]);
+  
     return null;
-}
+  }
 
 function resolveLanding(auth: AuthState) {
     // if (auth.capabilities.includes('ADMIN_DASHBOARD'))
@@ -65,7 +65,7 @@ function resolveLanding(auth: AuthState) {
     const roles = auth.user?.roles;
     if (roles) {
         if (roles.find(x => (x.role === 'GLOBAL_INTERNAL_ADMIN'))) {
-            return '/internalAdmin/org-list';
+            return '/admin/internalAdmin/org-list';
         }
         else if (roles.find(x => (x.role === 'GLOBAL_ORG_ADMIN' || x.role === 'FRONTDESK_ADMIN' || x.role === 'SITE_ADMIN'))) {
 

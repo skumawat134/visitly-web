@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { LoaderState } from './loader.types';
+import type { LoaderState } from './loader.types';
 
 export const useLoaderStore = create<LoaderState>((set) => ({
   isLoading: false,

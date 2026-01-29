@@ -92,7 +92,7 @@ const authSlice: StateCreator<
   can: (_capability: string) => get().isAuthenticated,
 
   // Very naive path-based access — replace with real logic
-  canAccess: (_path: string) => get().isAuthenticated,
+  canAccess: (cb : ()=>boolean) => cb() || get().isAuthenticated,
 })
 
 // ────────────────────────────────────────────────
@@ -126,8 +126,15 @@ export const useAuthStore = create<AuthState>()(
           }
           if (state) {
             // Optional: validate tokens age, etc.
-            console.debug('Auth store rehydrated')
+            console.log('state=================',state)
+            if(sessionStorage.getItem('userinfo') && sessionStorage.getItem('accessToken')){
+            state.isAuthenticated = true;
+            state.tokens.accessToken =  sessionStorage.getItem('accessToken')?.split(' ')[1] as string;
+            state.tokens.refreshToken = localStorage.getItem('refreshToken');
+            state.status = "authenticated"
+            state.user  = sessionStorage.getItem('userinfo') as unknown as User
           }
+        }
         }
       },
     }

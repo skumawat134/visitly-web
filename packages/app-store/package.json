@@ -11,12 +11,11 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "dependencies": {},
   "peerDependencies": {
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
-    "@visitly/typescript-config": "*"
+    "@visitly/typescript-config": "*",
+    "typescript": "^5.9.2"
   }
 }

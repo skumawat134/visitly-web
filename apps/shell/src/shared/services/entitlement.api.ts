@@ -1,5 +1,5 @@
 import { getApiClient } from "@visitly/api-client";
-import { EntitlementsResponse } from "../types/entitlement.type";
+import type { EntitlementsResponse } from "../types/entitlement.type";
 
 export async function getProductInfo (orgId : string){
     const { data } = await getApiClient().get<EntitlementsResponse>(`/orgs/${orgId}/products`);
