@@ -1,4 +1,4 @@
-import { AuthState, useAuthStore } from '@visitly/app-store';
+import  { type AuthState, useAuthStore } from '@visitly/app-store';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 // import { canAccessRoute } from './routeAccess';
@@ -63,6 +63,7 @@ function resolveLanding(auth: AuthState) {
     //   return '/visitors';
     // return '/unauthorized';
     const roles = auth.user?.roles;
+    debugger
     if (roles) {
         if (roles.find(x => (x.role === 'GLOBAL_INTERNAL_ADMIN'))) {
             return '/admin/internalAdmin/org-list';
