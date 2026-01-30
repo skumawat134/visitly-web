@@ -1,5 +1,5 @@
 import { getApiClient } from "@visitly/api-client";
-import {
+import type {
   LoginPayload, LoginResponse, ConfirmEmailPayload, ConfirmEmailResponse, ForgotPasswordPayload, ForgotPasswordResponse,
   VerifyEmailPayload, VerifyEmailResponse, ResetPasswordPayload, SSOCheckResponse,
   UserResponse,

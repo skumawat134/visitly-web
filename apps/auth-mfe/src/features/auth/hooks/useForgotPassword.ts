@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { forgotPassword } from '../services/auth.api';
+import { forgotPassword, ssoCheckApi } from '../services/auth.api';
 interface SsoCheckResponse {
     enabledSso: boolean;
     ssoRequestUrl: string | null;
@@ -20,15 +20,7 @@ export const useForgotPassword = () => {
     }, []);
     // Mutation for checking SSO
     const ssoMutation = useMutation({
-        mutationFn: async (email: string) => {
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://api.visitly.io/v1'}/saml/check-email`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
-            });
-            if (!response.ok) throw new Error('SSO check failed');
-            return response.json() as Promise<SsoCheckResponse>;
-        },
+        mutationFn: ssoCheckApi,
         onSuccess: (data) => {
             if (data.ssoRequestUrl) {
                 setIsSSOLoginEnabled(data.enabledSso || false);
@@ -55,7 +47,7 @@ export const useForgotPassword = () => {
     const checkIsSSOAvailable = (email: string) => {
         if (!email || email === tempEmailRef.current) return;
         tempEmailRef.current = email;
-        ssoMutation.mutate(email);
+        ssoMutation.mutate({email});
     };
     const handleSSO = () => {
         if (ssoProviderUrl) {
