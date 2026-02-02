@@ -12,7 +12,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
   const user = useAuthStore((s) => s.user);
   return (
-    <header className="tw:fixed tw:top-0 tw:z-50 tw:w-full tw:bg-white tw:border-b tw:border-gray-200 tw:h-16 tw:flex tw:items-center tw:justify-between tw:px-4">
+    <header className=" tw:top-0 tw:z-50 tw:w-full tw:bg-white tw:border-b tw:border-gray-200 tw:h-16 tw:flex tw:items-center tw:justify-between tw:px-4">
       <div className="tw:flex tw:items-center tw:gap-4">
         {/* Logo Section - Width adjusts based on Sidebar state */}
         <div className={`tw:flex tw:items-center tw:transition-all tw:duration-300 ${isCollapsed ? 'tw:w-12' : 'tw:w-52'}`}>

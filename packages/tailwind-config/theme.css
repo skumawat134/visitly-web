@@ -5,4 +5,6 @@
   --color-red-22332: #4a0404;
   --color-primary-100 : #5E2CED;
   --color-primary-1000: #111111;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
 }

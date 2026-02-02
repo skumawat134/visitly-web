@@ -145,7 +145,7 @@ const PastVisitors: React.FC = () => {
     <div className="tw:p-4 md:tw:p-6 tw:bg-gray-50 tw:min-h-screen tw:font-sans">
       <div className="tw:w-full tw:mx-auto">
         {/* Header Section */}
-        <header className="tw:mb-6 tw:flex tw:flex-col sm:tw:flex-row tw:justify-between tw:items-start sm:tw:items-center tw:gap-4">
+        <div className="tw:mb-6 tw:flex tw:flex-col sm:tw:flex-row tw:justify-between tw:items-start sm:tw:items-center tw:gap-4">
           <div>
             <div className="tw:flex tw:items-center tw:gap-2">
               <h1 className="tw:text-2xl tw:font-bold tw:text-gray-900 tw:italic">
@@ -163,7 +163,7 @@ const PastVisitors: React.FC = () => {
               </button>
             </div>
           </div>
-        </header>
+        </div>
 
         {/* Search and Table Container */}
         <div className="tw:bg-white tw:shadow-xl tw:border tw:border-gray-200 tw:overflow-hidden tw:p-4">

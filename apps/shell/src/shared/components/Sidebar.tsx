@@ -221,7 +221,7 @@ export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => 
   const permissions = user?.roles?.map((r) => r.role) || [];
   return (
     <aside className={`
-      tw:fixed tw:left-0 tw:top-16 tw:h-[calc(100vh-64px)] tw:bg-white tw:border-r tw:border-gray-200 
+      tw:bg-white tw:border-r tw:border-gray-200 
       tw:transition-all tw:duration-300 tw:z-40 tw:overflow-y-visible
       ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
     `} id='sidebar' data-testid="left-sidebar">
