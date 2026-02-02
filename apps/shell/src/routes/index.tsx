@@ -1,17 +1,15 @@
 import React from 'react';
-import Home from '../components/Home';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthMFE from '../mfe/AuthMFE';
-import Header from '@/components/Header';
-import { useState } from 'react';
 import LegacyMFE from '@/mfe/LegacyMFE';
 import { RequireCapability } from '@/providers/RequireCapability';
 import AppLayout from '@/providers/AppLayout';
 import AuthInitializer from '@/providers/AuthInitializer';
 import { NavigationResolver } from '@/providers/NavigationResolver';
-import NotFound from '@/components/NotFound';
+import NotFound from '@/shared/components/NotFound';
 import { PermaVisitsRedirect, SamlRedirect } from '@/redirects';
 import HostMFE from '@/mfe/HostMFE';
+import HostLayout from '@/layout/HostLayout';
 
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
@@ -32,7 +30,10 @@ function AppRouter() {
               </RequireCapability>
             } />
           </Route>
+          <Route element={<HostLayout />}>
           <Route path="/host/*" element ={<HostMFE />} />
+          </Route>
+          
           <Route path='/dashboard/wallboard' element={<Navigate to="/admin/dashboard/wallboard" replace />} />
           <Route path='/impersonate/user' element={<Navigate to="/admin/impersonate/user" replace />} />
           <Route path="/saml" element={<SamlRedirect />} />

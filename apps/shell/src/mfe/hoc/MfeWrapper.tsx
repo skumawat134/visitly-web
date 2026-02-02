@@ -1,6 +1,6 @@
 import React, { Suspense, LazyExoticComponent } from 'react';
 import { MFEErrorBoundary } from './MFEErrorBoundary';
-import FullScreenLoader from '@/components/FullScreenLoader';
+import FullScreenLoader from '@/shared/components/FullScreenLoader';
 import MFEErrorFallback from './MFEErrorFallback';
 
 type MFEWrapperProps = {

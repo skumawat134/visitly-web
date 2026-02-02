@@ -5,14 +5,15 @@ import {
   initQueryClient,
 } from "@visitly/api-client";
 import {type AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
-import { GlobalLoader } from "@/components/GlobalLoader";
-import FullScreenLoader from "@/components/FullScreenLoader";
+import { GlobalLoader } from "@/shared/components/GlobalLoader";
+import FullScreenLoader from "@/shared/components/FullScreenLoader";
 
 interface ZustandState<T> {
   state: T
 }
 const queryClient = initQueryClient();
-const API_URL = 'https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/v1/'
+// const API_URL = 'https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/v1/'
+const API_URL = process.env.VITE_API_BASE_URL || "https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/";
 initApiClient({
   baseURL: API_URL,
   refreshTokenUrl: API_URL + "users/token",
