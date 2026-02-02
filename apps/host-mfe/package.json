@@ -21,6 +21,10 @@
     "@visitly/app-store": "*",
     "@visitly/ui": "*",
     "@visitly/webpack-config": "*",
+    "ag-grid-community": "^35.0.1",
+    "ag-grid-enterprise": "^35.0.1",
+    "ag-grid-react": "^35.0.1",
+    "date-fns": "^4.1.0",
     "formik": "^2.4.9",
     "yup": "^1.7.1"
   },
