@@ -1,3 +1,4 @@
+import CompanyDirectory from '@/features/company-directory/pages/CompanyDirectory';
 import { MyDeliveries } from '@/features/my-deliveries';
 import { PastVisitors } from '@/features/past-visitors';
 import HostLayout from '@/layout';
@@ -12,7 +13,7 @@ function AppRouter() {
         <Route path="work_area/evacuation/past-visitors" element={<PastVisitors />} />
         <Route path="work_area/evacuation/my-sign-in-log" element={<MyDeliveries />} />
         <Route path="work_area/evacuation/my-deliveries" element={<MyDeliveries />} />
-        <Route path="work_area/evacuation/directory" element={<MyDeliveries />} />
+        <Route path="work_area/evacuation/directory" element={<CompanyDirectory />} />
 
     </Routes>
 
