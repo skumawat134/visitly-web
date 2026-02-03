@@ -3,8 +3,8 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 const NavBar = () => {
- return (
-    <nav>
+  return (
+    <nav data-test-id="auth-mfe-navbar-root">
       <ul>
         <li>
           <NavLink
@@ -13,6 +13,7 @@ const NavBar = () => {
             style={({ isActive }) => ({
               backgroundColor: isActive ? 'var(--color-primary)' : 'var(--color-secondary)',
             })}
+            data-test-id="auth-mfe-navbar-home-link"
           >
             Home
           </NavLink>
@@ -24,6 +25,7 @@ const NavBar = () => {
             style={({ isActive }) => ({
               backgroundColor: isActive ? 'var(--color-primary)' : 'var(--color-secondary)',
             })}
+            data-test-id="auth-mfe-navbar-about-link"
           >
             About
           </NavLink>

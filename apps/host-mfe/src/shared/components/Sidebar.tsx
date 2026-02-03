@@ -1,8 +1,8 @@
 import React from 'react'
 
 export function Sidebar (){
-return (
-    <div>Sidebar</div>
+  return (
+    <div data-test-id="host-mfe-sidebar-root">Sidebar</div>
   )
 }
 

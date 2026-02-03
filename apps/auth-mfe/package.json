@@ -22,7 +22,7 @@
     "@visitly/ui": "*",
     "@visitly/webpack-config": "*",
     "formik": "^2.4.9",
-    "lucide-react": "^0.563.0",
+    "lucide-react": "^0.468.0",
     "yup": "^1.7.1"
   },
   "devDependencies": {

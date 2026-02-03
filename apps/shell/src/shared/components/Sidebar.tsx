@@ -224,7 +224,7 @@ export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => 
       tw:bg-white tw:border-r tw:border-gray-200 
       tw:transition-all tw:duration-300 tw:z-40 tw:overflow-y-visible
       ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
-    `} id='sidebar' data-testid="left-sidebar">
+    `} id='sidebar' data-testid="left-sidebar" data-test-id="shell-sidebar-root">
       <div className="tw:flex tw:flex-col tw:h-full">
         <nav className="tw:flex-1 tw:py-4">
           {SIDEBAR_CONFIG.map((item) => (

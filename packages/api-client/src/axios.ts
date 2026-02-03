@@ -27,9 +27,6 @@ export function initApiClient(options: ApiClientOptions): AxiosInstance {
 
   apiClient = axios.create({
     baseURL: options.baseURL,
-    headers: {
-      "Content-Type": "application/json"
-    }
   });
 
   apiClient.interceptors.request.use((config) => {

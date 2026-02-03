@@ -7,7 +7,6 @@ import {
 } from "ag-grid-community";
 import {
   RotateCw,
-  Search,
   FileText,
   X,
   User,
@@ -21,9 +20,10 @@ import { format } from "date-fns";
 import { usePastVisitors } from "../hooks/usePastVisitors";
 import type { VisitRecord } from "../hooks/usePastVisitors";
 
-import { Input } from "@visitly/ui";
+import { Input, Search } from "@visitly/ui";
 import { GridFooter } from "../components/GridFooter";
 import { VisitorDetailsModal } from "../components/VisitorDetailsModal";
+import { PageHeader } from "@/shared/components";
 
 const PastVisitors: React.FC = () => {
   const {
@@ -145,25 +145,11 @@ const PastVisitors: React.FC = () => {
     <div className="tw:p-4 md:tw:p-6 tw:bg-gray-50 tw:min-h-screen tw:font-sans">
       <div className="tw:w-full tw:mx-auto">
         {/* Header Section */}
-        <div className="tw:mb-6 tw:flex tw:flex-col sm:tw:flex-row tw:justify-between tw:items-start sm:tw:items-center tw:gap-4">
-          <div>
-            <div className="tw:flex tw:items-center tw:gap-2">
-              <h1 className="tw:text-2xl tw:font-bold tw:text-gray-900 tw:italic">
-                My Visitors
-              </h1>
-              <button
-                onClick={() => refetch()}
-                className="tw:p-2 tw:text-gray-500 tw:hover:text-blue-600 tw:transition-colors tw:rounded-full tw:hover:bg-blue-50"
-                title="Refresh List"
-              >
-                <RotateCw
-                  size={18}
-                  className={isLoading ? "tw:animate-spin" : ""}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          header={<>My Visitors</>}
+          refetch={refetch}
+          isLoading={isLoading}
+        />
 
         {/* Search and Table Container */}
         <div className="tw:bg-white tw:shadow-xl tw:border tw:border-gray-200 tw:overflow-hidden tw:p-4">
