@@ -98,5 +98,7 @@ export { Spinner, type SpinnerProps } from "./Spinner";
 export { Skeleton, type SkeletonProps } from "./Skeleton";
 export { Progress, type ProgressProps } from "./Progress";
 export {Image , type ImageProps } from "./Image";
+export {Search} from "./Search";
 // Utils
 export { cn } from "./utils";
+

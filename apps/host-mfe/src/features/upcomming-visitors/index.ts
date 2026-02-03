@@ -1,1 +1,1 @@
-export { MyDeliveries } from "./pages/MyDeliveries"
+export { UpcomingVisitors } from "./pages/UpcommingVisitors"

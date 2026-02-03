@@ -8,7 +8,9 @@ const App = () => {
   //   !!user?.orgId;
   // useFetchEntitlements(user?.orgId, shouldFetchEntitlements);
   return (
-    <AppRouter />
+    <div data-test-id="auth-mfe-app-root">
+      <AppRouter />
+    </div>
   );
 }
 

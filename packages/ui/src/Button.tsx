@@ -57,6 +57,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         disabled={disabled || isLoading}
+        data-test-id="ui-button-root"
         {...props}
       >
         {isLoading ? (

@@ -9,10 +9,10 @@ const App = () => {
 
 
   return (
-    <main>
+    <main data-test-id="auth-mfe-home-root">
       <div id="app">
         {/* <img alt="Webpack logo" src={webpackLogo} /> */}
-        <h1 className="heading">This is the <span>Auth</span> MFE page!</h1>
+        <h1 className="heading" data-test-id="auth-mfe-home-title">This is the <span>Auth</span> MFE page!</h1>
       </div>
     </main>
   );
