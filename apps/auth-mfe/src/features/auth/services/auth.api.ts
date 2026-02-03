@@ -1,5 +1,5 @@
 import { getApiClient } from "@visitly/api-client";
-import {
+import type {
   LoginPayload, LoginResponse, ConfirmEmailPayload, ConfirmEmailResponse, ForgotPasswordPayload, ForgotPasswordResponse,
   VerifyEmailPayload, VerifyEmailResponse, ResetPasswordPayload, SSOCheckResponse,
   UserResponse,
@@ -11,7 +11,7 @@ export async function loginApi(
   payload: LoginPayload
 ): Promise<LoginResponse> {
   const { data } = await getApiClient().post<LoginResponse>(
-    "/users/authenticate",
+    "/v1/users/authenticate",
     payload
   );
   return data;
@@ -21,7 +21,7 @@ export async function confirmEmailApi(
   payload: ConfirmEmailPayload
 ): Promise<ConfirmEmailResponse> {
   const { data } = await getApiClient().post<ConfirmEmailResponse>(
-    "/users/confirm",
+    "/v1/users/confirm",
     payload
   );
   return data;
@@ -32,7 +32,7 @@ export async function forgotPassword(
 ): Promise<ForgotPasswordResponse> {
   console.log("forgotPassword called with payload:", payload);
   const { data } = await getApiClient().post<ForgotPasswordResponse>(
-    "/users/password/forgot",
+    "/v1/users/password/forgot",
     payload
   );
   return data;
@@ -41,7 +41,7 @@ export async function forgotPassword(
 export async function resetPasswordApi(
   payload: ResetPasswordPayload
 ): Promise<void> {
-  const { data } = await getApiClient().post("/users/password/reset", payload);
+  const { data } = await getApiClient().post("/v1/users/password/reset", payload);
   return data;
 }
 
@@ -49,7 +49,7 @@ export async function verifyEmailApi(
   payload: VerifyEmailPayload
 ): Promise<VerifyEmailResponse> {
   const { data } = await getApiClient().post<VerifyEmailResponse>(
-    "/users/activate",
+    "/v1/users/activate",
     payload
   );
   return data;
@@ -58,14 +58,14 @@ export async function ssoCheckApi(
   payload: Pick<LoginPayload, "email">
 ): Promise<SSOCheckResponse> {
   const { data } = await getApiClient().post<SSOCheckResponse>(
-    "/users/check-email",
+    "/v1/users/check-email",
     payload
   );
   return data;
 }
 
 export async function getUserInfoApi() {
-  const { data } = await getApiClient().get<UserResponse>("/users/userinfo");
+  const { data } = await getApiClient().get<UserResponse>("/v1/users/userinfo");
   return data;
 }
 
@@ -82,11 +82,11 @@ export async function createHubSpotApi(
 export async function createUserApi(
   payload: SignUpPayload
 ): Promise<SignupResponse> {
- const {data} =  await getApiClient().post<SignupResponse>("/account", payload);
+ const {data} =  await getApiClient().post<SignupResponse>("/v1/account", payload);
  return data;
 }
 
 export async function samlAuthenticationApi(payload : samlAuthenticationPayload) : Promise<samlAuthenticationResponse>{
-  const {data} = await getApiClient().post<samlAuthenticationResponse>('/saml/authenticate',payload)
+  const {data} = await getApiClient().post<samlAuthenticationResponse>('/v1/saml/authenticate',payload)
   return data;
 }
