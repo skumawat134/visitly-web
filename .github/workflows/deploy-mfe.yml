@@ -121,7 +121,7 @@ jobs:
         if: inputs.mfe_selection == 'host-mfe'
         run: yarn build --filter=@visitly/host-mfe    
       
-      - name: Build Both
+      - name: Build All
         if: inputs.mfe_selection == 'all' 
         run: yarn ${{ steps.shell-build.outputs.command }}   
         env:
