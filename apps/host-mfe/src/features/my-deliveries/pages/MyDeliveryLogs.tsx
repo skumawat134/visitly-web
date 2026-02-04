@@ -38,16 +38,12 @@ const MyDeliveryLogs: React.FC = () => {
     isLoading,
     pageIndex,
     pageSize,
-    searchTerm,
-    setSearchTerm,
     selectedStatus,
     setSelectedStatus,
     filterSiteId,
     setFilterSiteId,
-    siteAreaId,
     setSiteAreaId,
     sites,
-    deliveryAreas,
     dateRange,
     setDateRange,
     handlePageChange,
@@ -59,18 +55,11 @@ const MyDeliveryLogs: React.FC = () => {
     setSelectedPackage,
     isDetailsModalOpen,
     setIsDetailsModalOpen,
-    isDeleteModalOpen,
-    setIsDeleteModalOpen,
-    isMoveModalOpen,
-    setIsMoveModalOpen,
     isPickupConfirmOpen,
     setIsPickupConfirmOpen,
-    isNotMyDeliveryOpen,
     setIsNotMyDeliveryOpen,
     updateStatus,
     updateLog,
-    updateLogBulk,
-    deleteLogs,
   } = useMyDeliveryLogs();
 
   const [selectedRows, setSelectedRows] = useState<DeliveryLogRecord[]>([]);
@@ -324,7 +313,7 @@ const MyDeliveryLogs: React.FC = () => {
                       setFilterSiteId(e.target.value);
                       setSiteAreaId("");
                     }}
-                    className="tw:w-full tw:pl-10 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:bg-gray-50/50 tw:text-sm tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-blue-500/20"
+                    className="tw:w-full tw:pl-10 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:bg-gray-50/50 tw:text-sm tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-blue-500/20 tw:appearance-none"
                     data-testid="location-filter"
                   >
                     <option value="">All Locations</option>
@@ -374,35 +363,34 @@ const MyDeliveryLogs: React.FC = () => {
                   </select> */}
 
                   <div className="tw:relative tw:w-full tw:sm:w-64">
-  <Filter
-    className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400"
-    size={16}
-  />
+                    <Filter
+                      className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400"
+                      size={16}
+                    />
 
-  <select
-    value={selectedStatus}
-    onChange={(e) => setSelectedStatus(e.target.value)}
-    className="tw:w-full tw:pl-10 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:bg-gray-50/50 tw:text-sm tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-blue-500/20"
-    data-testid="status-filter"
-  >
-    <option value="">All Status</option>
-    <option value="Pending">Pending</option>
-    <option value="Picked up">Picked Up</option>
-    <option value="Discard">Discard</option>
-  </select>
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="tw:w-full tw:pl-10 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:bg-gray-50/50 tw:text-sm tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-blue-500/20 tw:appearance-none"
+                      data-testid="status-filter"
+                    >
+                      <option value="">All Status</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Picked up">Picked Up</option>
+                      <option value="Discard">Discard</option>
+                    </select>
 
-  {/* Clear Button */}
-  {selectedStatus && (
-    <button
-      onClick={() => setSelectedStatus("")}
-      className="tw:absolute tw:right-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-red-500 tw:transition"
-      title="Clear Status Filter"
-    >
-      ✕
-    </button>
-  )}
-</div>
-
+                    {/* Clear Button */}
+                    {selectedStatus && (
+                      <button
+                        onClick={() => setSelectedStatus("")}
+                        className="tw:absolute tw:right-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-red-500 tw:transition"
+                        title="Clear Status Filter"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
 
                   {selectedStatus.length > 0 && (
                     <button
@@ -430,7 +418,7 @@ const MyDeliveryLogs: React.FC = () => {
                 <select
                   value={pageSize}
                   onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="tw:border tw:border-gray-200 tw:rounded-lg tw:px-3 tw:py-1.5 tw:focus:outline-none tw:bg-white tw:text-gray-900"
+                  className="tw:border tw:border-gray-200 tw:rounded-lg tw:px-3 tw:py-1.5 tw:focus:outline-none tw:bg-white tw:text-gray-900 tw:appearance-none"
                   data-testid="rows-per-page-selector"
                 >
                   {[15, 50, 100, 250].map((size) => (
@@ -497,92 +485,55 @@ const MyDeliveryLogs: React.FC = () => {
 
       {/* Pick Up Confirmation Modal */}
       {isPickupConfirmOpen && (
-        <div
-          className="tw:fixed tw:inset-0 tw:z-50 tw:flex tw:items-center tw:justify-center tw:bg-black/60 tw:p-4"
-          data-testid="pickup-confirmation-modal"
-        >
-          <div className="tw:bg-white tw:rounded-xl tw:p-8 tw:max-w-md tw:w-full tw:text-center">
-            <div className="tw:w-20 tw:h-20 tw:bg-blue-50 tw:rounded-full tw:flex tw:items-center tw:justify-center tw:mx-auto tw:mb-6">
-              <CheckCircle size={40} className="tw:text-blue-500" />
-            </div>
-            <h2 className="tw:text-2xl tw:font-black tw:text-gray-900 tw:mb-2">
-              Are you sure?
-            </h2>
-            <p className="tw:text-gray-500 tw:font-medium tw:mb-8">
-              This action will change the status as Picked Up.
-            </p>
-            <div className="tw:flex tw:gap-3">
-              <button
-                onClick={() => setIsPickupConfirmOpen(false)}
-                className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-gray-100 tw:text-gray-600 tw:rounded-xl tw:font-bold hover:tw:bg-gray-200"
-                data-testid="cancel-pickup-button"
-              >
-                No
-              </button>
-              <button
-                onClick={() => {
-                  if (selectedPackage) {
-                    updateStatus({
-                      id: selectedPackage.id,
-                      status: DeliveryLogStatus.PICKEDUP,
-                      pickupD: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
-                    });
-                  }
-                }}
-                className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-blue-600 tw:text-white tw:rounded-xl tw:font-bold hover:tw:bg-blue-700 tw:shadow-lg tw:shadow-blue-900/10"
-                data-testid="confirm-pickup-button"
-              >
-                Yes
-              </button>
-            </div>
-          </div>
-        </div>
+       <div
+  className="tw:fixed tw:inset-0 tw:z-50 tw:flex tw:items-center tw:justify-center tw:bg-black/60 tw:p-4"
+  data-testid="pickup-confirmation-modal"
+>
+  <div className="tw:bg-white tw:rounded-xl tw:p-8 tw:max-w-md tw:w-full tw:text-center">
+    {/* Warning icon - yellow triangle with ! */}
+    <div className="tw:w-20 tw:h-20 tw:bg-yellow-50 tw:rounded-full tw:flex tw:items-center tw:justify-center tw:mx-auto tw:mb-6">
+      <span className="tw:text-yellow-500 tw:text-5xl tw:font-black">!</span>
+    </div>
+
+    <h2 className="tw:text-2xl tw:font-black tw:text-gray-900 tw:mb-2">
+      Are you sure?
+    </h2>
+
+    <p className="tw:text-gray-600 tw:font-medium tw:mb-8">
+      This action will change the status as Picked Up.
+    </p>
+
+    <div className="tw:flex tw:gap-3">
+      <button
+        onClick={() => setIsPickupConfirmOpen(false)}
+        className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-gray-100 tw:text-gray-700 tw:rounded-xl tw:font-bold hover:tw:bg-gray-200"
+        data-testid="cancel-pickup-button"
+      >
+        No
+      </button>
+
+      <button
+        onClick={() => {
+          if (selectedPackage) {
+            updateStatus({
+              id: selectedPackage.id,
+              status: DeliveryLogStatus.PICKEDUP,
+              pickupD: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
+            });
+          }
+          // Optionally close modal after success
+          setIsPickupConfirmOpen(false);
+        }}
+        className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-purple-600 tw:text-white tw:rounded-xl tw:font-bold hover:tw:bg-purple-700 tw:shadow-lg tw:shadow-purple-900/10"
+        data-testid="confirm-pickup-button"
+      >
+        Yes
+      </button>
+    </div>
+  </div>
+</div>
       )}
 
-      {/* Not My Delivery Confirmation */}
-      {isNotMyDeliveryOpen && (
-        <div
-          className="tw:fixed tw:inset-0 tw:z-[60] tw:flex tw:items-center tw:justify-center tw:bg-black/60 tw:p-4"
-          data-testid="not-my-delivery-modal"
-        >
-          <div className="tw:bg-white tw:rounded-xl tw:p-8 tw:max-w-md tw:w-full tw:text-center">
-            <div className="tw:w-20 tw:h-20 tw:bg-gray-50 tw:rounded-full tw:flex tw:items-center tw:justify-center tw:mx-auto tw:mb-6">
-              <AlertTriangle size={40} className="tw:text-gray-400" />
-            </div>
-            <h2 className="tw:text-2xl tw:font-black tw:text-gray-900 tw:mb-2">
-              Are you sure?
-            </h2>
-            <p className="tw:text-gray-500 tw:font-medium tw:mb-8">
-              Marking as Not my delivery cannot be undone. The delivery will no
-              longer be visible to you.
-            </p>
-            <div className="tw:flex tw:gap-3">
-              <button
-                onClick={() => setIsNotMyDeliveryOpen(false)}
-                className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-gray-100 tw:text-gray-600 tw:rounded-xl tw:font-bold hover:tw:bg-gray-200"
-                data-testid="cancel-not-my-delivery"
-              >
-                No
-              </button>
-              <button
-                onClick={() => {
-                  if (selectedPackage) {
-                    updateStatus({
-                      id: selectedPackage.id,
-                      status: DeliveryLogStatus.UNIDENTIFIED,
-                    });
-                    setIsNotMyDeliveryOpen(false);
-                  }
-                }}
-                className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-blue-600 tw:text-white tw:rounded-xl tw:font-bold hover:tw:bg-blue-700"
-                data-testid="confirm-not-my-delivery"
-              >
-                Yes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -9,7 +9,7 @@ export { Textarea, type TextareaProps } from "./Textarea";
 export { Checkbox, type CheckboxProps } from "./Checkbox";
 export { Radio, type RadioProps } from "./Radio";
 export { Switch, type SwitchProps } from "./Switch";
-export { SharedDateRangePicker , type DateRangeProps } from "./DateRangePicker";
+export { SharedDateRangePicker } from "./DateRangePicker";
 
 // Layout Components
 export {

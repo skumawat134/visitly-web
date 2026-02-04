@@ -1,23 +1,30 @@
 import { useState, useRef, useEffect } from "react";
-import { DateRangePicker, createStaticRanges } from "react-date-range";
+import {
+  DateRangePicker as RDRDateRangePicker,
+  createStaticRanges,
+} from "react-date-range";
+import type { StaticRange, RangeKeyDict, Range } from "react-date-range";
 import { format, subDays, subMonths, subYears } from "date-fns";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { Input } from "./Input";
+
+// ✅ Fix React 18 typing issue
+const DateRangePicker = RDRDateRangePicker as unknown as React.FC<any>;
 
 export type DateRangeValue = {
   startDate: string | null;
   endDate: string | null;
 };
 
-type DateRangeProps = {
+export type DateRangeProps = {
   value?: DateRangeValue;
   onChange?: (range: DateRangeValue) => void;
   className?: string;
 };
 
-// Presets (unchanged)
-const staticRanges = createStaticRanges([
+// ✅ Static Presets
+const staticRanges: StaticRange[] = createStaticRanges([
   { label: "Today", range: () => ({ startDate: new Date(), endDate: new Date() }) },
   { label: "Last Week", range: () => ({ startDate: subDays(new Date(), 7), endDate: new Date() }) },
   { label: "Last 2 Weeks", range: () => ({ startDate: subDays(new Date(), 14), endDate: new Date() }) },
@@ -27,29 +34,62 @@ const staticRanges = createStaticRanges([
   { label: "Last 1 Year", range: () => ({ startDate: subYears(new Date(), 1), endDate: new Date() }) },
 ]);
 
-export const SharedDateRangePicker = ({ value, onChange, className }: DateRangeProps) => {
+export const SharedDateRangePicker = ({
+  value,
+  onChange,
+  className,
+}: DateRangeProps) => {
   const today = new Date();
 
-  // Start with today–today instead of null–null
-  const [range, setRange] = useState([{ startDate: today, endDate: today, key: "selection" }]);
-  const [tempRange, setTempRange] = useState(range);
+  const initialRange: Range[] = [
+    { startDate: today, endDate: today, key: "selection" },
+  ];
+
+  const [range, setRange] = useState<Range[]>(initialRange);
+  const [tempRange, setTempRange] = useState<Range[]>(initialRange);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [presetLabel, setPresetLabel] = useState<string>("");
 
-  const handleChange = (item: any) => {
+  // Sync external value
+  useEffect(() => {
+    if (value?.startDate && value?.endDate) {
+      const newRange: Range = {
+        startDate: new Date(value.startDate),
+        endDate: new Date(value.endDate),
+        key: "selection",
+      };
+      setRange([newRange]);
+      setTempRange([newRange]);
+    }
+  }, [value]);
+
+  // Handle preset & manual changes
+  const handleChange = (item: RangeKeyDict) => {
     const selection = item.selection;
+    if (!selection?.startDate || !selection?.endDate) return;
+
     setTempRange([selection]);
 
-    const matchedPreset = staticRanges.find(
-      (s) =>
-        format(s.range().startDate, "yyyy-MM-dd") === format(selection.startDate, "yyyy-MM-dd") &&
-        format(s.range().endDate, "yyyy-MM-dd") === format(selection.endDate, "yyyy-MM-dd")
-    );
+   const matchedPreset = staticRanges.find((s) => {
+  const preset = s.range();
+  const selStart = selection.startDate;
+  const selEnd = selection.endDate;
+
+  if (!preset.startDate || !preset.endDate || !selStart || !selEnd) {
+    return false;
+  }
+
+  return (
+    format(preset.startDate, "yyyy-MM-dd") === format(selStart, "yyyy-MM-dd") &&
+    format(preset.endDate, "yyyy-MM-dd") === format(selEnd, "yyyy-MM-dd")
+  );
+});
+
 
     if (matchedPreset) {
       setRange([selection]);
-      setPresetLabel(matchedPreset.label);
+      setPresetLabel(matchedPreset.label ?? "");
       onChange?.({
         startDate: format(selection.startDate, "yyyy-MM-dd"),
         endDate: format(selection.endDate, "yyyy-MM-dd"),
@@ -61,12 +101,15 @@ export const SharedDateRangePicker = ({ value, onChange, className }: DateRangeP
   };
 
   const handleApply = () => {
+    const selection = tempRange[0];
+    if (!selection?.startDate || !selection?.endDate) return;
+
     setRange(tempRange);
     setOpen(false);
-    const selection = tempRange[0];
+
     onChange?.({
-      startDate: selection?.startDate ? format(selection.startDate, "yyyy-MM-dd") : "",
-      endDate: selection?.endDate ? format(selection.endDate, "yyyy-MM-dd") : "",
+      startDate: format(selection.startDate, "yyyy-MM-dd"),
+      endDate: format(selection.endDate, "yyyy-MM-dd"),
     });
   };
 
@@ -75,24 +118,16 @@ export const SharedDateRangePicker = ({ value, onChange, className }: DateRangeP
     setOpen(false);
   };
 
-const handleReset = () => {
-  // 1. Make the calendar component show "nothing selected"
-  //    → we use today-today because null causes visual bugs in react-date-range
-  const clearedRange = [{ startDate: today, endDate: today, key: "selection" }];
+  const handleReset = () => {
+    const cleared = [{ startDate: today, endDate: today, key: "selection" }];
+    setRange(cleared);
+    setTempRange(cleared);
+    setPresetLabel("");
+    onChange?.({ startDate: null, endDate: null });
+    setOpen(false);
+  };
 
-  setRange(clearedRange);
-  setTempRange(clearedRange);
-
-  // 2. Clear the preset label (visual feedback)
-  setPresetLabel("");
-
-  // 3. Most important line:
-  //    Tell parent: "user wants no date filter anymore"
-  onChange?.({ startDate: "", endDate: "" });
-  setOpen(false);
-
-};
-
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -106,8 +141,13 @@ const handleReset = () => {
 
   const inputValue =
     presetLabel ||
-    (range[0]?.startDate && range[0].endDate && range[0].startDate.getTime() !== range[0].endDate.getTime()
-      ? `${format(range[0].startDate, "dd MMM yyyy")} - ${format(range[0].endDate, "dd MMM yyyy")}`
+    (range[0]?.startDate &&
+    range[0]?.endDate &&
+    range[0].startDate.getTime() !== range[0].endDate.getTime()
+      ? `${format(range[0].startDate, "dd MMM yyyy")} - ${format(
+          range[0].endDate,
+          "dd MMM yyyy"
+        )}`
       : "");
 
   return (
@@ -122,16 +162,18 @@ const handleReset = () => {
       />
 
       {open && (
-        <div className="tw:absolute tw:z-50 tw:shadow-lg tw:bg-white tw:p-3 tw:rounded tw:mt-1">
+        <div className="tw:absolute tw:z-50 tw:bg-white tw:shadow-lg tw:rounded tw:mt-1 tw:p-3">
           <DateRangePicker
-            ranges={tempRange}
-            onChange={handleChange}
-            staticRanges={staticRanges}
-            inputRanges={[]}
-            moveRangeOnFirstSelection={false}
-            retainEndDateOnFirstSelection={false}
-            showSelectionPreview
-            rangeColors={["#5E2CED"]}
+            {...({
+              ranges: tempRange,
+              onChange: handleChange,
+              staticRanges,
+              inputRanges: [],
+              moveRangeOnFirstSelection: false,
+              retainEndDateOnFirstSelection: false,
+              showSelectionPreview: true,
+              rangeColors: ["#5E2CED"],
+            } as any)}
           />
 
           <div className="tw:flex tw:justify-end tw:gap-2 tw:mt-2">
@@ -141,14 +183,16 @@ const handleReset = () => {
             >
               Cancel
             </button>
+
             <button
               className="tw:bg-[#5E2CED] tw:text-white tw:px-3 tw:py-1 tw:rounded hover:tw:bg-blue-700"
               onClick={handleApply}
             >
               Apply
             </button>
+
             <button
-              className="tw:bg-[#5E2CED] tw:text-white tw:px-3 tw:py-1 tw:rounded hover:tw:bg-red-600"
+              className="tw:bg-red-500 tw:text-white tw:px-3 tw:py-1 tw:rounded hover:tw:bg-red-600"
               onClick={handleReset}
             >
               Reset
