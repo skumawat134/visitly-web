@@ -18,9 +18,10 @@ on:
         default: 'both'
         type: choice
         options:
-          - both
+          - all
           - shell
           - auth-mfe
+          - host-mfe
 
 permissions:
   id-token: write
@@ -70,6 +71,7 @@ jobs:
       LANGUAGE_JSON_S3_URI: ${{ secrets.LANGUAGE_JSON_S3_URI }}
       VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
       VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
+      VITE_HOST_MFE_REMOTE_URL: ${{ secrets.VITE_HOST_MFE_REMOTE_URL }}
       VITE_ENV: ${{ matrix.env }}
       PLAN_PROD: false
 
@@ -114,9 +116,13 @@ jobs:
       - name: Build auth-mfe
         if: inputs.mfe_selection == 'auth-mfe'
         run: yarn workspace @visitly/auth-mfe run ${{ steps.shell-build.outputs.command }} 
-
+        
+      - name: Build host-mfe
+        if: inputs.mfe_selection == 'host-mfe'
+        run: yarn workspace @visitly/host-mfe run ${{ steps.shell-build.outputs.command }}   
+      
       - name: Build Both
-        if: inputs.mfe_selection == 'both' 
+        if: inputs.mfe_selection == 'all' 
         run: yarn ${{ steps.shell-build.outputs.command }}   
         env:
           VITE_ANGULAR_MFE_REMOTE_URL: ${{ secrets.VITE_ANGULAR_MFE_REMOTE_URL }}
@@ -131,12 +137,13 @@ jobs:
           LANGUAGE_JSON_S3_URI: ${{ secrets.LANGUAGE_JSON_S3_URI }}
           VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
           VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
+          VITE_HOST_MFE_REMOTE_URL: ${{ secrets.VITE_HOST_MFE_REMOTE_URL }}
           VITE_ENV: ${{ matrix.env }}
           PLAN_PROD: false
           
 
       - name: Upload shell build artifacts
-        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
+        if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'shell'
         uses: actions/upload-artifact@v5
         with:
           name: shell-dist-${{ matrix.env }}
@@ -144,16 +151,24 @@ jobs:
           retention-days: 1
 
       - name: Upload auth-mfe build artifacts
-        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
+        if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'auth-mfe'
         uses: actions/upload-artifact@v5
         with:
           name: auth-mfe-dist-${{ matrix.env }}
           path: apps/auth-mfe/dist/
           retention-days: 1
+          
+      - name: Upload host-mfe build artifacts
+        if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'host-mfe'
+        uses: actions/upload-artifact@v5
+        with:
+          name: host-mfe-dist-${{ matrix.env }}
+          path: apps/host-mfe/dist/
+          retention-days: 1    
 
   deploy-shell:
     needs: [determine-targets, build]
-    if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
+    if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'shell'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -178,12 +193,12 @@ jobs:
       - name: Deploy shell to S3
         run: |
           echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/ (root, excluding auth-mfe)"
-          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --exclude "auth-mfe/*" --exclude "angular-mfe/*"
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --exclude "auth-mfe/*" --exclude "angular-mfe/*" --exclude "host-mfe/*"
           echo "✅ Shell MFE deployed successfully!"
 
   deploy-auth-mfe:
     needs: [determine-targets, build]
-    if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
+    if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'auth-mfe'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -210,6 +225,36 @@ jobs:
           echo "Deploying auth-mfe to s3://${{ secrets.S3_BUCKET_NAME }}/auth-mfe/"
           aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/auth-mfe/ --delete
           echo "✅ Auth MFE deployed successfully!"
+
+  deploy-host-mfe:
+    needs: [determine-targets, build]
+    if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'host-mfe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
+      max-parallel: 1
+    environment: ${{ matrix.env }}
+    steps:
+      - name: Download auth-mfe build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: host-mfe-dist-${{ matrix.env }}
+          path: dist/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
+          role-session-name: GitHubActions-Deploy--portal-web-HostMFE-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy auth-mfe to S3
+        run: |
+          echo "Deploying host-mfe to s3://${{ secrets.S3_BUCKET_NAME }}/host-mfe/"
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/host-mfe/ --delete
+          echo "✅ Host MFE deployed successfully!"          
 
   invalidate:
     needs: [determine-targets, build, deploy-shell, deploy-auth-mfe]
@@ -294,8 +339,8 @@ jobs:
         id: mfes
         run: |
           case "${{ inputs.mfe_selection }}" in
-            both)
-              echo "deployed=Shell, Auth MFE" >> "$GITHUB_OUTPUT"
+            all)
+              echo "deployed=Shell, Auth MFE, Host MFE" >> "$GITHUB_OUTPUT"
               ;;
             shell)
               echo "deployed=Shell" >> "$GITHUB_OUTPUT"
@@ -303,6 +348,9 @@ jobs:
             auth-mfe)
               echo "deployed=Auth MFE" >> "$GITHUB_OUTPUT"
               ;;
+            host-mfe)
+              echo "deployed=Host MFE" >> "$GITHUB_OUTPUT"
+              ;;  
             *)
               echo "deployed=Unknown" >> "$GITHUB_OUTPUT"
               ;;
