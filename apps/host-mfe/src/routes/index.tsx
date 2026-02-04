@@ -1,10 +1,11 @@
 import CompanyDirectory from '@/features/company-directory/pages/CompanyDirectory';
-import { MyDeliveries } from '@/features/my-deliveries';
+import { MyDeliveryLogs } from '@/features/my-deliveries';
 import { PastVisitors } from '@/features/past-visitors';
 import { UpcomingVisitors } from '@/features/upcomming-visitors';
 import HostLayout from '@/layout';
 import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { MySignInLog } from '@/features/signin-log';
 
 
 function AppRouter() {

@@ -12,11 +12,10 @@ interface ZustandState<T> {
   state: T
 }
 const queryClient = initQueryClient();
-// const API_URL = 'https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/v1/'
 const API_URL = process.env.VITE_API_BASE_URL || "https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/";
 initApiClient({
-  baseURL: API_URL,
-  refreshTokenUrl: API_URL + "/v1/users/token",
+  baseURL: API_URL,
+  refreshTokenUrl: API_URL + "/v1/users/token",
   getToken: () => {
     const session = sessionStorage.getItem("auth-session");
     if (!session) return undefined;

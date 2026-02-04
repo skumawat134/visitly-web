@@ -1,1 +1,1 @@
-export { MyDeliveries } from "./pages/MyDeliveries"
+export { default as MyDeliveryLogs } from './pages/MyDeliveryLogs'
