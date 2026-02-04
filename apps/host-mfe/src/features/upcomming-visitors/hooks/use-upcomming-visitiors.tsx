@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { format, subDays, addYears, startOfDay } from 'date-fns';
+import { format, subDays, addYears, startOfDay, addDays } from 'date-fns';
 import type {
   VisitorVisitResponse,
   VisitorListParams,
@@ -19,7 +19,7 @@ export const useUpcomingVisitors = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // 2. Sorting States
-  const [sort, setSort] = useState<'asc' | 'desc'>('desc');
+  const [sort, setSort] = useState<'asc' | 'desc'>('asc');
   const [sortBy, setSortBy] = useState('scheduleCheckinDate');
   const [showSettingModal, setShowSettingModal] = useState(false);
 
@@ -31,7 +31,7 @@ export const useUpcomingVisitors = () => {
     dateRange: {
       // Default to today and 1 year range
       startDate: startOfDay(new Date()),
-      endDate: addYears(new Date(), 1),
+      endDate: addDays(new Date(), 30),
     }
   });
 
