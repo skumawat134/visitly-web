@@ -26,18 +26,18 @@ export const GridFooter: React.FC<GridFooterProps> = ({
   const end = Math.min(start + pageSize - 1, totalRecords);
 
   return (
-    <div className="tw:flex tw:justify-between tw:items-center tw:p-3 tw:border-t tw:border-gray-200 tw:bg-white" data-test-id="host-mfe-grid-footer-root">
+    <div className="tw:flex tw:justify-between tw:items-center tw:p-3 tw:border-t tw:border-gray-200 tw:bg-white">
       {/* LEFT */}
       {/* <span className="tw:text-sm tw:text-gray-600">
         Total Records: <b>{totalRecords}</b>
       </span> */}
 
-      <span className="tw:text-xs sm:tw:text-sm tw:text-gray-600" data-test-id="host-mfe-grid-footer-records">
-        Showing <b>{start}</b><b>{end}</b> of <b>{totalRecords}</b>
+      <span className="tw:text-xs sm:tw:text-sm tw:text-gray-600">
+        Showing <b>{start}</b>–<b>{end}</b> of <b>{totalRecords}</b>
       </span>
 
       {/* RIGHT PAGINATION */}
-      <div className="tw:flex tw:items-center tw:gap-3 tw:text-sm  tw:px-3 tw:py-1.5 tw:rounded-xl tw:border tw:border-gray-200" data-test-id="host-mfe-grid-footer-pagination">
+      <div className="tw:flex tw:items-center tw:gap-3 tw:text-sm  tw:px-3 tw:py-1.5 tw:rounded-xl tw:border tw:border-gray-200">
         {/* First Page */}
         <button
           disabled={pageIndex === 0}

@@ -1,14 +1,17 @@
 import { PageHeader } from '@/shared/components';
-import { Input, Search } from '@visitly/ui';
+import { Button, Input, Search } from '@visitly/ui';
 import { AgGridReact } from 'ag-grid-react';
 import { useUpcomingVisitors } from '../hooks/use-upcomming-visitiors';
 import type { VisitorsRowsType } from "../types/upcomming-visitors.types";
-import { Download, Menu } from 'lucide-react';
+import { ArrowUpFromLine, Download, Menu, Plus } from 'lucide-react';
 import ColumnSettingsModal from '../components/CustomSettings';
+import { GridFooter } from '@/shared/components/GridFooter';
+import { PreRegistrationModal } from '../components/pre-registration/PreRegistration';
 export const UpcomingVisitors = () => {
-  const { search, pagination, handlePageChange, handlePageSizeChange, rowData, colDefs, settingModalClickHander, setShowSettingModal, showSettingModal,exportHandler } = useUpcomingVisitors();
+  const { search, pagination, handlePageChange, handlePageSizeChange, rowData, colDefs,
+    settingModalClickHander, setShowSettingModal, showSettingModal, exportHandler, data, onSortChanged, closePreRegistrationModalHandler, openPreRegistrationModalHandler, showPreRegistrationModal } = useUpcomingVisitors();
   const { searchTerm, setSearchTerm } = search;
-  const { pageSize } = pagination;
+  const { pageSize, pageIndex } = pagination;
   return (
     <div className="tw:p-4 md:tw:p-6 tw:bg-gray-50 tw:min-h-screen tw:font-sans" data-test-id="upcoming-visitors-page">
       <div className="tw:w-full tw:mx-auto" data-test-id="upcoming-visitors-container">
@@ -16,6 +19,19 @@ export const UpcomingVisitors = () => {
         <PageHeader
           header={<>My Visitors</>}
           data-test-id="upcoming-visitors-header"
+          config={{ refreshBtn: true, showRightMenu: true }}
+          rightMenu={
+            <div className="tw:flex tw:items-center tw:gap-4">
+              <Button variant='outline' className='tw:rounded-sm' onClick={openPreRegistrationModalHandler}>
+                <ArrowUpFromLine size={18} className='tw:mr-1' />
+                Bulk Pre-Registration
+              </Button>
+              <Button variant='primary' className='tw:rounded-sm' >
+                <Plus size={18} className='tw:mr-1' />
+                Pre-Register Visit
+              </Button>
+            </div>
+          }
         />
         {/* Search and Table Container */}
         <div className="tw:bg-white tw:shadow-xl tw:border tw:border-gray-200 tw:overflow-hidden tw:p-4" data-test-id="upcoming-visitors-table-container">
@@ -39,7 +55,7 @@ export const UpcomingVisitors = () => {
               </div>
             </div>
             <div className="tw:flex tw:items-center tw:gap-4 " data-test-id="upcoming-visitors-controls-section">
-             <button className="tw:flex tw:items-center tw:cursor-pointer tw:gap-2 tw:border tw:border-gray-500  tw:text-primary-100 tw:px-4 tw:py-1.5 tw:rounded-lg tw:shadow cursor-pointer" data-test-id="upcoming-visitors-column-settings-btn"
+              <button className="tw:flex tw:items-center tw:cursor-pointer tw:gap-2 tw:border tw:border-gray-500  tw:text-primary-100 tw:px-4 tw:py-1.5 tw:rounded-lg tw:shadow cursor-pointer" data-test-id="upcoming-visitors-column-settings-btn"
                 onClick={exportHandler}
               >
                 <Download size={16} className="tw:mr-2" /> Export
@@ -87,19 +103,26 @@ export const UpcomingVisitors = () => {
                 headerCheckbox: false,
                 enableClickSelection: false,
               }}
+              onSortChanged={onSortChanged}
               className="tw:h-full"
               data-test-id="upcoming-visitors-aggrid"
             />
           </div>
-          {/* <GridFooter
+          <GridFooter
             pageIndex={pageIndex}
             pageSize={pageSize}
-            totalRecords={totalRecords}
+            totalRecords={data?.totalRecords || 0}
             onPageChange={handlePageChange}
-          /> */}
+          />
+
         </div>
       </div>
       <ColumnSettingsModal isOpen={showSettingModal} onClose={() => setShowSettingModal(false)} />
+      <PreRegistrationModal
+        isOpen={showPreRegistrationModal}
+        onClose={closePreRegistrationModalHandler}
+
+      />
     </div>
   )
 }

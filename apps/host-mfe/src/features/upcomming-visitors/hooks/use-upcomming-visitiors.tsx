@@ -22,7 +22,7 @@ export const useUpcomingVisitors = () => {
   const [sort, setSort] = useState<'asc' | 'desc'>('asc');
   const [sortBy, setSortBy] = useState('scheduleCheckinDate');
   const [showSettingModal, setShowSettingModal] = useState(false);
-
+   const [showPreRegistrationModal, setshowPreRegistrationModal] = useState(false);
   // 3. Filter States using native Dates
   const [filters, setFilters] = useState<VisitorFilters>({
     siteId: '',
@@ -195,7 +195,25 @@ export const useUpcomingVisitors = () => {
     const currentParams = buildParams();
     triggerExport(currentParams);
   }
+  const onSortChanged = (event: any) => {
+    const columnState = event.api.getColumnState();
 
+    const sortedColumn = columnState.find((col: any) => col.sort);
+
+    if (!sortedColumn) return;
+
+    const sortBy = sortedColumn.colId;
+    const sortOrder = sortedColumn.sort; // 'asc' | 'desc'
+
+    setSortBy(sortBy);
+    setSort(sortOrder);
+  };
+  const openPreRegistrationModalHandler = () => {
+    setshowPreRegistrationModal(true);
+  }
+  const closePreRegistrationModalHandler = () => {
+    setshowPreRegistrationModal(false);
+  }
   return {
     ...query,
     pagination: { pageIndex, setPageIndex, pageSize, setPageSize },
@@ -210,6 +228,10 @@ export const useUpcomingVisitors = () => {
     settingModalClickHander,
     showSettingModal,
     setShowSettingModal,
-    exportHandler
+    exportHandler,
+    onSortChanged,
+    openPreRegistrationModalHandler,
+    closePreRegistrationModalHandler,
+    showPreRegistrationModal
   };
 };

@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Check } from 'lucide-react';
 import { getCustomFields } from '../api/upcomming-visitors.api';
-
+import { Button, Checkbox, cn, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@visitly/ui';
+import Section from './Section';
+import { useToastStore } from '@visitly/app-store';
 export const STORAGE_KEY = 'columnSettingsForUpcomingVisitors';
-
-const ColumnSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+const ColumnSettingsModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ isOpen, onClose }) => {
   const [selectedFields, setSelectedFields] = useState<any[]>([]);
-
+  const showToast = useToastStore((state) => state.showToast);
   // 1. Fetch Custom Fields via React Query
   const { data: customFieldsRaw } = useQuery({
     queryKey: ['orgCustomFields'],
@@ -79,7 +82,7 @@ const ColumnSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
 
   const toggleField = (field: any) => {
     if (field.isDisabled) return;
-    
+
     setSelectedFields(prev => {
       const exists = prev.some(f => f.columnTitle === field.columnTitle);
       if (exists) return prev.filter(f => f.columnTitle !== field.columnTitle);
@@ -89,70 +92,64 @@ const ColumnSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
 
   const handleSave = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedFields));
+    showToast({
+      message: 'Column settings saved successfully.',
+      type: 'success'
+    });
     onClose();
   };
-  if (!isOpen) return null;
   return (
-    <div className="tw:fixed tw:inset-0 tw:z-[100] tw:flex tw:items-center tw:justify-center tw:bg-black/50 tw:backdrop-blur-sm tw:p-4">
-      <div className="tw:w-full tw:max-w-4xl tw:bg-white tw:rounded-xl tw:shadow-2xl tw:flex tw:flex-col tw:max-h-[85vh]">
-        <div className="tw:flex tw:items-center tw:justify-between tw:px-8 tw:py-5 tw:border-b tw:border-gray-100">
-          <h2 className="tw:text-xl tw:font-bold tw:text-slate-800">Column Settings</h2>
-          <button onClick={onClose} className="tw:p-2 tw:rounded-full hover:tw:bg-gray-100 tw:transition-colors">
-            <X size={20} className="tw:text-slate-400" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        onClose={onClose}
+        className="tw:max-w-5xl tw:p-0  tw:overflow-hidden"
+      >
+        {/* Header */}
+        <DialogHeader className="tw:flex-row tw:items-center tw:justify-between tw:px-8 tw:py-5 tw:border-b tw:border-gray-400">
+          <DialogTitle className="tw:text-xl">Column Settings</DialogTitle>
+        </DialogHeader>
 
-        <div className="tw:flex-1 tw:overflow-y-auto tw:p-8">
+        {/* Body */}
+        <div className="tw:flex-1 tw:overflow-y-auto tw:px-8 tw:py-3">
           <div className="tw:grid tw:grid-cols-2 tw:gap-12">
-            {/* Standard Columns Section */}
-            <section>
-              <h3 className="tw:text-xs tw:font-black tw:uppercase tw:tracking-widest tw:text-slate-400 tw:mb-6">Standard Columns</h3>
-              <div className="tw:grid tw:gap-y-3">
-                {allStandardFields.map(field => (
-                  <FieldCheckbox 
-                    key={field.columnTitle} 
-                    field={field} 
-                    checked={isFieldSelected(field.columnTitle) || field.isDisabled} 
-                    onToggle={() => toggleField(field)} 
-                  />
-                ))}
-              </div>
-            </section>
+            <Section
+              title="Standard Columns"
+              fields={allStandardFields}
+              isSelected={isFieldSelected}
+              onToggle={toggleField}
+            />
 
-            {/* Custom Columns Section */}
-            <section>
-              <h3 className="tw:text-xs tw:font-black tw:uppercase tw:tracking-widest tw:text-slate-400 tw:mb-6">Custom Field Columns</h3>
-              <div className="tw:grid tw:gap-y-3">
-                {processedCustomFields.map(field => (
-                  <FieldCheckbox 
-                    key={field.columnTitle} 
-                    field={field} 
-                    checked={isFieldSelected(field.columnTitle)} 
-                    onToggle={() => toggleField(field)} 
-                  />
-                ))}
-              </div>
-            </section>
+            <Section
+              title="Custom Field Columns"
+              fields={processedCustomFields}
+              isSelected={isFieldSelected}
+              onToggle={toggleField}
+            />
           </div>
         </div>
 
-        <div className="tw:px-8 tw:py-6 tw:border-t tw:border-gray-100 tw:flex tw:justify-end tw:gap-4 tw:bg-slate-50/50">
-          <button onClick={onClose} className="tw:px-6 tw:py-2.5 tw:text-sm tw:font-bold tw:text-slate-500 hover:tw:text-slate-700">Cancel</button>
-          <button onClick={handleSave} className="tw:px-10 tw:py-2.5 tw:bg-indigo-600 tw:text-white tw:text-sm tw:font-bold tw:rounded-lg tw:shadow-lg tw:shadow-indigo-200 hover:tw:bg-indigo-700 tw:transition-all">Save Changes</button>
-        </div>
-      </div>
-    </div>
+        {/* Footer */}
+        <DialogFooter className="tw:px-8 tw:py-6 tw:border-t  tw:border-gray-400 ">
+          <div className="tw:flex tw:justify-end tw:items-center tw:gap-4  ">
+            <Button onClick={onClose}
+              className="tw:px-6 tw:py-2.5 tw:text-sm tw:font-bold tw:text-slate-500 tw:rounded-lg"
+              variant='outline'
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              className="tw:px-10 tw:py-2.5 tw:text-white tw:text-sm tw:font-bold tw:rounded-lg"
+            >
+              Save
+            </Button>
+          </div>
+
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-const FieldCheckbox = ({ field, checked, onToggle }: any) => (
-  <label className={`tw:flex tw:items-center tw:gap-3 tw:p-2 tw:rounded-lg tw:transition-colors ${field.isDisabled ? 'tw:opacity-50 tw:cursor-not-allowed' : 'tw:cursor-pointer hover:tw:bg-slate-50'}`}>
-    <div className={`tw:w-5 tw:h-5 tw:rounded tw:border tw:flex tw:items-center tw:justify-center tw:transition-all ${checked ? 'tw:bg-indigo-600 tw:border-indigo-600' : 'tw:border-slate-300 tw:bg-white'}`}>
-      {checked && <Check size={14} className="tw:text-white" strokeWidth={4} />}
-      <input type="checkbox" className="tw:hidden" checked={checked} disabled={field.isDisabled} onChange={onToggle} />
-    </div>
-    <span className={`tw:text-sm ${checked ? 'tw:font-semibold tw:text-slate-800' : 'tw:text-slate-600'}`}>{field.columnTitle}</span>
-  </label>
-);
 
 export default ColumnSettingsModal;

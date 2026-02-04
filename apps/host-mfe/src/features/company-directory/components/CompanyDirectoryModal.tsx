@@ -86,7 +86,7 @@ export function CompanyDirectoryModal({
               </div>
 
               {/* Right side information */}
-              <div className="tw:flex-1 tw:grid tw:grid-cols-2 tw:gap-x-8 tw:gap-y-4">
+              <div className="tw:flex-1 tw:grid tw:gap-x-8 tw:gap-y-4">
                 <div>
                   <div className="tw:text-gray-600 tw:font-medium">Name</div>
                   <div className="tw:mt-0.5 tw:text-gray-900">

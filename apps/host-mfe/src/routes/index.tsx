@@ -14,11 +14,11 @@ function AppRouter() {
       <Routes>
         <Route path="work_area/evacuation/upcoming-visitors" index element={<UpcomingVisitors />} />
         <Route path="work_area/evacuation/past-visitors" element={<PastVisitors />} />
-        <Route path="work_area/evacuation/my-sign-in-log" element={<MyDeliveries />} />
-        <Route path="work_area/evacuation/my-deliveries" element={<MyDeliveries />} />
+        <Route path="work_area/evacuation/my-sign-in-log" element={<MySignInLog />} />
+        <Route path="work_area/evacuation/my-deliveries" element={<MyDeliveryLogs />} />
         <Route path="work_area/evacuation/directory" element={<CompanyDirectory />} />
 
-    </Routes>
+      </Routes>
     </div>
 
   );

@@ -34,7 +34,7 @@ export const Dialog: React.FC<DialogProps> = ({
     >
       <div className="tw:fixed tw:inset-0 tw:bg-black/50" />
       <div
-        className="tw:relative tw:z-50 tw:w-full tw:max-w-lg tw:mx-4"
+        className="tw:relative tw:z-50"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -56,20 +56,21 @@ export const DialogContent = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "tw:bg-white tw:rounded-lg tw:shadow-xl tw:p-6 tw:max-h-[90vh] tw:overflow-y-auto",
+        "tw:relative tw:w-full tw:mx-4",
+        "tw:bg-white tw:rounded-lg tw:shadow-xl",
+        "tw:max-h-[90vh] tw:flex tw:flex-col",
         className
       )}
       {...props}
     >
       {onClose && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="tw:absolute tw:top-4 tw:right-4 tw:h-6 tw:w-6 tw:p-0"
+        <button
+          type="button"
           onClick={onClose}
+          className="tw:absolute tw:top-3 tw:right-3 tw:inline-flex tw:h-6 tw:w-6 tw:items-center tw:justify-center tw:rounded-md tw:text-gray-600 hover:tw:text-gray-900 hover:tw:bg-gray-100 focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-gray-400"
         >
           <X className="tw:h-4 tw:w-4" />
-        </Button>
+        </button>
       )}
       {children}
     </div>
@@ -79,7 +80,7 @@ export const DialogContent = React.forwardRef<
 DialogContent.displayName = "DialogContent";
 
 export interface DialogHeaderProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+  extends React.HTMLAttributes<HTMLDivElement> { }
 
 export const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
   ({ className, ...props }, ref) => {
@@ -96,7 +97,7 @@ export const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
 DialogHeader.displayName = "DialogHeader";
 
 export interface DialogTitleProps
-  extends React.HTMLAttributes<HTMLHeadingElement> {}
+  extends React.HTMLAttributes<HTMLHeadingElement> { }
 
 export const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProps>(
   ({ className, ...props }, ref) => {
@@ -116,7 +117,7 @@ export const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProps
 DialogTitle.displayName = "DialogTitle";
 
 export interface DialogDescriptionProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {}
+  extends React.HTMLAttributes<HTMLParagraphElement> { }
 
 export const DialogDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -134,7 +135,7 @@ export const DialogDescription = React.forwardRef<
 DialogDescription.displayName = "DialogDescription";
 
 export interface DialogFooterProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+  extends React.HTMLAttributes<HTMLDivElement> { }
 
 export const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
   ({ className, ...props }, ref) => {
