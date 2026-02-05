@@ -230,3 +230,57 @@ export interface CustomField {
 
 // Response is array of these objects
 export type CustomFieldsApiResponse = CustomField[];
+
+export interface Site {
+  id: string;
+  name: string;
+  orgId: string;
+  orgName: string;
+  status: "ACTIVE" | "INACTIVE";
+  country: string;
+  language: string;
+
+  allowWalkin: boolean;
+  allowBadgePolling: boolean;
+  allowEmployeeSignInFeature: boolean;
+  allowSignInDuringOffBusinessHours: boolean;
+  allowSignInOnPersonalDevice: boolean;
+
+  backgroundCheckEntityField: string;
+  backgroundCheckProvider: string;
+  backgroundCheckPassedText: string;
+  backgroundCheckFailedText: string;
+
+  logoURI: string;
+  bgImgURI: string;
+
+  btnColor: string;
+  btnTextColor: string;
+  bgColor: string;
+  textColor: string;
+  footerTextColor: string;
+
+  homeScreenMessage: string;
+  purposeMessage: string;
+
+  createdDate: string;
+  modifiedDate: string;
+
+  retentionPeriod: number;
+  timezone: string;
+
+  siteKey: string;
+  theme: string;
+
+  additionalLanguages: string[];
+
+  visitWatchListEnabled: boolean;
+  deliveryEnabledFlag: boolean;
+  checkOutFlag: boolean;
+
+  state: string;
+}
+
+export interface SitesResponse {
+  results: Site[];
+}

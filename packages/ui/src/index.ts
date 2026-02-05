@@ -100,6 +100,12 @@ export { Skeleton, type SkeletonProps } from "./Skeleton";
 export { Progress, type ProgressProps } from "./Progress";
 export {Image , type ImageProps } from "./Image";
 export {Search} from "./Search";
+// react-select Async Select
+export {
+  SearchUserSelect,
+  type SearchUserSelectProps,
+  type UserOption,
+} from "./SearchUserSelect";
 // Utils
 export { cn } from "./utils";
 

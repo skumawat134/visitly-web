@@ -232,6 +232,6 @@ export const useUpcomingVisitors = () => {
     onSortChanged,
     openPreRegistrationModalHandler,
     closePreRegistrationModalHandler,
-    showPreRegistrationModal
+    showPreRegistrationModal,
   };
 };

@@ -22,11 +22,11 @@ export const UpcomingVisitors = () => {
           config={{ refreshBtn: true, showRightMenu: true }}
           rightMenu={
             <div className="tw:flex tw:items-center tw:gap-4">
-              <Button variant='outline' className='tw:rounded-sm' onClick={openPreRegistrationModalHandler}>
+              <Button variant='outline' className='tw:rounded-sm' >
                 <ArrowUpFromLine size={18} className='tw:mr-1' />
                 Bulk Pre-Registration
               </Button>
-              <Button variant='primary' className='tw:rounded-sm' >
+              <Button variant='primary' className='tw:rounded-sm'  onClick={openPreRegistrationModalHandler}>
                 <Plus size={18} className='tw:mr-1' />
                 Pre-Register Visit
               </Button>
@@ -121,7 +121,7 @@ export const UpcomingVisitors = () => {
       <PreRegistrationModal
         isOpen={showPreRegistrationModal}
         onClose={closePreRegistrationModalHandler}
-
+         status={'Create'}
       />
     </div>
   )

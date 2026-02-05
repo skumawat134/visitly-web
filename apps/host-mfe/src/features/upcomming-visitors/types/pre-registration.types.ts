@@ -56,3 +56,147 @@ export interface PreRegistrationForm {
   }>;
   // Add more fields as needed
 }
+
+export interface VisitorField {
+  id: string;
+  name: string;
+  type: "TEXT" | "DROPDOWN" | "NUMBER" | "DATE" | string;
+  required?: boolean;
+}
+
+
+
+export interface VisitorType {
+  id: string;
+  siteId: string;
+
+  visitorType: string;
+  description: string;
+  status: "ACTIVE" | "INACTIVE";
+
+  isDeleted: boolean;
+  showOnIpad: boolean;
+
+  backgroundCheckEnabled: boolean;
+  offenderCheck: boolean;
+
+  photoFlag: boolean;
+  printBadgeFlag: boolean;
+  issueGuestWifiCredentialsFlag: boolean;
+
+  idValidation: boolean;
+  isIdCapturingEnabled: boolean;
+
+  docExpiryInDays: number;
+
+  fields: VisitorField[];
+  adminFields: VisitorField[];
+  signOutFields: VisitorField[];
+}
+
+export interface VisitorTypesResponse {
+  results: VisitorType[];
+}
+
+export interface UserRole {
+  id: string;
+  role: 'HOST' | 'EMPLOYEE' | 'ADMIN' | string;
+  allSitesFlag: boolean;
+}
+
+export interface User {
+  id: string;
+
+  firstName: string;
+  lastName: string;
+  email: string;
+
+  status: 'ACTIVE' | 'INACTIVE' | string;
+
+  roles: UserRole[];
+
+  // Contact info
+  mobilePhone?: string;
+  mobilePhoneCountryCode?: string;
+  workPhone?: string;
+  workPhoneCountryCode?: string;
+  extension?: string;
+
+  // Org / identity
+  employeeId?: string;
+  externalId?: string;
+  department?: string;
+  title?: string;
+
+  // Flags
+  allowSigninFlag: boolean;
+  skipHostNotification: boolean;
+  emailVerified: boolean;
+  deleted: boolean;
+
+  // Timestamps
+  createTime: string;   // ISO date string
+  modifyTime: string;   // ISO date string
+}
+
+export interface UsersResponse {
+  results: User[];
+}
+
+
+export type Status = 'ACTIVE' | 'INACTIVE';
+
+export type PreregistrationFieldType =
+  | 'TEXT'
+  | 'NUMBER'
+  | 'DROPDOWN'
+  | 'RADIO'
+  | 'REFERENCE'
+  | 'DATEPICKER';
+
+export type FieldSetting = 'MANDATORY' | 'OPTIONAL';
+export interface PreregistrationFieldOption {
+  id: string;
+  label: string;
+  value: string;
+  displayOrder: number;
+}
+
+export interface PreregistrationFieldConfig {
+  id: string;
+  name: string;
+  type: PreregistrationFieldType;
+  displayText: string;
+  setting: FieldSetting;
+
+  editableFlag: boolean;
+  isSigninField: boolean;
+  status: Status;
+  index: number;
+
+  isPreregistrationOnly: boolean;
+  isMandatoryForPreregistration: boolean;
+  isEditableForVisit: boolean;
+
+  orgCustomFieldId?: string;
+  options?: PreregistrationFieldOption[];
+}
+
+export interface PreregistrationVisitorTypeConfig {
+  id: string;
+  visitorType: string;
+
+  orgBadgeConfigId: string;
+  orgBadgeName: string;
+  description: string;
+
+  photoFlag: boolean;
+  printBadgeFlag: boolean;
+  orgTemplateId: string;
+  orgTemplateName: string;
+
+  status: Status;
+  siteId: string;
+
+  fields: PreregistrationFieldConfig[];
+}
