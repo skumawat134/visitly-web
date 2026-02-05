@@ -5,31 +5,26 @@ import {
   type ColDef,
   type ICellRendererParams,
 } from "ag-grid-community";
-import {
-  RotateCw,
-  Search,
-  Filter,
-  MapPin,
-  Box,
-  Trash2,
-  MoveHorizontal,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { RotateCw, Filter, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { useMyDeliveryLogs } from "../hooks/useMyDeliveryLogs";
 import {
   DeliveryLogStatus,
   type DeliveryLogRecord,
 } from "../api/myDeliveryLogs.types";
+import { PickupConfirmDialog } from "../components/PickupConfirmDialog";
 
-import { Input, Select, SharedDateRangePicker } from "@visitly/ui";
+import {
+  Button,
+  LocationSelect,
+  Select,
+  SharedDateRangePicker,
+} from "@visitly/ui";
 
 // Shared component placeholder as requested
 
 import { GridFooter } from "../../past-visitors/components/GridFooter";
 import { MyDeliveryLogsModal } from "../components/MyDeliveryLogsModal";
-import { MoveDeliveryModal } from "../components/MoveDeliveryModal";
 
 const MyDeliveryLogs: React.FC = () => {
   const {
@@ -60,10 +55,17 @@ const MyDeliveryLogs: React.FC = () => {
     setIsNotMyDeliveryOpen,
     updateStatus,
     updateLog,
+    setSortBy,
+    setSortOrder
   } = useMyDeliveryLogs();
 
-  const [selectedRows, setSelectedRows] = useState<DeliveryLogRecord[]>([]);
-
+  const siteOptions = [
+    { value: "", label: "All Locations" },
+    ...sites.map((site) => ({
+      value: site.id,
+      label: site.name,
+    })),
+  ];
   // Column Definitions
   const colDefs = useMemo<ColDef<DeliveryLogRecord>[]>(
     () => [
@@ -259,8 +261,19 @@ const MyDeliveryLogs: React.FC = () => {
     fontSize: "14px",
   });
 
-  const onSelectionChanged = (event: any) => {
-    setSelectedRows(event.api.getSelectedRows());
+
+   const onSortChanged = (event: any) => {
+    const columnState = event.api.getColumnState();
+
+    const sortedColumn = columnState.find((col: any) => col.sort);
+
+    if (!sortedColumn) return;
+
+    const sortBy = sortedColumn.colId;
+    const sortOrder = sortedColumn.sort; // 'asc' | 'desc'
+
+    setSortBy(sortBy);
+    setSortOrder(sortOrder);
   };
 
   return (
@@ -301,42 +314,19 @@ const MyDeliveryLogs: React.FC = () => {
               data-testid="filter-section"
             >
               <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-4 tw:w-full">
-                <div className="tw:relative tw:w-full tw:sm:w-64">
-                  <MapPin
-                    className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400"
-                    size={16}
-                  />
-
-                  <select
-                    value={filterSiteId}
-                    onChange={(e) => {
-                      setFilterSiteId(e.target.value);
-                      setSiteAreaId("");
-                    }}
-                    className="tw:w-full tw:pl-10 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:bg-gray-50/50 tw:text-sm tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-blue-500/20 tw:appearance-none"
-                    data-testid="location-filter"
-                  >
-                    <option value="">All Locations</option>
-                    {sites.map((site) => (
-                      <option key={site.id} value={site.id}>
-                        {site.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Clear Button */}
-                  {filterSiteId && (
-                    <button
-                      onClick={() => {
-                        setFilterSiteId("");
-                        setSiteAreaId("");
-                      }}
-                      className="tw:absolute tw:right-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-red-500 tw:transition"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+                <LocationSelect
+                  value={filterSiteId}
+                  options={siteOptions}
+                  onChange={(value) => {
+                    setFilterSiteId(value);
+                    setSiteAreaId("");
+                  }}
+                  onClear={() => {
+                    setFilterSiteId("");
+                    setSiteAreaId("");
+                  }}
+                  data-testid="location-filter"
+                />
 
                 <div className="tw:relative tw:w-full tw:sm:w-64">
                   <Filter
@@ -382,24 +372,24 @@ const MyDeliveryLogs: React.FC = () => {
 
                     {/* Clear Button */}
                     {selectedStatus && (
-                      <button
+                      <span
                         onClick={() => setSelectedStatus("")}
                         className="tw:absolute tw:right-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-red-500 tw:transition"
                         title="Clear Status Filter"
                       >
                         ✕
-                      </button>
+                      </span>
                     )}
                   </div>
 
                   {selectedStatus.length > 0 && (
-                    <button
+                    <span
                       onClick={() => setSelectedStatus([])}
                       className="tw:absolute tw:right-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-red-500 tw:transition"
                       title="Clear Status Filter"
                     >
                       ✕
-                    </button>
+                    </span>
                   )}
                 </div>
 
@@ -442,7 +432,7 @@ const MyDeliveryLogs: React.FC = () => {
                 defaultColDef={defaultColDef}
                 theme={myTheme}
                 loading={isLoading}
-                onSelectionChanged={onSelectionChanged}
+                onSortChanged={onSortChanged}
                 rowHeight={64}
                 overlayNoRowsTemplate="<span className='tw:text-gray-500 tw:font-medium'>No deliveries found.</span>"
                 rowSelection={{
@@ -484,56 +474,12 @@ const MyDeliveryLogs: React.FC = () => {
       />
 
       {/* Pick Up Confirmation Modal */}
-      {isPickupConfirmOpen && (
-       <div
-  className="tw:fixed tw:inset-0 tw:z-50 tw:flex tw:items-center tw:justify-center tw:bg-black/60 tw:p-4"
-  data-testid="pickup-confirmation-modal"
->
-  <div className="tw:bg-white tw:rounded-xl tw:p-8 tw:max-w-md tw:w-full tw:text-center">
-    {/* Warning icon - yellow triangle with ! */}
-    <div className="tw:w-20 tw:h-20 tw:bg-yellow-50 tw:rounded-full tw:flex tw:items-center tw:justify-center tw:mx-auto tw:mb-6">
-      <span className="tw:text-yellow-500 tw:text-5xl tw:font-black">!</span>
-    </div>
-
-    <h2 className="tw:text-2xl tw:font-black tw:text-gray-900 tw:mb-2">
-      Are you sure?
-    </h2>
-
-    <p className="tw:text-gray-600 tw:font-medium tw:mb-8">
-      This action will change the status as Picked Up.
-    </p>
-
-    <div className="tw:flex tw:gap-3">
-      <button
-        onClick={() => setIsPickupConfirmOpen(false)}
-        className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-gray-100 tw:text-gray-700 tw:rounded-xl tw:font-bold hover:tw:bg-gray-200"
-        data-testid="cancel-pickup-button"
-      >
-        No
-      </button>
-
-      <button
-        onClick={() => {
-          if (selectedPackage) {
-            updateStatus({
-              id: selectedPackage.id,
-              status: DeliveryLogStatus.PICKEDUP,
-              pickupD: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
-            });
-          }
-          // Optionally close modal after success
-          setIsPickupConfirmOpen(false);
-        }}
-        className="tw:flex-1 tw:py-3 tw:px-6 tw:bg-purple-600 tw:text-white tw:rounded-xl tw:font-bold hover:tw:bg-purple-700 tw:shadow-lg tw:shadow-purple-900/10"
-        data-testid="confirm-pickup-button"
-      >
-        Yes
-      </button>
-    </div>
-  </div>
-</div>
-      )}
-
+      <PickupConfirmDialog
+        open={isPickupConfirmOpen}
+        onOpenChange={setIsPickupConfirmOpen}
+        selectedPackage={selectedPackage}
+        onConfirm={(payload) => updateStatus(payload)}
+      />
     </div>
   );
 };

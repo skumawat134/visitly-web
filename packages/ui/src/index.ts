@@ -34,6 +34,7 @@ export {
   type AvatarGroupProps,
 } from "./Avatar";
 export { Separator, type SeparatorProps } from "./Separator";
+export { LocationSelect, type LocationSelectProps } from "./LocationSelect";
 
 // Overlay Components
 export {
