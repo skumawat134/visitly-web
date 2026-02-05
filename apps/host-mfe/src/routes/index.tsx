@@ -15,7 +15,7 @@ function AppRouter() {
     <div data-test-id="host-mfe-app-router-root">
       <Routes>
         <Route path="/upcoming-visitors" index element={<UpcomingVisitors />} />
-         <Route path="/past-visitors" element={<PastVisitors />} />
+        <Route path="/past-visitors" element={<PastVisitors />} />
         <Route path="/my-sign-in-log" element={<MySignInLog />} />
         <Route path="/my-deliveries" element={<MyDeliveryLogs />} />
         <Route path="/directory" element={<CompanyDirectory />} />

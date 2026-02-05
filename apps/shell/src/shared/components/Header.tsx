@@ -3,6 +3,7 @@ import { Menu, ChevronDown, User, Key, LogOut, LockOpen } from 'lucide-react';
 import { Button, Image, Popover } from '@visitly/ui';
 import { Link } from 'react-router-dom';
 import { useAuthStore, type AuthState } from '@visitly/app-store';
+import { useLogout } from '../hooks/useLogout'
 
 interface HeaderProps {
   onToggle: () => void,
@@ -58,31 +59,59 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
     </header>
   );
 };
-const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => (
-  <div className="tw:w-64">
-    {/* Profile Header */}
-    <div className="tw:p-4 tw:flex tw:items-center tw:gap-3 tw:border-b tw:border-gray-100">
-      <div className="tw:w-12 tw:h-12 tw:bg-slate-200 tw:rounded-lg tw:flex tw:items-center tw:justify-center">
-        {user?.avatarUri ? <Image src={user?.avatarUri} alt='user-avtar' /> : <User size={24} className="tw:text-slate-500" />
-        }
+const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
+  const { logOut } = useLogout();
+  
+
+  return (
+    <div className="tw:w-64">
+      {/* Profile Header */}
+      <div className="tw:p-4 tw:flex tw:items-center tw:gap-3 tw:border-b tw:border-gray-100">
+        <div className="tw:w-12 tw:h-12 tw:bg-slate-200 tw:rounded-lg tw:flex tw:items-center tw:justify-center">
+          {user?.avatarUri ? (
+            <Image src={user?.avatarUri} alt="user-avtar" />
+          ) : (
+            <User size={24} className="tw:text-slate-500" />
+          )}
+        </div>
+
+        <div className="tw:flex tw:flex-col tw:overflow-hidden">
+          <span className="tw:text-sm tw:font-bold tw:text-slate-700">
+            {user?.firstName} <span></span>
+            {user?.lastName}
+          </span>
+          <span className="tw:text-[11px] tw:text-slate-400 tw:truncate">
+            {user?.email}
+          </span>
+        </div>
       </div>
-      <div className="tw:flex tw:flex-col tw:overflow-hidden">
-        <span className="tw:text-sm tw:font-bold tw:text-slate-700">{user?.firstName} <span></span>{user?.lastName}</span>
-        <span className="tw:text-[11px] tw:text-slate-400 tw:truncate">{user?.email}</span>
+
+      {/* Actions */}
+      <div className="tw:py-1">
+        <Link
+          className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600"
+          to={"/host/profile"}
+        >
+          <User size={16} /> Profile
+        </Link>
+
+        <Link
+          className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600"
+          to={"/host/change-password"}
+        >
+          <LockOpen size={16} /> Change Password
+        </Link>
+
+        <hr className="tw:my-1 tw:border-gray-100" />
+
+        {/* ✅ Logout Fixed */}
+        <button
+          onClick={logOut}
+          className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-red-600 hover:tw:bg-red-50"
+        >
+          <LogOut size={16} /> Logout
+        </button>
       </div>
     </div>
-    {/* Actions */}
-    <div className="tw:py-1">
-      <Link className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600" to={"/host/profile"}>
-        <User size={16} /> Profile
-      </Link>
-      <Link className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600" to={"/host/change-password"}>
-        <LockOpen size={16} />Change Password
-      </Link>
-      <hr className="tw:my-1 tw:border-gray-100" />
-      <button className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-red-600 hover:tw:bg-red-50">
-        <LogOut size={16} /> Logout
-      </button>
-    </div>
-  </div>
-);
+  );
+};

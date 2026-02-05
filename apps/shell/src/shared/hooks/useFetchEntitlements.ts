@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useQuery } from "@tanstack/react-query";
-import { EntitlementsResponse } from '../types/entitlement.type';
+import type { EntitlementsResponse } from '../types/entitlement.type';
 import { getProductInfo } from '../services/entitlement.api';
 
 export const useFetchEntitlements = (orgId?: string) => {

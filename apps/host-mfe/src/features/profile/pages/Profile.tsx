@@ -33,7 +33,6 @@ const Profile: React.FC = () => {
   if (isLoading || !profile) {
     return (
       <div className="tw:flex tw:items-center tw:justify-center tw:min-h-[60vh]">
-        <Loader2 className="tw:w-10 tw:h-10 tw:text-blue-600 tw:animate-spin" />
       </div>
     );
   }

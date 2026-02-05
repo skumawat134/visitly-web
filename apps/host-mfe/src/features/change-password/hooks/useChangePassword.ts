@@ -5,10 +5,12 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { changePassword as changePasswordApi } from '../api/changePassword.api';
 import type { ChangePasswordFormValues } from '../api/changePassword.types';
+import { useToastStore } from '@visitly/app-store';
 
 export const useChangePassword = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useToastStore((state) => state.showToast)
 
   // Extract user ID from sessionStorage
   const getUserId = () => {
@@ -50,7 +52,7 @@ export const useChangePassword = () => {
 
       const userId = getUserId();
       if (!userId) {
-        // toast.error('User ID not found. Please log in again.');
+         toast({message : 'User ID not found. Please log in again.'});
         setIsSubmitting(false);
         return;
       }
@@ -63,15 +65,13 @@ export const useChangePassword = () => {
           confirmPassword: values.confirmPassword,
         });
 
-        // toast.success('Your password has been changed successfully.');
+        toast({message : 'Your password has been changed successfully.'});
         navigate('/host/past-visitors');
       } catch (error: any) {
         const errorMessage =
           error?.response?.data?.message ||
           'We have encountered an error. If the problem persists, please contact Visitly Support at support@visitly.io';
-
-        // toast.error(errorMessage);
-        console.error('Password change failed:', error);
+        toast({message : errorMessage });
       } finally {
         setIsSubmitting(false);
       }
