@@ -21,10 +21,12 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
 
   const [timeOptions, setTimeOptions] = useState<{ label: string; value: string }[]>([]);
 
+
   // ── Fetch Sites & Visitor Types ─────────────────────────────────────────────
   // useEffect(() => {
   //   if (!isOpen) return;
-  //   if (form.siteId) {
+
+    // if (form.siteId) {
       // api.get('/visitor-types', { siteId: form.siteId, status: 'ACTIVE' }).then((data) => {
       // setVisitorTypes(data.results || []);
       // });
@@ -49,25 +51,25 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
       //   setFormField('cohostUserIds', data.cohostUserIds || []);
       //   // Custom fields prefill would go here
       // });
-    // } else if (status === 'Create') {
-      // resetForm();
-    // }
+  //   } else if (status === 'Create') {
+  //     resetForm();
+  //   }
   // }, [status, visitId, isOpen, setFormField, resetForm]);
 
   // ── Generate Time Options (15-min intervals) ────────────────────────────────
-  useEffect(() => {
-    const opts: typeof timeOptions = [];
-    for (let h = 0; h < 24; h++) {
-      for (let m = 0; m < 60; m += 15) {
-        const hour = h % 12 || 12;
-        const ampm = h < 12 ? 'AM' : 'PM';
-        const hh = h.toString().padStart(2, '0');
-        const mm = m.toString().padStart(2, '0');
-        opts.push({ label: `${hour}:${mm} ${ampm}`, value: `${hh}:${mm}` });
-      }
-    }
-    setTimeOptions(opts);
-  }, []);
+  // useEffect(() => {
+  //   const opts: typeof timeOptions = [];
+  //   for (let h = 0; h < 24; h++) {
+  //     for (let m = 0; m < 60; m += 15) {
+  //       const hour = h % 12 || 12;
+  //       const ampm = h < 12 ? 'AM' : 'PM';
+  //       const hh = h.toString().padStart(2, '0');
+  //       const mm = m.toString().padStart(2, '0');
+  //       opts.push({ label: `${hour}:${mm} ${ampm}`, value: `${hh}:${mm}` });
+  //     }
+  //   }
+  //   setTimeOptions(opts);
+  // }, []);
 
   // ── Form Submit ─────────────────────────────────────────────────────────────
   const handleSave = async () => {
