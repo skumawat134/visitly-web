@@ -48,7 +48,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               <span className="tw:text-gray-400">{leftIcon}</span>
             </div>
           )}
-          <input
+          <div className="tw:flex tw:flex-row">
+            <input
             ref={ref}
             id={inputId}
             className={cn(
@@ -65,9 +66,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div 
+            <span 
               className={cn(
-                "tw:absolute tw:inset-y-0 tw:right-0 tw:pr-3 tw:flex tw:items-center",
+                "tw:flex tw:items-center tw:-ml-6",
                 !rightIconClickable && "tw:pointer-events-none"
               )}
               onClick={rightIconClickable && onRightIconClick ? onRightIconClick : undefined}
@@ -76,8 +77,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 "tw:text-gray-400",
                 rightIconClickable && "tw:cursor-pointer hover:tw:text-gray-600"
               )}>{rightIcon}</span>
-            </div>
+            </span>
           )}
+          </div>
         </div>
         {error && (
           <p className="tw:mt-1 tw:text-sm tw:text-red-600">{error}</p>

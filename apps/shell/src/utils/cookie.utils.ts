@@ -1,6 +1,6 @@
 // authCookies.ts
 
-const DOMAIN = 'visitly.io';
+const DOMAIN = '.visitly.io';
 const PATH = '/';
 
 type SameSite = 'Lax' | 'Strict' | 'None';
@@ -41,7 +41,7 @@ export function setCookie(
 
   if (secure) cookie += `; Secure`;
   if (sameSite) cookie += `; SameSite=${sameSite}`;
-
+  console.log('as,dbfkasbdfkabsdfbasidlfbaisdf n====================================')
   document.cookie = cookie;
 }
 
@@ -62,3 +62,21 @@ export function getCookie(name: string): string | null {
 export function deleteCookie(name: string): void {
   document.cookie = `${name}=; path=${PATH}; domain=${DOMAIN}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
+
+export function deleteAllCookies(path = '/') {
+  const cookies = document.cookie.split(';');
+
+  for (const cookie of cookies) {
+    const name = cookie.split('=')[0]?.trim();
+
+    if (!name) continue; // safety guard
+
+    let cookieStr = `${name}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+
+    if (DOMAIN) cookieStr += `; domain=${DOMAIN}`;
+
+    document.cookie = cookieStr;
+  }
+}
+
+

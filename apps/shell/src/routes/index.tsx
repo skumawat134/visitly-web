@@ -15,6 +15,7 @@ import HostLayout from '@/layout/HostLayout';
 
 function AppRouter() {
   console.warn("process.env.VITE_ANGULAR_MFE_REMOTE_URL", process.env.VITE_ANGULAR_MFE_REMOTE_URL)
+    console.warn("process.env.VITE_HOST_MFE_REMOTE_URL", process.env.VITE_HOST_MFE_REMOTE_URL)
   return (
     <>
       <BrowserRouter>

@@ -6,7 +6,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*", "**/.env*"],
       "outputs": ["dist/**"],
-      "env": ["VITE_AUTH_MFE_REMOTE_URL" ,"VITE_ANGULAR_MFE_REMOTE_URL"]
+      "env": ["VITE_AUTH_MFE_REMOTE_URL" ,"VITE_ANGULAR_MFE_REMOTE_URL","VITE_HOST_MFE_REMOTE_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]

@@ -143,7 +143,7 @@ export const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
       <div
         ref={ref}
         className={cn(
-          "tw:flex tw:flex-col-reverse sm:tw:flex-row sm:tw:justify-end sm:tw:space-x-2 tw:mt-4",
+          "tw:flex  sm:tw:flex-row sm:tw:justify-end sm:tw:space-x-2 tw:mt-4",
           className
         )}
         {...props}

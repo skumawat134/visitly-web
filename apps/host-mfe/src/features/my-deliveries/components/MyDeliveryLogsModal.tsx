@@ -6,6 +6,8 @@ import {
   type DeliveryLogRecord,
 } from "../api/myDeliveryLogs.types";
 import { Button, Image } from "@visitly/ui";
+import { Expand } from "lucide-react";
+import { ScannedImageDialog } from "./ScannedImageDialog";
 
 interface MyDeliveryLogsModalProps {
   isOpen: boolean;
@@ -27,8 +29,11 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
   onUpdateStatus,
 }) => {
   const [pickupNote, setPickupNote] = useState(packageItem?.pickupNote || "");
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   if (!isOpen || !packageItem) return null;
+
+  console.log("packageItem", packageItem);
 
   const formatDate = (date: string | null, withTime = true) => {
     if (!date) return "-";
@@ -142,9 +147,10 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
                 Pickup Note
               </label>
               <textarea
-                className="tw:w-full tw:p-3 tw:border tw:border-gray-300 tw:rounded-lg tw:focus:outline-none tw:focus:ring-1 tw:focus:ring-blue-400 tw:min-h-[90px] tw:text-sm"
-                placeholder="e.g. please pick this"
-                value={pickupNote}
+                disabled
+                className="tw:w-full tw:p-3 tw:border tw:border-gray-300 tw:rounded-lg tw:focus:outline-none tw:focus:ring-1 tw:bg-[#e9ecef] tw:min-h-[51px] tw:text-sm"
+                placeholder="Add Pick Up Note"
+                value={packageItem?.pickupNote || ""}
                 onChange={(e) => setPickupNote(e.target.value)}
               />
             </div>
@@ -152,14 +158,25 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
 
           {/* Right - Label Image */}
           <div className="tw:flex-1 tw:flex tw:flex-col tw:gap-4 tw:min-w-0">
-            <div className="tw:rounded-lg tw:overflow-hidden tw:border tw:border-gray-300 tw:bg-white tw:shadow-sm">
+            <div
+              className="tw:relative tw:rounded-lg tw:overflow-hidden tw:border tw:border-gray-300 tw:bg-white tw:shadow-sm 
+                tw:h-[220px] md:tw:h-[280px] lg:tw:h-[320px]"
+            >
+              {/* Expand Icon */}
+              <button
+                onClick={() => setIsImageOpen(true)}
+                className="tw:absolute tw:top-2 tw:right-2 tw:z-10 tw:bg-black/60 tw:text-white tw:p-2 tw:rounded-full hover:tw:bg-black/80"
+              >
+                <Expand size={18} />
+              </button>
+
               <Image
                 src={
                   packageItem.labelUri ||
                   "/assets/images/default-label-placeholder.png"
                 }
                 alt="Package Label"
-                className="tw:w-full tw:h-auto tw:object-contain"
+                className="tw:w-full tw:h-full tw:object-contain"
               />
             </div>
 
@@ -192,16 +209,16 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
                       format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
                     )
                   }
-                  className="tw:px-5 tw:py-2 tw:border tw:border-blue-500 tw:text-blue-600 tw:rounded-lg tw:text-sm tw:font-medium hover:tw:bg-blue-50 tw:transition-colors"
                   data-testid="mark-pickedup-modal-button"
+                  variant="outline"
+                  className="tw:text-[#5E2CED] tw:border tw:border-[#5E2CED]!"
                 >
                   Picked Up
                 </Button>
               )}
 
               {(packageItem.status === DeliveryLogStatus.UNIDENTIFIED ||
-                packageItem.status === DeliveryLogStatus.PENDING
-                ) && (
+                packageItem.status === DeliveryLogStatus.PENDING) && (
                 <>
                   <Button
                     onClick={() =>
@@ -210,7 +227,8 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
                         DeliveryLogStatus.UNIDENTIFIED,
                       )
                     }
-                    className="tw:px-5 tw:py-2 tw:border tw:border-blue-500 tw:text-blue-600 tw:rounded-lg tw:text-sm tw:font-medium hover:tw:bg-blue-50 tw:transition-colors"
+                    variant="outline"
+                    className="tw:text-[#5E2CED] tw:border tw:border-[#5E2CED]!"
                     data-testid="not-my-delivery-button"
                   >
                     Not My Delivery
@@ -218,12 +236,10 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
 
                   <Button
                     onClick={() =>
-                      onUpdateStatus(
-                        packageItem.id,
-                        DeliveryLogStatus.DISCARD,
-                      )
+                      onUpdateStatus(packageItem.id, DeliveryLogStatus.DISCARD)
                     }
-                    className="tw:px-5 tw:py-2 tw:border tw:border-[#5E2CED] tw:text-[#5E2CED] tw:rounded-lg tw:text-sm tw:font-medium hover:tw:bg-blue-50 tw:transition-colors"
+                    variant="outline"
+                    className="tw:text-[#5E2CED] tw:border tw:border-[#5E2CED]!"
                     data-testid="discard-button"
                   >
                     Discard
@@ -233,20 +249,19 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
             </div>
           </div>
         </div>
+        <ScannedImageDialog
+          isOpen={isImageOpen}
+          onClose={() => setIsImageOpen(false)}
+          imageUrl={packageItem.labelUri}
+        />
 
         {/* Bottom Actions */}
         <div className="tw:px-6 tw:py-5 tw:border-t tw:border-gray-200 tw:bg-gray-50 tw:flex tw:flex-col sm:tw:flex-row tw:items-center tw:justify-between tw:gap-4">
           <div className="tw:flex tw:gap-3 tw:ml-auto">
-            <Button
-              onClick={onClose}
-              className="tw:px-6 tw:py-2 tw:text-sm tw:font-medium tw:text-gray-600 hover:tw:text-gray-900"
-            >
+            <Button onClick={onClose} variant="outline">
               Cancel
             </Button>
-            <Button
-              onClick={handleSave}
-              className="tw:px-6 tw:py-2 tw:bg-[#5E2CED] tw:text-white tw:text-sm tw:font-medium tw:rounded-lg hover:tw:bg-blue-700 tw:shadow-sm"
-            >
+            <Button onClick={handleSave} variant="primary">
               Save
             </Button>
           </div>

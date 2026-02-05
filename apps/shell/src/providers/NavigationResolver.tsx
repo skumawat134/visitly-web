@@ -94,7 +94,7 @@ function resolveLanding(auth: AuthState): string {
   }
 
   if (roles.some(r => ['HOST', 'EVAC_MANAGER'].includes(r.role))) {
-    return '/host/work_area/evacuation/past-visitors';
+    return '/host/upcoming-visitors';
   }
 
   return '/admin';
