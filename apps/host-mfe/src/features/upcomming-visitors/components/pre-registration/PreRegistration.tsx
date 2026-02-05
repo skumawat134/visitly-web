@@ -22,18 +22,18 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
   const [timeOptions, setTimeOptions] = useState<{ label: string; value: string }[]>([]);
 
   // ── Fetch Sites & Visitor Types ─────────────────────────────────────────────
-  useEffect(() => {
-    if (!isOpen) return;
-    if (form.siteId) {
+  // useEffect(() => {
+  //   if (!isOpen) return;
+  //   if (form.siteId) {
       // api.get('/visitor-types', { siteId: form.siteId, status: 'ACTIVE' }).then((data) => {
       // setVisitorTypes(data.results || []);
       // });
-    }
-  }, [isOpen, form.siteId]);
+    // }
+  // }, [isOpen, form.siteId]);
 
   // ── Fetch Pre-registration data on Update ───────────────────────────────────
-  useEffect(() => {
-    if (status === 'Update' && visitId && isOpen) {
+  // useEffect(() => {
+  //   if (status === 'Update' && visitId && isOpen) {
       // api.get(`/preregistrations/${visitId}`).then((data) => {
       //   // Prefill form
       //   setFormField('siteId', data.siteId);
@@ -49,10 +49,10 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
       //   setFormField('cohostUserIds', data.cohostUserIds || []);
       //   // Custom fields prefill would go here
       // });
-    } else if (status === 'Create') {
-      resetForm();
-    }
-  }, [status, visitId, isOpen, setFormField, resetForm]);
+    // } else if (status === 'Create') {
+      // resetForm();
+    // }
+  // }, [status, visitId, isOpen, setFormField, resetForm]);
 
   // ── Generate Time Options (15-min intervals) ────────────────────────────────
   useEffect(() => {

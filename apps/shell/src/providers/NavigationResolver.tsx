@@ -9,6 +9,7 @@ const SKIP_AUTH_PATHS = [
   '/admin/permaVisits',
   '/impersonate/user',
   '/admin/impersonate/user',
+  '/switch'
 ];
 const APP_ROOTS = ['/', '/visitly'];
 

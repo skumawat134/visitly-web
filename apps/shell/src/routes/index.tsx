@@ -10,6 +10,7 @@ import NotFound from '@/shared/components/NotFound';
 import { PermaVisitsRedirect, SamlRedirect } from '@/redirects';
 import HostMFE from '@/mfe/HostMFE';
 import HostLayout from '@/layout/HostLayout';
+import  SwitchRole  from '../shared/components/SwitchRole'
 
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
@@ -39,6 +40,7 @@ function AppRouter() {
           <Route path='/impersonate/user' element={<Navigate to="/admin/impersonate/user" replace />} />
           <Route path="/saml" element={<SamlRedirect />} />
           <Route path="/permaVisits/*" element={<PermaVisitsRedirect />} />
+          <Route path="/switch" element={<SwitchRole />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

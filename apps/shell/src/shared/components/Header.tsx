@@ -4,6 +4,7 @@ import { Button, Image, Popover } from '@visitly/ui';
 import { Link } from 'react-router-dom';
 import { useAuthStore, type AuthState } from '@visitly/app-store';
 import { useLogout } from '../hooks/useLogout'
+import { useSwitchLogin } from '../hooks/useSwitchLogin';
 
 interface HeaderProps {
   onToggle: () => void,
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
   const user = useAuthStore((s) => s.user);
+  const { switchToAnotherRole, roles } = useSwitchLogin();
   return (
     <header className=" tw:top-0 tw:z-50 tw:w-full tw:bg-white tw:border-b tw:border-gray-200 tw:h-16 tw:flex tw:items-center tw:justify-between tw:px-4">
       <div className="tw:flex tw:items-center tw:gap-4">
@@ -45,6 +47,12 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
 
       {/* Right Side Actions */}
       <div className="tw:flex tw:items-center tw:gap-4">
+        { 
+      roles.includes('GLOBAL_ORG_ADMIN' ) &&  <Button variant='primary'
+      onClick={switchToAnotherRole} >
+        Return to Admin
+      </Button>
+      }
         <Popover
           placement="bottom"
           contentClassName="tw:right-0 tw:left-auto tw:translate-x-0 tw:mt-4 tw:p-0 tw:rounded-lg"
