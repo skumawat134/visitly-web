@@ -36,6 +36,11 @@ export async function getParkingLots(siteId: string): Promise<any[]> {
     return data;
 }
 
+export async function getDestinations(siteId: string): Promise<any[]> {
+    const { data } = await getApiClient().get(`/v1/buildings?siteId=${siteId}&status=ACTIVE`);
+    return data;
+}
+
 export async function getVistorTypeFields(visitorTypeId: string): Promise<PreregistrationVisitorTypeConfig> {
     const { data } = await getApiClient().get(`/v1/visitortypes/${visitorTypeId}`);
     return data;
@@ -68,10 +73,5 @@ export async function preScreenBulk(payload: any): Promise<any> {
 
 export async function preScreenSingle(payload: any): Promise<any> {
     const { data } = await getApiClient().post("/v1/preregistrations/pre-screen/single", payload);
-    return data;
-}
-
-export async function getDestinations(siteId: string): Promise<any[]> {
-    const { data } = await getApiClient().get(`/v1/sites/${siteId}/advanced-locations/buildings`);
     return data;
 }

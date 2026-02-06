@@ -7,6 +7,7 @@ import { ArrowUpFromLine, Download, Menu, Plus } from "lucide-react";
 import ColumnSettingsModal from "../components/CustomSettings";
 import { GridFooter } from "@/shared/components/GridFooter";
 import { PreRegistrationModal } from "../components/pre-registration/PreRegistration";
+import { BulkPreRegistrationModal } from "../components/BulkPreRegistrationModal";
 export const UpcomingVisitors = () => {
   const {
     search,
@@ -24,6 +25,9 @@ export const UpcomingVisitors = () => {
     closePreRegistrationModalHandler,
     openPreRegistrationModalHandler,
     showPreRegistrationModal,
+    showBulkPreRegistrationModal,
+    openBulkPreRegistrationModalHandler,
+    closeBulkPreRegistrationModalHandler,
   } = useUpcomingVisitors();
   const { searchTerm, setSearchTerm } = search;
   const { pageSize, pageIndex } = pagination;
@@ -43,7 +47,11 @@ export const UpcomingVisitors = () => {
           config={{ refreshBtn: true, showRightMenu: true }}
           rightMenu={
             <div className="tw:flex tw:items-center tw:gap-4">
-              <Button variant="outline" className="tw:rounded-sm">
+              <Button
+                variant="outline"
+                className="tw:rounded-sm"
+                onClick={openBulkPreRegistrationModalHandler}
+              >
                 <ArrowUpFromLine size={18} className="tw:mr-1" />
                 Bulk Pre-Registration
               </Button>
@@ -177,7 +185,13 @@ export const UpcomingVisitors = () => {
           onClose={closePreRegistrationModalHandler}
           status={"Create"}
         />
-      )}  
+      )}
+      {showBulkPreRegistrationModal && (
+        <BulkPreRegistrationModal
+          isOpen={showBulkPreRegistrationModal}
+          onClose={closeBulkPreRegistrationModalHandler}
+        />
+      )}
     </div>
   );
 };

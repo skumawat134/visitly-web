@@ -23,6 +23,8 @@ export const useUpcomingVisitors = () => {
   const [selectedVisitId, setSelectedVisitId] = useState<string | undefined>(undefined);
   const [modalStatus, setModalStatus] = useState<'Create' | 'Update'>('Create');
 
+  const [showBulkPreRegistrationModal, setShowBulkPreRegistrationModal] = useState(false);
+  // 3. Filter States using native Dates
   const [filters, setFilters] = useState<VisitorFilters>({
     siteId: '',
     groupName: '',
@@ -163,8 +165,13 @@ export const useUpcomingVisitors = () => {
   const closePreRegistrationModalHandler = () => {
     setshowPreRegistrationModal(false);
     setSelectedVisitId(undefined);
-  };
-
+  }
+  const openBulkPreRegistrationModalHandler = () => {
+    setShowBulkPreRegistrationModal(true);
+  }
+  const closeBulkPreRegistrationModalHandler = () => {
+    setShowBulkPreRegistrationModal(false);
+  }
   return {
     ...query,
     pagination: { pageIndex, setPageIndex, pageSize, setPageSize },
@@ -185,5 +192,8 @@ export const useUpcomingVisitors = () => {
     showPreRegistrationModal,
     selectedVisitId,
     modalStatus,
+    showBulkPreRegistrationModal,
+    openBulkPreRegistrationModalHandler,
+    closeBulkPreRegistrationModalHandler,
   };
 };
