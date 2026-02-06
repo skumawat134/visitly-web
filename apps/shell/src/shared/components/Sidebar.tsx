@@ -73,14 +73,13 @@ export const SIDEBAR_CONFIG = [
     testid: "evac-company-directory-link",
     permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
   },
-  {
-    title: 'Evacuation & Emergency',
-    icon: AlertTriangle,
-    path: '/host/work_area/evacuation/main',
-    testid: 'evac-evacuation-link',
-    permission: [ 'EVAC_MANAGER']
-  }
-
+  // {
+  //   title: 'Evacuation & Emergency',
+  //   icon: AlertTriangle,
+  //   path: '/host/work_area/evacuation/main',
+  //   testid: 'evac-evacuation-link',
+  //   permission: [ 'EVAC_MANAGER']
+  // }
 ];
 
 

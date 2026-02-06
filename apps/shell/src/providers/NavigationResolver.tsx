@@ -34,7 +34,7 @@ export function NavigationResolver() {
     // 3️⃣ Unauthenticated → redirect to login
     if (status === 'unauthenticated') {
       if (!pathname.startsWith('/visitly')) {
-        sessionStorage.setItem('redirect_after_login', currentPath);
+        // sessionStorage.setItem('redirect_after_login', currentPath);
         navigate('/visitly', { replace: true });
       }
       return;
@@ -94,7 +94,10 @@ function resolveLanding(auth: AuthState): string {
     return '/admin/work_area/delivery-manager/dashboard';
   }
 
-  if (roles.some(r => ['HOST', 'EVAC_MANAGER'].includes(r.role))) {
+    if (roles.some(r => r.role === 'EVAC_MANAGER')) {
+    return '/admin/work_area/evacuation/main';
+  }
+  if (roles.some(r => ['HOST'].includes(r.role))) {
     return '/host/upcoming-visitors';
   }
 

@@ -26,26 +26,29 @@ export function useSwitchLogin() {
     localStorage.setItem(SESSION_TO_LOCAL_KEYS, JSON.stringify(copiedKeys));
   }
 
-function getRolesFromJWT(token?: string): string[] {
+ function getRolesFromJWT(): string[] {
+  const token = sessionStorage.getItem("accessToken");
+  if (!token) return [];
+
   try {
-    const token = sessionStorage.getItem("accessToken");
-    if (!token) return [];
+    const [, payloadBase64] = token.split(".");
+    if (!payloadBase64) return [];
 
-    const base64Payload = token.split(".")[1];
-    if (!base64Payload) return [];
+    const payload = JSON.parse(atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/")));
+    const roles = payload?.roles;
 
-    const payload = JSON.parse(
-      atob(base64Payload.replace(/-/g, "+").replace(/_/g, "/"))
-    );
-    console.log('payload',payload.roles)
-    if (Array.isArray(payload.roles)) return payload.roles;
-    
-    return payload.roles || [];
-  } catch (e) {
-    console.error("JWT decode failed", e);
+    if (Array.isArray(roles)) return roles;
+
+    if (typeof roles === "string") {
+      return roles.match(/\w+/g) ?? [];
+    }
+
+    return [];
+  } catch {
     return [];
   }
 }
+
 
 
   function switchToAnotherRole() {
