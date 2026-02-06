@@ -177,7 +177,7 @@ export const UpcomingVisitors = () => {
           onClose={closePreRegistrationModalHandler}
           status={"Create"}
         />
-      )}
+      )}  
     </div>
   );
 };

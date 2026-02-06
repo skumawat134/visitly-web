@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { format, subDays, addYears, startOfDay, addDays } from 'date-fns';
+import { format, startOfDay, addDays } from 'date-fns';
 import type {
   VisitorVisitResponse,
   VisitorListParams,
@@ -13,59 +13,39 @@ import { STORAGE_KEY } from '../components/CustomSettings';
 import { Edit2, Trash2 } from 'lucide-react';
 
 export const useUpcomingVisitors = () => {
-  // 1. Pagination & Search States
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // 2. Sorting States
   const [sort, setSort] = useState<'asc' | 'desc'>('asc');
   const [sortBy, setSortBy] = useState('scheduleCheckinDate');
   const [showSettingModal, setShowSettingModal] = useState(false);
-   const [showPreRegistrationModal, setshowPreRegistrationModal] = useState(false);
-  // 3. Filter States using native Dates
+  const [showPreRegistrationModal, setshowPreRegistrationModal] = useState(false);
+  const [selectedVisitId, setSelectedVisitId] = useState<string | undefined>(undefined);
+  const [modalStatus, setModalStatus] = useState<'Create' | 'Update'>('Create');
+
   const [filters, setFilters] = useState<VisitorFilters>({
     siteId: '',
     groupName: '',
     visitorTypeId: '',
     dateRange: {
-      // Default to today and 1 year range
       startDate: startOfDay(new Date()),
       endDate: addDays(new Date(), 30),
     }
   });
 
-  const { mutate: triggerExport, isPending: isExporting } = useMutation({
+  const { mutate: triggerExport } = useMutation({
     mutationFn: async (params: VisitorListParams) => {
       const blob = await exportVisitorsCSV(params);
-
-      // 1. Create a URL for the blob
       const url = window.URL.createObjectURL(blob);
-
-      // 2. Create a temporary hidden anchor element
       const link = document.createElement('a');
       link.href = url;
-
-      // 3. Set the filename
       const filename = `Pre_Visitor_Report_${format(new Date(), 'yyyy-MM-dd')}.csv`;
       link.setAttribute('download', filename);
-
-      // 4. Append to body, click, and cleanup
       document.body.appendChild(link);
       link.click();
-
-      // Cleanup: remove the link and revoke the URL to save memory
-      link.parentNode?.removeChild(link);
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-
       return blob;
-    },
-    onSuccess: () => {
-      // You can trigger your toast notification here
-      console.log("Column Settings updated and Exported!");
-    },
-    onError: (error) => {
-      console.error("Export failed:", error);
     }
   });
 
@@ -81,50 +61,34 @@ export const useUpcomingVisitors = () => {
       siteId: filters.siteId ?? '',
       groupName: filters.groupName ?? '',
       visitorTypeId: filters.visitorTypeId ?? '',
-      // Formatting to YYYY-MM-DD as expected by Visitly API
-      scheduleCheckinStartDate: filters.dateRange?.startDate
-        ? format(filters.dateRange.startDate, 'yyyy-MM-dd')
-        : '',
-      scheduleCheckinEndDate: filters.dateRange?.endDate
-        ? format(filters.dateRange.endDate, 'yyyy-MM-dd')
-        : '',
+      scheduleCheckinStartDate: filters.dateRange?.startDate ? format(filters.dateRange.startDate, 'yyyy-MM-dd') : '',
+      scheduleCheckinEndDate: filters.dateRange?.endDate ? format(filters.dateRange.endDate, 'yyyy-MM-dd') : '',
     };
   };
-  const queryKey = ['upcomingVisitors', pageIndex, pageSize, searchTerm, sort, sortBy, filters];
+
   const query = useQuery<VisitorVisitResponse>({
-    queryKey: queryKey,
+    queryKey: ['upcomingVisitors', pageIndex, pageSize, searchTerm, sort, sortBy, filters],
     queryFn: () => getUpCommingVisitors(buildParams()),
     placeholderData: (previousData) => previousData,
   });
 
-  const handlePageChange = (newPageIndex: number) => {
-    setPageIndex(newPageIndex);
-  };
-
+  const handlePageChange = (newPageIndex: number) => setPageIndex(newPageIndex);
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
-    setPageIndex(0); // Reset to first page
+    setPageIndex(0);
   };
 
-  const rowData = useMemo(() => {
-    if (!query?.data?.results) return [];
-    return query?.data?.results;
-  }, [query?.data, searchTerm]);
+  const rowData = useMemo(() => query?.data?.results || [], [query?.data]);
 
   const colDefs = useMemo<ColDef<VisitorsRowsType>[]>(() => {
-    // 1. Get current saved settings
     const savedData = localStorage.getItem(STORAGE_KEY);
     const savedColumns: any[] = savedData ? JSON.parse(savedData) : [];
-
-    // Helper to check if a column should be visible
     const isVisible = (title: string) => savedColumns.some(col => col.columnTitle === title);
 
-    // 2. Define ALL possible columns
     const allPossibleCols: ColDef<VisitorsRowsType>[] = [
       {
         headerName: "Name",
         field: "fullName",
-        hide: false, // Name is usually mandatory
         cellRenderer: (params: ICellRendererParams) => (
           <button className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline">
             {params.data?.fullName}
@@ -142,34 +106,29 @@ export const useUpcomingVisitors = () => {
       { headerName: "Parking Lot", field: "parkingLotName", hide: !isVisible("Parking Lot") },
       { headerName: "Point of Entry", field: "poeName", hide: !isVisible("Point of Entry") },
       { headerName: "Building", field: "buildingName", hide: !isVisible("Building") },
-      { headerName: "Scheduled Check-In Date", field: "scheduleCheckinDate", hide: false },
+      { headerName: "Scheduled Check-In Date", field: "scheduleCheckinDate" },
       {
         headerName: "Action",
         field: "id",
         width: 100,
-        maxWidth: 100,
         pinned: 'right',
-        sortable: false,
-        filter: false,
-        resizable: false,
-        cellRenderer: (params: ICellRendererParams<VisitorsRowsType>) => {
-          return (
-            <div className="tw:flex tw:items-center tw:justify-center tw:gap-3 tw:h-full">
-              <button
-                onClick={() => console.log('Edit', params.data?.id)}
-                className="tw:text-indigo-600 hover:tw:text-indigo-800 tw:transition-colors"
-              >
-                <Edit2 size={16} /> {/* Smaller icon size to match */}
-              </button>
-              <button
-                onClick={() => console.log('Delete', params.data?.id)}
-                className="tw:text-red-500 hover:tw:text-red-600 tw:transition-colors"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          );
-        }
+        cellRenderer: (params: ICellRendererParams<VisitorsRowsType>) => (
+          <div className="tw:flex tw:items-center tw:justify-center tw:gap-3 tw:h-full">
+            <button
+              onClick={() => {
+                setSelectedVisitId(params.data?.id);
+                setModalStatus('Update');
+                setshowPreRegistrationModal(true);
+              }}
+              className="tw:text-indigo-600 hover:tw:text-indigo-800"
+            >
+              <Edit2 size={16} />
+            </button>
+            <button className="tw:text-red-500 hover:tw:text-red-600">
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )
       }
     ];
 
@@ -178,60 +137,53 @@ export const useUpcomingVisitors = () => {
       .map(col => ({
         headerName: col.columnTitle,
         field: col.prop,
-        hide: false, // If it's in savedColumns, we want to show it
         valueGetter: (params: any) => {
-          const fields = params.data?.preregisterVisitCustomFieldModels;
-          const match = fields?.find((f: any) => f.name === col.columnTitle);
+          const match = params.data?.preregisterVisitCustomFieldModels?.find((f: any) => f.name === col.columnTitle);
           return match ? match.value : '';
         }
       }));
 
     return [...allPossibleCols, ...customCols];
-  }, [rowData, showSettingModal]); // Re-run when rowData changes or you could add a 'version' state for settings updates
-  const settingModalClickHander = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setShowSettingModal(true)
-  }
-  const exportHandler = () => {
-    const currentParams = buildParams();
-    triggerExport(currentParams);
-  }
+  }, [rowData, showSettingModal]);
+
   const onSortChanged = (event: any) => {
-    const columnState = event.api.getColumnState();
-
-    const sortedColumn = columnState.find((col: any) => col.sort);
-
-    if (!sortedColumn) return;
-
-    const sortBy = sortedColumn.colId;
-    const sortOrder = sortedColumn.sort; // 'asc' | 'desc'
-
-    setSortBy(sortBy);
-    setSort(sortOrder);
+    const sortedColumn = event.api.getColumnState().find((col: any) => col.sort);
+    if (sortedColumn) {
+      setSortBy(sortedColumn.colId);
+      setSort(sortedColumn.sort);
+    }
   };
+
   const openPreRegistrationModalHandler = () => {
+    setModalStatus('Create');
+    setSelectedVisitId(undefined);
     setshowPreRegistrationModal(true);
-  }
+  };
+
   const closePreRegistrationModalHandler = () => {
     setshowPreRegistrationModal(false);
-  }
+    setSelectedVisitId(undefined);
+  };
+
   return {
     ...query,
     pagination: { pageIndex, setPageIndex, pageSize, setPageSize },
     search: { searchTerm, setSearchTerm },
     sorting: { sort, setSort, sortBy, setSortBy },
     filters: { filters, setFilters },
-    queryKey,
     handlePageChange,
     handlePageSizeChange,
     rowData,
     colDefs,
-    settingModalClickHander,
+    settingModalClickHander: () => setShowSettingModal(true),
     showSettingModal,
     setShowSettingModal,
-    exportHandler,
+    exportHandler: () => triggerExport(buildParams()),
     onSortChanged,
     openPreRegistrationModalHandler,
     closePreRegistrationModalHandler,
     showPreRegistrationModal,
+    selectedVisitId,
+    modalStatus,
   };
 };

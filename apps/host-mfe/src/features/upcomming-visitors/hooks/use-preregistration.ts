@@ -1,18 +1,28 @@
 // features/pre-registration/hooks/usePreRegistrationForm.ts
 import React, { useEffect, useCallback } from 'react';
 import { useFormik } from 'formik';
-import { useCoHosts, useHosts, useSites, useVisitorTypes, useVisitorTypesFields } from './use-preregistration.queries';
+import * as Yup from 'yup';
+import { useCoHosts, useHosts, useSites, useVisitorTypes, useVisitorTypesFields, usePreregistration } from './use-preregistration.queries';
 import type { UserOption } from '@visitly/ui';
+import { createPreregistration, updatePreregistration, preScreenSingle } from '../api/pre-registration.api';
 
 export interface PreRegistrationForm {
+  id?: string;
   siteId: string;
   visitorTypeId: string;
   scheduleCheckinDate: Date | null;
   scheduleCheckoutDate: Date | null;
+  scheduleCheckinTimeOnly: string | null;
+  scheduleCheckoutTimeOnly: string | null;
   recurrenceType: string;
   recurrenceEndDateOnly: Date | null;
   checkoutTimeOnly: string | null;
   hostUserId: string | null;
+  hostEmail?: string;
+  fullName: string;
+  email: string;
+  companyName: string;
+  phoneNumber: string;
   groupName: string;
   internalNote: string;
   notifyVisitFlag: boolean;
@@ -26,25 +36,36 @@ export interface PreRegistrationForm {
     value: any;
   }>;
   shouldPrefill: boolean;
+  poeId?: string;
+  buildingId?: string;
+  parkingLotId?: string;
 }
-export const usePreRegistrationForm = (initialData?: Partial<PreRegistrationForm>) => {
-  const { data: sites, isLoading } = useSites();
+
+export const usePreRegistrationForm = (visitId?: string) => {
+  const { data: sites } = useSites();
   const siteOptions = sites?.results?.map((site) => ({
     label: site.name,
     value: site.id,
-  }));
-  const [selectedCoHosts, setSelectedCoHosts] = React.useState<UserOption[]>([]);
-  const [selectedHost, setSelectedHost] = React.useState<UserOption | null>(null);
+  })) || [];
+
+  const { data: existingVisit } = usePreregistration(visitId || '');
+
   const formik = useFormik<PreRegistrationForm>({
-    initialValues: {
+    initialValues: React.useMemo(() => ({
       siteId: '',
       visitorTypeId: '',
-      scheduleCheckinDate: null,
+      scheduleCheckinDate: new Date(),
       scheduleCheckoutDate: null,
+      scheduleCheckinTimeOnly: '00:00',
+      scheduleCheckoutTimeOnly: null,
       recurrenceType: 'NONE',
       recurrenceEndDateOnly: null,
       checkoutTimeOnly: null,
       hostUserId: null,
+      fullName: '',
+      email: '',
+      companyName: '',
+      phoneNumber: '',
       groupName: '',
       internalNote: '',
       notifyVisitFlag: true,
@@ -53,40 +74,76 @@ export const usePreRegistrationForm = (initialData?: Partial<PreRegistrationForm
       cohostUserIds: [],
       preregisterVisitCustomFieldModels: [],
       shouldPrefill: true,
-      ...initialData,
+    }), []),
+    validationSchema: Yup.object({
+      siteId: Yup.string().required('Location is required'),
+      visitorTypeId: Yup.string().required('Visitor Type is required'),
+      fullName: Yup.string().matches(/^[a-zA-Z\s]*$/, 'Invalid name').required('Full Name is required'),
+      email: Yup.string().email('Invalid email'),
+      scheduleCheckinDate: Yup.date().required('Check-in Date is required'),
+      poeId: Yup.string().nullable(),
+      buildingId: Yup.string().nullable(),
+      parkingLotId: Yup.string().nullable(),
+      preregisterVisitCustomFieldModels: Yup.array().of(
+        Yup.object().shape({
+          orgCustomFieldId: Yup.string(),
+          value: Yup.string().test('is-required', 'Field is required', function (value) {
+            const { orgCustomFieldId } = this.parent;
+            const field = visitorTypeFields?.fields?.find((f: any) => f.orgCustomFieldId === orgCustomFieldId);
+            if (field?.isMandatoryForPreregistration && !value) {
+              return false;
+            }
+            return true;
+          })
+        })
+      )
+    }),
+    onSubmit: async (values) => {
+      // Logic handled in handleSave
     },
-    // validationSchema: Yup.object({...}),
-    onSubmit: () => {
-      // We don't use Formik's submit here — component will call handleSubmit
-    },
-    enableReinitialize: true, // important when initialData changes
+    enableReinitialize: true,
   });
+
   const form = formik.values;
+
+  const lastLoadedId = React.useRef<string | undefined>(undefined);
+  // Pre-fill on update
+  useEffect(() => {
+    if (existingVisit && lastLoadedId.current !== visitId) {
+      formik.setValues({
+        ...formik.initialValues,
+        ...existingVisit,
+        id: visitId,
+        notifyVisitFlag: existingVisit.notifyVisitFlag !== false,
+        notifyHostFlag: existingVisit.notifyHostFlag !== false,
+        cohostUserIds: existingVisit.cohosts?.map((c: any) => c.cohostUserId) || [],
+      });
+      lastLoadedId.current = visitId;
+    }
+  }, [existingVisit, visitId, formik]);
+
   const { data: visitorTypes } = useVisitorTypes(form.siteId);
-  const visitorTypeOptions = visitorTypes?.results.map((vt) => ({
+  const visitorTypeOptions = visitorTypes?.results?.map((vt) => ({
     label: vt.visitorType,
     value: vt.id,
-  }));
+  })) || [];
+
   const [hostSearch, setHostSearch] = React.useState('');
-  const { data: hostsData, isLoading: hostsLoading } = useHosts(hostSearch, form.siteId);
+  const { data: hostsData } = useHosts(hostSearch, form.siteId);
   const hostOptions = hostsData?.results?.map((user: any) => ({
     value: user.id,
     label: `${user.firstName} ${user.lastName} - ${user.email}`,
-    firstName: user.firstName,
-    lastName: user.lastName,
     email: user.email,
   })) ?? [];
+
   const [coHostSearch, setCoHostSearch] = React.useState('');
-  const { data: coHostsData, isLoading: coHostsLoading } =
-    useCoHosts(coHostSearch, form.siteId);
-  const coHostOptions =
-    coHostsData?.results?.map((user: any) => ({
-      value: user.id,
-      label: `${user.firstName} ${user.lastName} - ${user.email}`,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-    })) ?? [];
+  const { data: coHostsData } = useCoHosts(coHostSearch, form.siteId);
+  const coHostOptions = coHostsData?.results?.map((user: any) => ({
+    value: user.id,
+    label: `${user.firstName} ${user.lastName} - ${user.email}`,
+    email: user.email,
+  })) ?? [];
+
   const { data: visitorTypeFields } = useVisitorTypesFields(form.visitorTypeId);
 
   const setFormField = useCallback(
@@ -95,83 +152,33 @@ export const usePreRegistrationForm = (initialData?: Partial<PreRegistrationForm
     },
     [formik]
   );
-  // Speial setter for custom fields (preregisterVisitCustomFieldModels)
+
   const setCustomField = useCallback((fieldId: string, value: any) => {
     formik.setFieldValue('preregisterVisitCustomFieldModels', (prev: any[]) => {
       const existing = prev.find((f) => f.orgCustomFieldId === fieldId);
-      let updated = [...prev];
-
       if (existing) {
-        updated = updated.map((f) =>
-          f.orgCustomFieldId === fieldId ? { ...f, value } : f
-        );
-      } else {
-        updated.push({
-          name: '',
-          orgCustomFieldId: fieldId,
-          visitTypeFieldId: '',
-          value,
-        });
+        return prev.map((f) => (f.orgCustomFieldId === fieldId ? { ...f, value } : f));
       }
-
-      return updated;
+      return [...prev, { name: '', orgCustomFieldId: fieldId, visitTypeFieldId: '', value }];
     });
   }, [formik]);
 
-  // Reset form (same API as before)
   const resetForm = useCallback(() => {
-    formik.resetForm({
-      values: {
-        siteId: '',
-        visitorTypeId: '',
-        scheduleCheckinDate: null,
-        scheduleCheckoutDate: null,
-        recurrenceType: 'NONE',
-        recurrenceEndDateOnly: null,
-        checkoutTimeOnly: null,
-        hostUserId: null,
-        groupName: '',
-        internalNote: '',
-        notifyVisitFlag: true,
-        notifyHostFlag: true,
-        parentVisitId: undefined,
-        cohostUserIds: [],
-        preregisterVisitCustomFieldModels: [],
-        shouldPrefill: true,
-      },
-    });
+    formik.resetForm();
   }, [formik]);
-  useEffect(() => {
-    if (initialData) {
-      Object.entries(initialData).forEach(([key, value]) => {
-        if (key in form) {
-          setFormField(key as keyof PreRegistrationForm, value);
-        }
-      });
-    }
-  }, [initialData, setFormField]);
 
   return {
     form,
     setFormField,
     setCustomField,
     resetForm,
-    isSubmitting: formik.isSubmitting,
-    isValid: formik.isValid,
-    dirty: formik.dirty,
-    values: formik.values,
-    errors: formik.errors,
-    touched: formik.touched,
-    setFieldValue: formik.setFieldValue,
-    handleSubmit: formik.handleSubmit,
+    formik,
     siteOptions,
     visitorTypeOptions,
-    setHostSearch,
     hostOptions,
+    setHostSearch,
     coHostOptions,
     setCoHostSearch,
-    selectedCoHosts, setSelectedCoHosts,
-    selectedHost, setSelectedHost,
-    visitorTypeFields
+    visitorTypeFields,
   };
 };
