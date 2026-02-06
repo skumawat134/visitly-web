@@ -51,13 +51,13 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
     } = useBulkPreRegistration();
 
     const { data: poeData } = usePointOfEntry(formik.values.siteId);
-    const poeOptions = poeData?.map((p: any) => ({ label: p.name, value: p.id })) || [];
+    const poeOptions = poeData?.result?.map((p: any) => ({ label: p.name, value: p.id })) || [];
 
     const { data: parkingData } = useParkingLot(formik.values.siteId);
-    const parkingOptions = parkingData?.map((p: any) => ({ label: p.name, value: p.id })) || [];
+    const parkingOptions = parkingData?.result?.map((p: any) => ({ label: p.name, value: p.id })) || [];
 
     const { data: destData } = useDestination(formik.values.siteId);
-    const destOptions = destData?.map((d: any) => ({ label: d.name, value: d.id })) || [];
+    const destOptions = destData?.result?.map((d: any) => ({ label: d.name, value: d.id })) || [];
 
     const columnDefs = [
         { field: 'fullName', headerName: 'Full Name', editable: true, minWidth: 150 },
@@ -211,7 +211,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
 
                     {/* Action Row */}
                     <div className="tw:flex tw:items-center tw:justify-between tw:gap-4">
-                        <div className="tw:flex tw:items-center tw:gap-4">
+                        {/* <div className="tw:flex tw:items-center tw:gap-4">
                             <div className="tw:relative">
                                 <Button variant="outline" className="tw:relative">
                                     <Upload size={18} className="tw:mr-2" />
@@ -228,7 +228,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                             <Button variant="outline" onClick={() => setShowPasteArea(true)}>
                                 Paste Data
                             </Button>
-                        </div>
+                        </div> */}
 
                         <div className="tw:flex tw:items-center tw:gap-6">
                             <div className="tw:flex tw:items-center tw:gap-2">

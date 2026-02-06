@@ -37,7 +37,7 @@ export async function getParkingLots(siteId: string): Promise<any[]> {
 }
 
 export async function getDestinations(siteId: string): Promise<any[]> {
-    const { data } = await getApiClient().get(`/v1/buildings?siteId=${siteId}&status=ACTIVE`);
+    const { data } = await getApiClient().get(`/v1/sites/${siteId}/advanced-locations/buildings`);
     return data;
 }
 
@@ -52,7 +52,7 @@ export async function bulkPreRegistration(payload: any): Promise<any> {
 }
 
 export async function createPreregistration(payload: any): Promise<any> {
-    const { data } = await getApiClient().post("/v1/preregistrations", payload);
+    const { data } = await getApiClient().post("/v1/visit/preregister", payload);
     return data;
 }
 

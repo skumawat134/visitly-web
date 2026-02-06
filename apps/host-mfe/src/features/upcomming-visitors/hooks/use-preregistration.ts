@@ -19,10 +19,10 @@ export interface PreRegistrationForm {
   checkoutTimeOnly: string | null;
   hostUserId: string | null;
   hostEmail?: string;
-  fullName: string;
-  email: string;
-  companyName: string;
-  phoneNumber: string;
+  // fullName: string;
+  // email: string;
+  // companyName: string;
+  // phoneNumber: string;
   groupName: string;
   internalNote: string;
   notifyVisitFlag: boolean;
@@ -62,10 +62,10 @@ export const usePreRegistrationForm = (visitId?: string) => {
       recurrenceEndDateOnly: null,
       checkoutTimeOnly: null,
       hostUserId: null,
-      fullName: '',
-      email: '',
-      companyName: '',
-      phoneNumber: '',
+      // fullName: '',
+      // email: '',
+      // companyName: '',
+      // phoneNumber: '',
       groupName: '',
       internalNote: '',
       notifyVisitFlag: true,
@@ -78,23 +78,21 @@ export const usePreRegistrationForm = (visitId?: string) => {
     validationSchema: Yup.object({
       siteId: Yup.string().required('Location is required'),
       visitorTypeId: Yup.string().required('Visitor Type is required'),
-      fullName: Yup.string().matches(/^[a-zA-Z\s]*$/, 'Invalid name').required('Full Name is required'),
-      email: Yup.string().email('Invalid email'),
+      // fullName: Yup.string().matches(/^[a-zA-Z\s]*$/, 'Invalid name').required('Full Name is required'),
+      // email: Yup.string().email('Invalid email'),
       scheduleCheckinDate: Yup.date().required('Check-in Date is required'),
       poeId: Yup.string().nullable(),
       buildingId: Yup.string().nullable(),
       parkingLotId: Yup.string().nullable(),
       preregisterVisitCustomFieldModels: Yup.array().of(
         Yup.object().shape({
-          orgCustomFieldId: Yup.string(),
-          value: Yup.string().test('is-required', 'Field is required', function (value) {
-            const { orgCustomFieldId } = this.parent;
-            const field = visitorTypeFields?.fields?.find((f: any) => f.orgCustomFieldId === orgCustomFieldId);
-            if (field?.isMandatoryForPreregistration && !value) {
-              return false;
-            }
-            return true;
-          })
+          orgCustomFieldId: Yup.string().required(),
+          isMandatoryForPreregistration: Yup.boolean(),
+          value: Yup.string().when('isMandatoryForPreregistration', {
+            is: true,
+            then: (schema) => schema.required('Field is required'),
+            otherwise: (schema) => schema.notRequired(),
+          }),
         })
       )
     }),
@@ -103,8 +101,8 @@ export const usePreRegistrationForm = (visitId?: string) => {
     },
     enableReinitialize: true,
   });
-
   const form = formik.values;
+  const { data: visitorTypeFields } = useVisitorTypesFields(form.visitorTypeId);
 
   const lastLoadedId = React.useRef<string | undefined>(undefined);
   // Pre-fill on update
@@ -144,7 +142,6 @@ export const usePreRegistrationForm = (visitId?: string) => {
     email: user.email,
   })) ?? [];
 
-  const { data: visitorTypeFields } = useVisitorTypesFields(form.visitorTypeId);
 
   const setFormField = useCallback(
     <K extends keyof PreRegistrationForm>(field: K, value: PreRegistrationForm[K]) => {
@@ -153,13 +150,14 @@ export const usePreRegistrationForm = (visitId?: string) => {
     [formik]
   );
 
-  const setCustomField = useCallback((fieldId: string, value: any) => {
+  const setCustomField = useCallback((fieldId: string, value: any, isMandatoryForPreregistration: boolean, name: string) => {
+    
     formik.setFieldValue('preregisterVisitCustomFieldModels', (prev: any[]) => {
       const existing = prev.find((f) => f.orgCustomFieldId === fieldId);
       if (existing) {
-        return prev.map((f) => (f.orgCustomFieldId === fieldId ? { ...f, value } : f));
+        return prev.map((f) => (f.orgCustomFieldId === fieldId ? { ...f, value, isMandatoryForPreregistration, fieldName : name } : f));
       }
-      return [...prev, { name: '', orgCustomFieldId: fieldId, visitTypeFieldId: '', value }];
+      return [...prev, { name : '' ,fieldName: name, orgCustomFieldId: fieldId, visitTypeFieldId: '', value, isMandatoryForPreregistration }];
     });
   }, [formik]);
 
