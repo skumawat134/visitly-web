@@ -20,6 +20,7 @@ import { usePointOfEntry, useParkingLot, useDestination } from "../../hooks/use-
 import { createPreregistration, updatePreregistration, preScreenSingle } from "../../api/pre-registration.api";
 import { fi } from "date-fns/locale";
 import { QueryClient, useQueries, useQueryClient } from "@tanstack/react-query";
+import { getIn } from "formik";
 
 interface PreRegistrationModalProps {
   isOpen: boolean;
@@ -39,7 +40,6 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
   const {
     form,
     setFormField,
-    setCustomField,
     resetForm,
     formik,
     siteOptions,
@@ -78,45 +78,33 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
   const preparePayload = () => {
     const checkin = new Date(form.scheduleCheckinDate || new Date());
     if (form.scheduleCheckinTimeOnly) {
-      const [h, m] = form.scheduleCheckinTimeOnly.split(':');
-      checkin.setHours(parseInt(h), parseInt(m), 0, 0);
+      const [h, m] = (form.scheduleCheckinTimeOnly ?? '').split(':');
+      checkin.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
     }
 
     let checkout = null;
     if (form.scheduleCheckoutDate && form.scheduleCheckoutTimeOnly) {
       checkout = new Date(form.scheduleCheckoutDate);
-      const [h, m] = form.scheduleCheckoutTimeOnly.split(':');
-      checkout.setHours(parseInt(h), parseInt(m), 0, 0);
+      const [h, m] = (form.scheduleCheckoutTimeOnly ?? '').split(':');
+      checkout.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
     }
 
-    const customFields = (visitorTypeFields as any)?.fields
-      ?.filter((f: any) => f.isPreregistrationOnly && f.orgCustomFieldId)
-      ?.map((f: any) => ({
-        name: f.name,
-        orgCustomFieldId: f.orgCustomFieldId,
-        visitTypeFieldId: f.id,
-        value: form.preregisterVisitCustomFieldModels.find(cm => cm.orgCustomFieldId === f.orgCustomFieldId)?.value || ''
-      })) || [];
+    // Now uses synchronized form array directly
+    const customFields = form.preregisterVisitCustomFieldModels.map((f: any) => ({
+      name: f.name,
+      orgCustomFieldId: f.orgCustomFieldId,
+      visitTypeFieldId: f.visitTypeFieldId,
+      value: f.value
+    })) || [];
 
-    // Map standard fields from visitorTypeFields if they exist
-    const fullNameField = (visitorTypeFields as any)?.fields?.find((f: any) => f.name === 'Full Name');
-    const emailField = (visitorTypeFields as any)?.fields?.find((f: any) => f.name === 'Email');
-    const companyField = (visitorTypeFields as any)?.fields?.find((f: any) => f.name === 'Company Name');
-    const phoneField = (visitorTypeFields as any)?.fields?.find((f: any) => f.name === 'Phone Number');
     const getValueByFieldName = (fieldName: string) => {
-      const fieldDef = (visitorTypeFields as any)?.fields?.find(
-        (f: any) => f.name === fieldName
-      );
-      console.log("sfsdf" , fieldName , form.preregisterVisitCustomFieldModels, form.preregisterVisitCustomFieldModels.find(
-          cm => cm.fieldName === fieldName
-        )?.value || '')
-      // if (!fieldDef?.orgCustomFieldId) return '';
       return (
         form.preregisterVisitCustomFieldModels.find(
-          cm => cm.fieldName === fieldName
+          cm => cm.name === fieldName
         )?.value || ''
       );
     };
+
     return {
       ...form,
       fullName: getValueByFieldName('Full Name'),
@@ -178,134 +166,104 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
     { label: 'Weekdays (Mon–Fri)', value: 'WEEKDAY' },
   ];
 
-  console.log("values >>", formik.values, formik.errors);
-  const renderDynamicField = (field: any) => {
-    const fieldId = field.orgCustomFieldId || field.fid || field.id;
-    const fieldIndex = form.preregisterVisitCustomFieldModels?.findIndex(cm => cm.orgCustomFieldId === fieldId) ?? -1;
-    const value = fieldIndex > -1 ? form.preregisterVisitCustomFieldModels?.[fieldIndex]?.value : '';
-    const fieldError = (formik.errors.preregisterVisitCustomFieldModels as any)?.[fieldIndex]?.value;
-    const isTouched = (formik.touched.preregisterVisitCustomFieldModels as any)?.[fieldIndex]?.value;
+  const renderDynamicField = (field: any, index: number) => {
+    // We now have the field directly from local form state, which includes type, options, etc.
+    const fieldName = `preregisterVisitCustomFieldModels[${index}].value`;
+    const errorPath = `preregisterVisitCustomFieldModels[${index}].value`;
+    const fieldError = getIn(formik.errors, errorPath);
+    const isTouched = getIn(formik.touched, errorPath);
+    const value = field.value || '';
 
     if (field.name === 'Point of Entry') {
-      // render poiint of entries and check if previsit stuff
-      return (<div className="tw:space-y-1.5">
+      return (<div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
         <Select
           options={(poeData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || []}
           value={form.poeId || ''}
-          onChange={(e: any) => setFormField('poeId', e.target.value)}
-          onBlur={formik.handleBlur}
+          onChange={(e: any) => {
+            setFormField('poeId', e.target.value);
+            // Update the array value too so dynamic validation passes
+            formik.setFieldValue(fieldName, e.target.value);
+          }}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
           name="poeId"
           required={field.isMandatoryForPreregistration}
           label="Point of Entry"
-          error={fieldError}
+          error={isTouched ? fieldError : undefined}
         />
-        {formik.errors.poeId && formik.touched.poeId && (
-          <p className="tw:text-xs tw:text-red-500">{formik.errors.poeId as string}</p>
-        )}
       </div>)
     }
     if (field.name === 'Building') {
-      return <div className="tw:space-y-1.5">
+      return <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
         <Select
           options={(destData as any)?.results?.map((d: any) => ({ label: d.name, value: d.id })) || []}
           value={form.buildingId || ''}
-          onChange={(e: any) => setFormField('buildingId', e.target.value)}
-          onBlur={formik.handleBlur}
+          onChange={(e: any) => {
+            setFormField('buildingId', e.target.value);
+            formik.setFieldValue(fieldName, e.target.value);
+          }}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
           name="buildingId"
           label="Building / Destination"
-          required={
-            field.isMandatoryForPreregistration}
-          error={fieldError}
-
+          required={field.isMandatoryForPreregistration}
+          error={isTouched ? fieldError : undefined}
         />
-        {formik.errors.buildingId && formik.touched.buildingId && (
-          <p className="tw:text-xs tw:text-red-500">{formik.errors.buildingId as string}</p>
-        )}
       </div>
 
     }
     if (field.name === 'Parking Lot') {
-      return (<div className="tw:space-y-1.5">
+      return (<div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
         <Select
           options={(parkingData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || []}
           value={form.parkingLotId || ''}
-          onChange={(e: any) => setFormField('parkingLotId', e.target.value)}
-          onBlur={formik.handleBlur}
+          onChange={(e: any) => {
+            setFormField('parkingLotId', e.target.value);
+            formik.setFieldValue(fieldName, e.target.value);
+          }}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
           name="parkingLotId"
           label="Parking Lot"
-          required={
-            field.isMandatoryForPreregistration}
-          error={fieldError}
-
+          required={field.isMandatoryForPreregistration}
+          error={isTouched ? fieldError : undefined}
         />
-        {formik.errors.parkingLotId && formik.touched.parkingLotId && (
-          <p className="tw:text-xs tw:text-red-500">{formik.errors.parkingLotId as string}</p>
-        )}
       </div>)
     }
     if (field.name === 'Host') {
-      return (<div className="tw:space-y-1.5">
-        <Label required={field.isMandatoryForPreregistration}>Host</Label>
-        <SearchUserSelect
-          options={hostOptions}
-          onSearch={setHostSearch}
-          onChange={(opt) => {
-            setFormField('hostUserId', opt?.value || null);
-            setFormField('hostEmail', (opt as any)?.email || '');
-          }}
-          placeholder="Search host"
-        />
-      </div>
-      )
-
+      return (
+        <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+          <Label required={field.isMandatoryForPreregistration}>Host</Label>
+          <SearchUserSelect
+            options={hostOptions}
+            onSearch={setHostSearch}
+            onChange={(opt) => {
+              if (Array.isArray(opt)) {
+                setFormField('hostUserId', opt[0]?.value || null);
+                setFormField('hostEmail', opt[0]?.email || '');
+                formik.setFieldValue(fieldName, opt[0]?.value || '');
+              } else {
+                setFormField('hostUserId', opt?.value || null);
+                setFormField('hostEmail', opt?.email || '');
+                formik.setFieldValue(fieldName, opt?.value || '');
+              }
+            }}
+            placeholder="Search host"
+            error={isTouched ? fieldError : undefined}
+          />
+        </div>
+      );
     }
+
     if (field.type === 'TEXT') {
       return (
         <Input
+          key={field.orgCustomFieldId}
           label={field.name}
+          name={fieldName}
           placeholder={field.displayText}
           required={field.isMandatoryForPreregistration}
-          error={fieldError}
+          error={isTouched ? fieldError : undefined}
           value={value}
-          onChange={(e) => {
-            // if (field.name === 'Full Name') {
-            //   setFormField('fullName', e.target.value);
-            // }
-            // else if (field.name === 'Email') {
-            //   setFormField('email', e.target.value);
-            // }
-            // else if (field.name === 'Company Name') {
-            //   setFormField('companyName', e.target.value);
-            // }
-            // else if (field.name === 'Phone Number') {
-            //   setFormField('phoneNumber', e.target.value);
-            // }
-            // else {
-            setCustomField(fieldId, e.target.value, field.isMandatoryForPreregistration, field.name);
-            // }
-          }}
-          onBlur={() => {
-            // if(field.name ==='Full Name'){
-            //   formik.setFieldTouched('fullName', true);
-            // } else if(field.name ==='Email'){
-            //   formik.setFieldTouched('email', true);
-            // } else if(field.name ==='Company Name'){
-            //   formik.setFieldTouched('companyName', true);
-            // } else if(field.name ==='Phone Number'){
-            //   formik.setFieldTouched('phoneNumber', true);
-            // }
-            // let allow to set on both levels
-            //  else {
-            formik.setFieldTouched(
-              `preregisterVisitCustomFieldModels.${fieldIndex}.value`,
-              true
-            )
-
-            // }
-
-          }
-
-          }
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
         />
       );
     }
@@ -313,6 +271,7 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
     if (field.type === 'DROPDOWN') {
       return (
         <Select
+          key={field.orgCustomFieldId}
           label={field.name}
           required={field.isMandatoryForPreregistration}
           options={
@@ -322,22 +281,17 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
             })) || []
           }
           value={value}
-          onChange={(e) => setCustomField(fieldId, e.target.value, field.isMandatoryForPreregistration, field.name)}
-          onBlur={() =>
-            formik.setFieldTouched(
-              `preregisterVisitCustomFieldModels.${fieldIndex}.value`,
-              true
-            )
-          }
-          error={fieldError}
+          onChange={(e) => formik.setFieldValue(fieldName, e.target.value)}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          error={isTouched ? fieldError : undefined}
         />
       );
     }
 
     if (field.type === 'RADIO') {
       return (
-        <div className="tw:flex tw:gap-4">
-          <Label>{field.name}     {field.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}</Label>
+        <div className="tw:flex tw:gap-4" key={field.orgCustomFieldId}>
+          <Label>{field.name} {field.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}</Label>
           {field.options?.map((o: any) => (
             <div key={o.value} className="tw:flex tw:items-center tw:gap-2">
               <Radio
@@ -345,15 +299,13 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
                 checked={value === o.value}
                 required={field.isMandatoryForPreregistration}
                 onChange={() => {
-                  setCustomField(fieldId, o.value, field.isMandatoryForPreregistration, field.name);
-                  formik.setFieldTouched(
-                    `preregisterVisitCustomFieldModels.${fieldIndex}.value`,
-                    true
-                  );
+                  formik.setFieldValue(fieldName, o.value);
+                  formik.setFieldTouched(fieldName, true);
                 }}
               />
             </div>
           ))}
+          {isTouched && fieldError && <p className="tw:text-xs tw:text-red-500">{fieldError}</p>}
         </div>
       );
     }
@@ -361,40 +313,32 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
     if (field.type === 'DATEPICKER') {
       return (
         <Input
+          key={field.orgCustomFieldId}
           type="date"
           label={field.name}
           required={field.isMandatoryForPreregistration}
           value={value ? format(new Date(value), 'yyyy-MM-dd') : ''}
-          onChange={(e) => setCustomField(fieldId, e.target.value ? new Date(e.target.value).toISOString() : '', field.isMandatoryForPreregistration, field.name)}
-          onBlur={() =>
-            formik.setFieldTouched(
-              `preregisterVisitCustomFieldModels.${fieldIndex}.value`,
-              true
-            )
-          }
-          error={fieldError}
+          onChange={(e) => formik.setFieldValue(fieldName, e.target.value ? new Date(e.target.value).toISOString() : '')}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          error={isTouched ? fieldError : undefined}
         />
       );
     }
 
-    // ✅ default fallback
+    // Default fallback
     return (
       <Input
-        type={field.type.toLowerCase()}
+        key={field.orgCustomFieldId}
+        type={(field.type || 'text').toLowerCase()}
         placeholder={field.displayText}
         label={field.name}
+        name={fieldName}
         required={field.isMandatoryForPreregistration}
         value={value}
-        onChange={(e) => setCustomField(fieldId, e.target.value, field.isMandatoryForPreregistration, field.name)}
-        onBlur={() =>
-          formik.setFieldTouched(
-            `preregisterVisitCustomFieldModels.${fieldIndex}.value`,
-            true
-          )
-        }
-        error={fieldError}
+        onChange={formik.handleChange}
+        onBlur={formik.handleBlur}
+        error={isTouched ? fieldError : undefined}
       />
-
     );
   };
 
@@ -514,13 +458,16 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
                   options={coHostOptions}
                   onSearch={setCoHostSearch}
                   onChange={(opt) => {
-                    if (opt) {
-                      const current = form.cohostUserIds;
+                    if (Array.isArray(opt)) {
+                      setFormField('cohostUserIds', opt.map(o => o.value));
+                    } else if (opt) {
+                      const current = form.cohostUserIds || [];
                       if (!current.includes(opt.value)) {
                         setFormField('cohostUserIds', [...current, opt.value]);
                       }
                     }
                   }}
+                  multi={true}
                   placeholder="Search co-hosts"
                 />
               </div>
@@ -530,16 +477,9 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
             <>
               <hr className="tw:border-gray-100" />
 
-              {/* Dynamic Fields & Mega Location */}
+              {/* Dynamic Fields & Mega Location - Render directly from synchronized form state */}
               <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-                {(visitorTypeFields as any)?.fields
-                  ?.filter(
-                    (f: any) =>
-                      f.isPreregistrationOnly
-
-                  )
-                  .map((field: any) => renderDynamicField(field))}
-
+                {form.preregisterVisitCustomFieldModels.map((field, index) => renderDynamicField(field, index))}
               </div>
 
               <div className="tw:grid tw:grid-cols-2 tw:gap-6">
@@ -549,12 +489,14 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
                   label="Group Name"
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
+                  value={form.groupName}
                 />
                 <Input
                   name="internalNote"
                   label="Internal Note"
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
+                  value={form.internalNote}
                 />
               </div>
               <div className="tw:grid tw:grid-cols-2 tw:gap-6">
