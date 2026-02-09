@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { useMySignInLog } from "../hooks/useMySignInLog";
 import type { SignInLogRecord } from "../api/mySignInLog.types";
 
-import { Input } from "@visitly/ui";
+import { Input, Button, Select } from "@visitly/ui";
 import { GridFooter } from "../../company-directory/components/GridFooter";
 import { SharedDateRangePicker } from "@visitly/ui";
 
@@ -175,17 +175,19 @@ const MySignInLog: React.FC = () => {
               >
                 My Sign In Log
               </h1>
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => refetch()}
-                className="tw:p-2 tw:text-gray-500 tw:hover:text-blue-600 tw:transition-colors tw:rounded-full tw:hover:bg-blue-50"
+                className="tw:rounded-full tw:w-8 tw:h-8 tw:p-0"
                 title="Refresh List"
                 data-testid="refresh-list-btn"
               >
                 <RotateCw
-                  size={18}
-                  // className={isLoading ? "tw:animate-spin" : ""}
+                  size={16}
+                // className={isLoading ? "tw:animate-spin" : ""}
                 />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -215,28 +217,27 @@ const MySignInLog: React.FC = () => {
                   size={16}
                 />
 
-                <select
+                <Select
                   value={filterSiteId}
                   onChange={(e) => setFilterSiteId(e.target.value)}
-                  className="tw:w-full tw:pl-10 tw:pr-10 tw:py-2 tw:border tw:border-gray-200 tw:rounded-xl tw:bg-gray-50/50 tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-blue-500/20 tw:text-sm"
+                  options={[
+                    { label: "All Locations", value: "" },
+                    ...sites.map((site) => ({ label: site.name, value: site.id }))
+                  ]}
+                  className="tw:w-full"
                   data-testid="location-filter"
-                >
-                  <option value="">All Locations</option>
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.name}
-                    </option>
-                  ))}
-                </select>
+                />
 
                 {/* Clear Button */}
                 {filterSiteId && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setFilterSiteId("")}
-                    className="tw:absolute tw:right-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-red-500 tw-transition"
+                    className="tw:absolute tw:right-1 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-red-500 tw:h-6 tw:w-6 tw:p-0"
                   >
                     ✕
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -256,17 +257,12 @@ const MySignInLog: React.FC = () => {
               {/* Rows Per Page */}
               <div className="tw:flex tw:items-center tw:gap-2 tw:text-sm tw:text-gray-600 tw:w-full tw:sm:w-auto tw:sm:ml-auto">
                 <span className="tw-whitespace-nowrap">Rows Per Page</span>
-                <select
+                <Select
                   value={pageSize}
                   onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="tw:border tw:border-gray-200 tw:rounded-lg tw:px-2 tw:py-1.5 tw:focus:outline-none tw:bg-white"
-                >
-                  {[10, 15, 20, 50, 100].map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
+                  options={[10, 15, 20, 50, 100].map((size) => ({ label: size.toString(), value: size.toString() }))}
+                  className="tw:w-[70px]"
+                />
               </div>
             </div>
           </div>
@@ -300,7 +296,7 @@ const MySignInLog: React.FC = () => {
               pageSize={pageSize}
               totalRecords={totalRecords}
               onPageChange={handlePageChange}
-              // data-testid is handled inside GridFooter usually, but we'll adapt if needed
+            // data-testid is handled inside GridFooter usually, but we'll adapt if needed
             />
             {/* Standardizing footer parts with data-testid */}
             <div className="tw:hidden" data-testid="table-total-count">

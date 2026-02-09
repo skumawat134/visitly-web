@@ -48,14 +48,14 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
     setHostSearch,
     coHostOptions,
     setCoHostSearch,
-    visitorTypeFields
-  } = usePreRegistrationForm(visitId);
-  const queryClient = useQueryClient();
+    visitorTypeFields,
+    preScreenStatus,
+    handlePreScreen,
+    isPreScreening,
+    matchedRule,
+    isSaving
+  } = usePreRegistrationForm(visitId ,onClose, status);
   const [timeOptions, setTimeOptions] = useState<{ label: string; value: string }[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPreScreening, setIsPreScreening] = useState(false);
-  const [preScreenStatus, setPreScreenStatus] = useState<'IDLE' | 'SAFE' | 'WATCHLIST_HIT'>('IDLE');
-  const [matchedRule, setMatchedRule] = useState('');
 
   const { data: poeData } = usePointOfEntry(form.siteId);
   const { data: parkingData } = useParkingLot(form.siteId);
@@ -75,87 +75,26 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
     setTimeOptions(opts);
   }, []);
 
-  const preparePayload = () => {
-    const checkin = new Date(form.scheduleCheckinDate || new Date());
-    if (form.scheduleCheckinTimeOnly) {
-      const [h, m] = (form.scheduleCheckinTimeOnly ?? '').split(':');
-      checkin.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
-    }
 
-    let checkout = null;
-    if (form.scheduleCheckoutDate && form.scheduleCheckoutTimeOnly) {
-      checkout = new Date(form.scheduleCheckoutDate);
-      const [h, m] = (form.scheduleCheckoutTimeOnly ?? '').split(':');
-      checkout.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
-    }
+  // const handleSave = async () => {
+  //   setIsSaving(true);
+  //   try {
+  //     const payload = preparePayload();
+  //     if (status === 'Create') {
+  //       await createPreregistration(payload);
+  //     } else if (visitId) {
+  //       await updatePreregistration(visitId, 'SELECTED_VISIT', payload);
+  //     }
+  //     queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+  //     resetForm();
+  //     onClose();
 
-    // Now uses synchronized form array directly
-    const customFields = form.preregisterVisitCustomFieldModels.map((f: any) => ({
-      name: f.name,
-      orgCustomFieldId: f.orgCustomFieldId,
-      visitTypeFieldId: f.visitTypeFieldId,
-      value: f.value
-    })) || [];
-
-    const getValueByFieldName = (fieldName: string) => {
-      return (
-        form.preregisterVisitCustomFieldModels.find(
-          cm => cm.name === fieldName
-        )?.value || ''
-      );
-    };
-
-    return {
-      ...form,
-      fullName: getValueByFieldName('Full Name'),
-      email: getValueByFieldName('Email'),
-      companyName: getValueByFieldName('Company Name'),
-      phoneNumber: getValueByFieldName('Phone Number'),
-      scheduleCheckinDate: format(checkin, "yyyy-MM-dd'T'HH:mm:ss"),
-      scheduleCheckoutDate: checkout ? format(checkout, "yyyy-MM-dd'T'HH:mm:ss") : null,
-      preregisterVisitCustomFieldModels: customFields,
-      checkinMethod: 'WEB',
-    };
-  };
-
-  const handlePreScreen = async () => {
-    setIsPreScreening(true);
-    setPreScreenStatus('IDLE');
-    try {
-      const payload = preparePayload();
-      const response = await preScreenSingle(payload);
-      if (response.visitStatus === 'safe') {
-        setPreScreenStatus('SAFE');
-      } else {
-        setPreScreenStatus('WATCHLIST_HIT');
-        setMatchedRule(response.matchedRule?.keyName || 'Unknown rule');
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsPreScreening(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const payload = preparePayload();
-      if (status === 'Create') {
-        await createPreregistration(payload);
-      } else if (visitId) {
-        await updatePreregistration(visitId, 'SELECTED_VISIT', payload);
-      }
-      queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
-      resetForm();
-      onClose();
-
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setIsSaving(false);
+  //   }
+  // };
 
   const repeatOptions = [
     { label: 'Does Not Repeat', value: 'NONE' },
@@ -341,7 +280,8 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
       />
     );
   };
-
+      
+  console.log('Rendering PreRegistrationModal with form state:', formik);
 
 
   return (
@@ -355,6 +295,7 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
             Pre-Registration
           </DialogTitle>
         </DialogHeader>
+        <form onSubmit={formik.handleSubmit}>
 
         <div className="tw:p-6 tw:space-y-6 tw:max-h-[80vh] tw:overflow-y-auto tw:flex-1">
           <div className="tw:grid tw:grid-cols-2 tw:gap-6">
@@ -539,7 +480,7 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
             </>
           )}
 
-        </div>
+     
 
         <DialogFooter className="tw:px-6 tw:py-4 tw:border-t tw:bg-gray-50 tw:gap-3 tw:flex tw:justify-end">
           <Button variant="outline" onClick={onClose}>
@@ -553,13 +494,15 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
             Pre-screen
           </Button>
           <Button
-            onClick={handleSave}
+           type="submit"
             isLoading={isSaving}
-            disabled={!formik.isValid || !form.visitorTypeId}
+            // disabled={!formik.isValid || !form.visitorTypeId}
           >
             Save
           </Button>
         </DialogFooter>
+           </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

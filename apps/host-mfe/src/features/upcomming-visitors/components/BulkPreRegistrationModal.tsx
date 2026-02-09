@@ -11,7 +11,8 @@ import {
     SearchUserSelect,
     Select,
     Checkbox,
-    Tooltip
+    Tooltip,
+    Textarea
 } from '@visitly/ui';
 import { AgGridReact } from 'ag-grid-react';
 import { useBulkPreRegistration } from '../hooks/use-bulk-pre-registration';
@@ -51,13 +52,13 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
     } = useBulkPreRegistration();
 
     const { data: poeData } = usePointOfEntry(formik.values.siteId);
-    const poeOptions = poeData?.result?.map((p: any) => ({ label: p.name, value: p.id })) || [];
+    const poeOptions = (poeData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [];
 
     const { data: parkingData } = useParkingLot(formik.values.siteId);
-    const parkingOptions = parkingData?.result?.map((p: any) => ({ label: p.name, value: p.id })) || [];
+    const parkingOptions = (parkingData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [];
 
     const { data: destData } = useDestination(formik.values.siteId);
-    const destOptions = destData?.result?.map((d: any) => ({ label: d.name, value: d.id })) || [];
+    const destOptions = (destData as any)?.results?.map((d: any) => ({ label: d.name, value: d.id })) || [];
 
     const columnDefs = [
         { field: 'fullName', headerName: 'Full Name', editable: true, minWidth: 150 },
@@ -216,7 +217,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 <Button variant="outline" className="tw:relative">
                                     <Upload size={18} className="tw:mr-2" />
                                     Upload CSV
-                                    <input
+                                    <Input
                                         type="file"
                                         accept=".csv"
                                         className="tw:absolute tw:inset-0 tw:opacity-0 tw:cursor-pointer"
@@ -258,18 +259,20 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                     {/* Paste Area */}
                     {showPasteArea && (
                         <div className="tw:relative tw:bg-gray-50 tw:p-4 tw:rounded-lg tw:border tw:border-dashed tw:border-gray-300">
-                            <textarea
-                                className="tw:w-full tw:h-32 tw:p-3 tw:text-sm tw:border tw:border-gray-200 tw:rounded tw:focus:outline-none"
+                            <Textarea
+                                className="tw:w-full tw:h-32 tw:p-3 tw:text-sm"
                                 placeholder="Press Ctrl+V or Cmd+V to paste your data here (Tab-separated)..."
                                 onPaste={handlePaste}
                                 autoFocus
                             />
-                            <button
-                                className="tw:absolute tw:top-2 tw:right-2 tw:p-1 tw:rounded-full hover:tw:bg-gray-200"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="tw:absolute tw:top-2 tw:right-2 tw:p-0 tw:w-6 tw:h-6 tw:rounded-full hover:tw:bg-gray-200"
                                 onClick={() => setShowPasteArea(false)}
                             >
                                 <X size={16} />
-                            </button>
+                            </Button>
                         </div>
                     )}
 

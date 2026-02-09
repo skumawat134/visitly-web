@@ -5,6 +5,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { Button } from "@visitly/ui";
 
 type GridFooterProps = {
   pageIndex: number;
@@ -39,22 +40,26 @@ export const GridFooter: React.FC<GridFooterProps> = ({
       {/* RIGHT PAGINATION */}
       <div className="tw:flex tw:items-center tw:gap-3 tw:text-sm  tw:px-3 tw:py-1.5 tw:rounded-xl tw:border tw:border-gray-200">
         {/* First Page */}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           disabled={pageIndex === 0}
           onClick={() => onPageChange(0)}
-          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronsLeft size={16} />
-        </button>
+        </Button>
 
         {/* Previous */}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           disabled={pageIndex === 0}
           onClick={() => onPageChange(pageIndex - 1)}
-          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronLeft size={16} />
-        </button>
+        </Button>
 
         {/* Page Info */}
         <span className="tw:px-3 tw:py-1 tw:bg-white   tw:rounded-lg tw:text-gray-700 tw-font-medium">
@@ -62,22 +67,26 @@ export const GridFooter: React.FC<GridFooterProps> = ({
         </span>
 
         {/* Next */}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(pageIndex + 1)}
-          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronRight size={16} />
-        </button>
+        </Button>
 
         {/* Last Page */}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(totalPages - 1)}
-          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronsRight size={16} />
-        </button>
+        </Button>
       </div>
       <div></div>
     </div>

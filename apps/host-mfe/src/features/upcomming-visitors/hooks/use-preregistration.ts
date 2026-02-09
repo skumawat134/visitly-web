@@ -1,10 +1,12 @@
 // features/pre-registration/hooks/usePreRegistrationForm.ts
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useCoHosts, useHosts, useSites, useVisitorTypes, useVisitorTypesFields, usePreregistration } from './use-preregistration.queries';
 import type { UserOption } from '@visitly/ui';
 import { createPreregistration, updatePreregistration, preScreenSingle } from '../api/pre-registration.api';
+import { useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
 export interface PreRegistrationForm {
   id?: string;
@@ -37,7 +39,7 @@ export interface PreRegistrationForm {
   parkingLotId?: string;
 }
 
-export const usePreRegistrationForm = (visitId?: string) => {
+export const usePreRegistrationForm = (visitId?: string ,onClose?: () => void, status?: 'Create' | 'Update') => {
   const { data: sites } = useSites();
   const siteOptions = sites?.results?.map((site) => ({
     label: site.name,
@@ -45,6 +47,7 @@ export const usePreRegistrationForm = (visitId?: string) => {
   })) || [];
 
   const { data: existingVisit } = usePreregistration(visitId || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Stable initial values to prevent re-initialization loops
   const initialValues = React.useMemo(() => ({
@@ -71,6 +74,11 @@ export const usePreRegistrationForm = (visitId?: string) => {
     parkingLotId: '',
   }), []);
 
+const [isPreScreening, setIsPreScreening] = useState(false);
+  const [preScreenStatus, setPreScreenStatus] = useState<'IDLE' | 'SAFE' | 'WATCHLIST_HIT'>('IDLE');
+  const queryClient = useQueryClient();
+    const [matchedRule, setMatchedRule] = useState('');
+
   const formik = useFormik<PreRegistrationForm>({
     initialValues,
     validationSchema: Yup.object({
@@ -94,7 +102,22 @@ export const usePreRegistrationForm = (visitId?: string) => {
       )
     }),
     onSubmit: async (values) => {
-      // Logic handled in handleSave
+       try {
+            const payload = preparePayload();
+            if (status === 'Create') {
+              await createPreregistration(payload);
+            } else if (visitId) {
+              await updatePreregistration(visitId, 'SELECTED_VISIT', payload);
+            }
+            queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+            resetForm();
+            onClose && onClose();
+      
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setIsSaving(false);
+          }
     },
     enableReinitialize: true,
   });
@@ -102,6 +125,71 @@ export const usePreRegistrationForm = (visitId?: string) => {
   const form = formik.values;
   const { data: visitorTypeFields } = useVisitorTypesFields(form.visitorTypeId);
 
+    const preparePayload = () => {
+      const checkin = new Date(form.scheduleCheckinDate || new Date());
+      if (form.scheduleCheckinTimeOnly) {
+        const [h, m] = (form.scheduleCheckinTimeOnly ?? '').split(':');
+        checkin.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
+      }
+  
+      let checkout = null;
+      if (form.scheduleCheckoutDate && form.scheduleCheckoutTimeOnly) {
+        checkout = new Date(form.scheduleCheckoutDate);
+        const [h, m] = (form.scheduleCheckoutTimeOnly ?? '').split(':');
+        checkout.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
+      }
+  
+      // Exclude fields sent as top-level from customFields
+      const TOP_LEVEL_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number'];
+      const customFields = form.preregisterVisitCustomFieldModels
+        .filter((f: any) => !TOP_LEVEL_FIELDS.includes(f.name))
+        .map((f: any) => ({
+          name: f.name,
+          orgCustomFieldId: f.orgCustomFieldId,
+          visitTypeFieldId: f.visitTypeFieldId,
+          value: f.value
+        })) || [];
+
+      const getValueByFieldName = (fieldName: string) => {
+        return (
+          form.preregisterVisitCustomFieldModels.find(
+            cm => cm.name === fieldName
+          )?.value || ''
+        );
+      };
+
+      return {
+        ...form,
+        fullName: getValueByFieldName('Full Name'),
+        email: getValueByFieldName('Email'),
+        companyName: getValueByFieldName('Company Name'),
+        phoneNumber: getValueByFieldName('Phone Number'),
+        scheduleCheckinDate: format(checkin, "yyyy-MM-dd'T'HH:mm:ss"),
+        scheduleCheckoutDate: checkout ? format(checkout, "yyyy-MM-dd'T'HH:mm:ss") : null,
+        preregisterVisitCustomFieldModels: customFields,
+        checkinMethod: 'WEB',
+      };
+    };
+  
+    const handlePreScreen = async () => {
+      setIsPreScreening(true);
+      setPreScreenStatus('IDLE');
+      try {
+        const payload = preparePayload();
+        const response = await preScreenSingle(payload);
+        if (response.visitStatus === 'safe') {
+          setPreScreenStatus('SAFE');
+        } else {
+          setPreScreenStatus('WATCHLIST_HIT');
+          setMatchedRule(response.matchedRule?.keyName || 'Unknown rule');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsPreScreening(false);
+      }
+    };
+  
   // Sync visitorTypeFields to Formik Values
   useEffect(() => {
     // Only proceed if we have field definitions
@@ -243,5 +331,10 @@ export const usePreRegistrationForm = (visitId?: string) => {
     coHostOptions,
     setCoHostSearch,
     visitorTypeFields,
+    preScreenStatus,
+    isPreScreening,
+    handlePreScreen,
+    matchedRule,
+    isSaving
   };
 };

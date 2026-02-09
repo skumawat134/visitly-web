@@ -11,6 +11,7 @@ import { exportVisitorsCSV, getUpCommingVisitors } from '../api/upcomming-visito
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { STORAGE_KEY } from '../components/CustomSettings';
 import { Edit2, Trash2 } from 'lucide-react';
+import { Button } from '@visitly/ui';
 
 export const useUpcomingVisitors = () => {
   const [pageIndex, setPageIndex] = useState(0);
@@ -92,9 +93,12 @@ export const useUpcomingVisitors = () => {
         headerName: "Name",
         field: "fullName",
         cellRenderer: (params: ICellRendererParams) => (
-          <button className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline">
+          <Button
+            variant="ghost"
+            className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline tw:p-0 tw:h-auto tw:font-normal"
+          >
             {params.data?.fullName}
-          </button>
+          </Button>
         ),
       },
       { headerName: "Type", field: "visitorType", hide: !isVisible("Type") },
@@ -116,19 +120,25 @@ export const useUpcomingVisitors = () => {
         pinned: 'right',
         cellRenderer: (params: ICellRendererParams<VisitorsRowsType>) => (
           <div className="tw:flex tw:items-center tw:justify-center tw:gap-3 tw:h-full">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setSelectedVisitId(params.data?.id);
                 setModalStatus('Update');
                 setshowPreRegistrationModal(true);
               }}
-              className="tw:text-indigo-600 hover:tw:text-indigo-800"
+              className="tw:text-indigo-600 hover:tw:text-indigo-800 tw:p-0 tw:h-auto"
             >
               <Edit2 size={16} />
-            </button>
-            <button className="tw:text-red-500 hover:tw:text-red-600">
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="tw:text-red-500 hover:tw:text-red-600 tw:p-0 tw:h-auto"
+            >
               <Trash2 size={16} />
-            </button>
+            </Button>
           </div>
         )
       }

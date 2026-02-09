@@ -1,5 +1,5 @@
 import { PageHeader } from "@/shared/components";
-import { Button, Input, Search } from "@visitly/ui";
+import { Button, Input, Search, Select } from "@visitly/ui";
 import { AgGridReact } from "ag-grid-react";
 import { useUpcomingVisitors } from "../hooks/use-upcomming-visitiors";
 import type { VisitorsRowsType } from "../types/upcomming-visitors.types";
@@ -103,42 +103,35 @@ export const UpcomingVisitors = () => {
               className="tw:flex tw:items-center tw:gap-4 "
               data-test-id="upcoming-visitors-controls-section"
             >
-              <button
-                className="tw:flex tw:items-center tw:cursor-pointer tw:gap-2 tw:border tw:border-gray-500  tw:text-primary-100 tw:px-4 tw:py-1.5 tw:rounded-lg tw:shadow cursor-pointer"
+              <Button
+                variant="outline"
+                className="tw:flex tw:items-center tw:gap-2 tw:border tw:border-gray-500 tw:text-primary-100 tw:px-4 tw:py-1.5 tw:rounded-lg tw:shadow"
                 data-test-id="upcoming-visitors-column-settings-btn"
                 onClick={exportHandler}
               >
                 <Download size={16} className="tw:mr-2" /> Export
-              </button>
+              </Button>
 
-              <button
-                className="tw:flex tw:items-center tw:cursor-pointer tw:gap-2 tw:border tw:border-gray-500  tw:text-primary-100 tw:px-4 tw:py-1.5 tw:rounded-lg tw:shadow cursor-pointer"
+              <Button
+                variant="outline"
+                className="tw:flex tw:items-center tw:gap-2 tw:border tw:border-gray-500 tw:text-primary-100 tw:px-4 tw:py-1.5 tw:rounded-lg tw:shadow"
                 data-test-id="upcoming-visitors-column-settings-btn"
                 onClick={settingModalClickHander}
               >
                 <Menu size={16} className="tw:mr-2" /> Column Settings
-              </button>
+              </Button>
               <div
                 className="tw:flex tw:items-center tw:gap-3 tw:text-sm tw:text-gray-600"
                 data-test-id="upcoming-visitors-rows-per-page"
               >
                 <span>Rows Per Page</span>
-                <select
+                <Select
                   value={pageSize}
                   onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  options={[10, 15, 20, 50, 100].map((size) => ({ label: String(size), value: String(size) }))}
                   className="tw:border tw:border-gray-200 tw:rounded-lg tw:px-2 tw:py-1.5 tw:focus:outline-none tw:bg-white"
                   data-test-id="upcoming-visitors-page-size-select"
-                >
-                  {[10, 15, 20, 50, 100].map((size) => (
-                    <option
-                      key={size}
-                      value={size}
-                      data-test-id={`upcoming-visitors-page-size-option-${size}`}
-                    >
-                      {size}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
           </div>
