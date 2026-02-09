@@ -28,6 +28,8 @@ export const UpcomingVisitors = () => {
     showBulkPreRegistrationModal,
     openBulkPreRegistrationModalHandler,
     closeBulkPreRegistrationModalHandler,
+    modalStatus,
+    selectedVisitId,
   } = useUpcomingVisitors();
   const { searchTerm, setSearchTerm } = search;
   const { pageSize, pageIndex } = pagination;
@@ -176,7 +178,8 @@ export const UpcomingVisitors = () => {
         <PreRegistrationModal
           isOpen={showPreRegistrationModal}
           onClose={closePreRegistrationModalHandler}
-          status={"Create"}
+          status={modalStatus}
+          visitId={selectedVisitId}
         />
       )}
       {showBulkPreRegistrationModal && (

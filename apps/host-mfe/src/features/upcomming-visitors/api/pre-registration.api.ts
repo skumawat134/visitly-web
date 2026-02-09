@@ -66,6 +66,11 @@ export async function getPreregistrationById(visitId: string): Promise<any> {
     return data;
 }
 
+export async function getVisitPreregistration(visitId: string): Promise<any> {
+    const { data } = await getApiClient().get(`/v1/visit/preregister/${visitId}`);
+    return data;
+}
+
 export async function preScreenBulk(payload: any): Promise<any> {
     const { data } = await getApiClient().post("/v1/preregistrations/pre-screen/bulk", payload);
     return data;

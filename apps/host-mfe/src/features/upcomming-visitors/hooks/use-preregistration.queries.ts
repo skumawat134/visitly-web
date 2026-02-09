@@ -1,6 +1,6 @@
 // features/pre-registration/api/preRegistrationApi.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDestinations, getHosts, getParkingLots, getPointOfEntry, getPreregistrationById, getSites, getVisitorTypes, getVistorTypeFields } from '../api/pre-registration.api';
+import { getDestinations, getHosts, getParkingLots, getPointOfEntry, getVisitPreregistration, getSites, getVisitorTypes, getVistorTypeFields } from '../api/pre-registration.api';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 
 export const useSites = () => {
@@ -75,7 +75,7 @@ export const useDestination = (siteId: string) => {
 export const usePreregistration = (visitId: string) => {
   return useQuery({
     queryKey: ['preregistration', visitId],
-    queryFn: () => getPreregistrationById(visitId),
+    queryFn: () => getVisitPreregistration(visitId),
     enabled: !!visitId,
   });
 };

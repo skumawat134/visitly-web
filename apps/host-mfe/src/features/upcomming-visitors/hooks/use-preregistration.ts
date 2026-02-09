@@ -39,7 +39,7 @@ export interface PreRegistrationForm {
   parkingLotId?: string;
 }
 
-export const usePreRegistrationForm = (visitId?: string ,onClose?: () => void, status?: 'Create' | 'Update') => {
+export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, status?: 'Create' | 'Update') => {
   const { data: sites } = useSites();
   const siteOptions = sites?.results?.map((site) => ({
     label: site.name,
@@ -74,10 +74,10 @@ export const usePreRegistrationForm = (visitId?: string ,onClose?: () => void, s
     parkingLotId: '',
   }), []);
 
-const [isPreScreening, setIsPreScreening] = useState(false);
+  const [isPreScreening, setIsPreScreening] = useState(false);
   const [preScreenStatus, setPreScreenStatus] = useState<'IDLE' | 'SAFE' | 'WATCHLIST_HIT'>('IDLE');
   const queryClient = useQueryClient();
-    const [matchedRule, setMatchedRule] = useState('');
+  const [matchedRule, setMatchedRule] = useState('');
 
   const formik = useFormik<PreRegistrationForm>({
     initialValues,
@@ -102,22 +102,22 @@ const [isPreScreening, setIsPreScreening] = useState(false);
       )
     }),
     onSubmit: async (values) => {
-       try {
-            const payload = preparePayload();
-            if (status === 'Create') {
-              await createPreregistration(payload);
-            } else if (visitId) {
-              await updatePreregistration(visitId, 'SELECTED_VISIT', payload);
-            }
-            queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
-            resetForm();
-            onClose && onClose();
-      
-          } catch (err) {
-            console.error(err);
-          } finally {
-            setIsSaving(false);
-          }
+      try {
+        const payload = preparePayload();
+        if (status === 'Create') {
+          await createPreregistration(payload);
+        } else if (visitId) {
+          await updatePreregistration(visitId, 'SELECTED_VISIT', payload);
+        }
+        queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+        resetForm();
+        onClose && onClose();
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSaving(false);
+      }
     },
     enableReinitialize: true,
   });
@@ -125,71 +125,71 @@ const [isPreScreening, setIsPreScreening] = useState(false);
   const form = formik.values;
   const { data: visitorTypeFields } = useVisitorTypesFields(form.visitorTypeId);
 
-    const preparePayload = () => {
-      const checkin = new Date(form.scheduleCheckinDate || new Date());
-      if (form.scheduleCheckinTimeOnly) {
-        const [h, m] = (form.scheduleCheckinTimeOnly ?? '').split(':');
-        checkin.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
-      }
-  
-      let checkout = null;
-      if (form.scheduleCheckoutDate && form.scheduleCheckoutTimeOnly) {
-        checkout = new Date(form.scheduleCheckoutDate);
-        const [h, m] = (form.scheduleCheckoutTimeOnly ?? '').split(':');
-        checkout.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
-      }
-  
-      // Exclude fields sent as top-level from customFields
-      const TOP_LEVEL_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number'];
-      const customFields = form.preregisterVisitCustomFieldModels
-        .filter((f: any) => !TOP_LEVEL_FIELDS.includes(f.name))
-        .map((f: any) => ({
-          name: f.name,
-          orgCustomFieldId: f.orgCustomFieldId,
-          visitTypeFieldId: f.visitTypeFieldId,
-          value: f.value
-        })) || [];
+  const preparePayload = () => {
+    const checkin = new Date(form.scheduleCheckinDate || new Date());
+    if (form.scheduleCheckinTimeOnly) {
+      const [h, m] = (form.scheduleCheckinTimeOnly ?? '').split(':');
+      checkin.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
+    }
 
-      const getValueByFieldName = (fieldName: string) => {
-        return (
-          form.preregisterVisitCustomFieldModels.find(
-            cm => cm.name === fieldName
-          )?.value || ''
-        );
-      };
+    let checkout = null;
+    if (form.scheduleCheckoutDate && form.scheduleCheckoutTimeOnly) {
+      checkout = new Date(form.scheduleCheckoutDate);
+      const [h, m] = (form.scheduleCheckoutTimeOnly ?? '').split(':');
+      checkout.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
+    }
 
-      return {
-        ...form,
-        fullName: getValueByFieldName('Full Name'),
-        email: getValueByFieldName('Email'),
-        companyName: getValueByFieldName('Company Name'),
-        phoneNumber: getValueByFieldName('Phone Number'),
-        scheduleCheckinDate: format(checkin, "yyyy-MM-dd'T'HH:mm:ss"),
-        scheduleCheckoutDate: checkout ? format(checkout, "yyyy-MM-dd'T'HH:mm:ss") : null,
-        preregisterVisitCustomFieldModels: customFields,
-        checkinMethod: 'WEB',
-      };
+    // Exclude fields sent as top-level from customFields
+    const TOP_LEVEL_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number'];
+    const customFields = form.preregisterVisitCustomFieldModels
+      .filter((f: any) => !TOP_LEVEL_FIELDS.includes(f.name))
+      .map((f: any) => ({
+        name: f.name,
+        orgCustomFieldId: f.orgCustomFieldId,
+        visitTypeFieldId: f.visitTypeFieldId,
+        value: f.value
+      })) || [];
+
+    const getValueByFieldName = (fieldName: string) => {
+      return (
+        form.preregisterVisitCustomFieldModels.find(
+          cm => cm.name === fieldName
+        )?.value || ''
+      );
     };
-  
-    const handlePreScreen = async () => {
-      setIsPreScreening(true);
-      setPreScreenStatus('IDLE');
-      try {
-        const payload = preparePayload();
-        const response = await preScreenSingle(payload);
-        if (response.visitStatus === 'safe') {
-          setPreScreenStatus('SAFE');
-        } else {
-          setPreScreenStatus('WATCHLIST_HIT');
-          setMatchedRule(response.matchedRule?.keyName || 'Unknown rule');
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsPreScreening(false);
+
+    return {
+      ...form,
+      fullName: getValueByFieldName('Full Name'),
+      email: getValueByFieldName('Email'),
+      companyName: getValueByFieldName('Company Name'),
+      phoneNumber: getValueByFieldName('Phone Number'),
+      scheduleCheckinDate: format(checkin, "yyyy-MM-dd'T'HH:mm:ss"),
+      scheduleCheckoutDate: checkout ? format(checkout, "yyyy-MM-dd'T'HH:mm:ss") : null,
+      preregisterVisitCustomFieldModels: customFields,
+      checkinMethod: 'WEB',
+    };
+  };
+
+  const handlePreScreen = async () => {
+    setIsPreScreening(true);
+    setPreScreenStatus('IDLE');
+    try {
+      const payload = preparePayload();
+      const response = await preScreenSingle(payload);
+      if (response.visitStatus === 'safe') {
+        setPreScreenStatus('SAFE');
+      } else {
+        setPreScreenStatus('WATCHLIST_HIT');
+        setMatchedRule(response.matchedRule?.keyName || 'Unknown rule');
       }
-    };
-  
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPreScreening(false);
+    }
+  };
+
   // Sync visitorTypeFields to Formik Values
   useEffect(() => {
     // Only proceed if we have field definitions
@@ -209,7 +209,7 @@ const [isPreScreening, setIsPreScreening] = useState(false);
         .map((f: any) => {
           // Try to map existing value by ID
           const existing = currentFields.find(
-            (curr) => curr.orgCustomFieldId === (f.orgCustomFieldId || f.id)
+            (curr) => (curr.orgCustomFieldId && curr.orgCustomFieldId === (f.orgCustomFieldId || f.id)) || curr.name === f.name
           );
 
           return {
@@ -247,10 +247,30 @@ const [isPreScreening, setIsPreScreening] = useState(false);
         orgCustomFieldId: cf.orgCustomFieldId,
         visitTypeFieldId: cf.visitTypeFieldId,
         value: cf.value,
-        // For edit mode, we can relax mandatory check or fetch from defs if needed, 
-        // generally existing data is valid.
         isMandatoryForPreregistration: false
       })) || [];
+
+      // Inject top-level fields back into custom fields array
+      const TOP_LEVEL_FIELDS_MAP: Record<string, any> = {
+        'Full Name': existingVisit.fullName,
+        'Email': existingVisit.email,
+        'Company Name': existingVisit.companyName,
+        'Phone Number': existingVisit.phoneNumber
+      };
+
+      Object.entries(TOP_LEVEL_FIELDS_MAP).forEach(([name, value]) => {
+        if (value !== undefined && value !== null) {
+          const existingIdx = mappedCustomFields.findIndex((f: any) => f.name === name);
+          if (existingIdx >= 0) {
+            mappedCustomFields[existingIdx].value = value;
+          } else {
+            mappedCustomFields.push({
+              name: name,
+              value: value,
+            });
+          }
+        }
+      });
 
       formik.setValues({
         ...formik.initialValues, // Use the memoized initialValues as base
