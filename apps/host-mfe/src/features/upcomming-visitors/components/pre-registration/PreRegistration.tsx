@@ -16,10 +16,6 @@ import {
   Select,
   Checkbox,
 } from "@visitly/ui";
-import { usePointOfEntry, useParkingLot, useDestination } from "../../hooks/use-preregistration.queries";
-import { createPreregistration, updatePreregistration, preScreenSingle } from "../../api/pre-registration.api";
-import { fi } from "date-fns/locale";
-import { QueryClient, useQueries, useQueryClient } from "@tanstack/react-query";
 import { getIn } from "formik";
 
 interface PreRegistrationModalProps {
@@ -53,13 +49,15 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
     handlePreScreen,
     isPreScreening,
     matchedRule,
-    isSaving
-  } = usePreRegistrationForm(visitId ,onClose, status);
+    isSaving,
+    // Use options from hook
+    poeData,
+    parkingData,
+    destData
+  } = usePreRegistrationForm(visitId, onClose, status);
   const [timeOptions, setTimeOptions] = useState<{ label: string; value: string }[]>([]);
 
-  const { data: poeData } = usePointOfEntry(form.siteId);
-  const { data: parkingData } = useParkingLot(form.siteId);
-  const { data: destData } = useDestination(form.siteId);
+  // Removed local data fetching hooks as they are now in usePreRegistrationForm
 
   useEffect(() => {
     const opts: typeof timeOptions = [];
@@ -167,28 +165,29 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
       </div>)
     }
     if (field.name === 'Host') {
-      return (
-        <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
-          <Label required={field.isMandatoryForPreregistration}>Host</Label>
-          <SearchUserSelect
-            options={hostOptions}
-            onSearch={setHostSearch}
-            onChange={(opt) => {
-              if (Array.isArray(opt)) {
-                setFormField('hostUserId', opt[0]?.value || null);
-                setFormField('hostEmail', opt[0]?.email || '');
-                formik.setFieldValue(fieldName, opt[0]?.value || '');
-              } else {
-                setFormField('hostUserId', opt?.value || null);
-                setFormField('hostEmail', opt?.email || '');
-                formik.setFieldValue(fieldName, opt?.value || '');
-              }
-            }}
-            placeholder="Search host"
-            error={isTouched ? fieldError : undefined}
-          />
-        </div>
-      );
+        return (
+          <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+            <Label required={field.isMandatoryForPreregistration}>Host</Label>
+            <SearchUserSelect
+              options={hostOptions}
+              onSearch={setHostSearch}
+              value={hostOptions.filter(opt => opt.value == form.hostUserId)}
+              onChange={(opt) => {
+                if (Array.isArray(opt)) {
+                  setFormField('hostUserId', opt[0]?.value || null);
+                  setFormField('hostEmail', opt[0]?.email || '');
+                  formik.setFieldValue(fieldName, opt[0]?.value || '');
+                } else {
+                  setFormField('hostUserId', opt?.value || null);
+                  setFormField('hostEmail', opt?.email || '');
+                  formik.setFieldValue(fieldName, opt?.value || '');
+                }
+              }}
+              placeholder="Search host"
+              error={isTouched ? fieldError : undefined}
+            />
+          </div>
+        );
     }
 
     if (field.type === 'TEXT') {
@@ -280,7 +279,7 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
       />
     );
   };
-      
+
   console.log('Rendering PreRegistrationModal with form state:', formik);
 
 
@@ -292,216 +291,217 @@ export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
       >
         <DialogHeader className="tw:px-6 tw:py-4 tw:border-b tw:border-gray-200">
           <DialogTitle className="tw:text-xl tw:font-bold">
-            Pre-Registration
+          {status}  Pre-Registration
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={formik.handleSubmit}>
 
-        <div className="tw:p-6 tw:space-y-6 tw:max-h-[80vh] tw:overflow-y-auto tw:flex-1">
-          <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-            {/* Left Column: Core Selection & Contacts */}
-            <div className="tw:space-y-1.5">
-              <Label className="tw:required" required >Location</Label>
-              <Select
-                value={form.siteId}
-                options={siteOptions}
-                onChange={(e) => {
-                  setFormField('siteId', e.target.value);
-                  setFormField('visitorTypeId', '');
-                }}
-              />
-            </div>
-
-            <div className="tw:space-y-4">
-
-              {form.siteId && (
-                <div className="tw:space-y-1.5">
-                  <Label className="tw:required" required>Visitor Type</Label>
-                  <Select
-                    value={form.visitorTypeId}
-                    options={visitorTypeOptions}
-                    onChange={(e) => setFormField('visitorTypeId', e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-
-
-          </div>
-          {/* Right Column: Date & Time */}
-          {form.visitorTypeId && (
-            <div className="tw:space-y-4">
-              <div className="tw:grid tw:grid-cols-2 tw:gap-4">
-                <div className="tw:space-y-1.5">
-                  <Label className="tw:required" required>Check-in Date</Label>
-                  <Input
-                    type="date"
-                    value={form.scheduleCheckinDate ? format(form.scheduleCheckinDate, 'yyyy-MM-dd') : ''}
-                    onChange={(e) => setFormField('scheduleCheckinDate', e.target.value ? new Date(e.target.value) : null)}
-                  />
-                </div>
-                <div className="tw:space-y-1.5">
-                  <Label className="tw:required" required>Check-in Time</Label>
-                  <Select
-                    value={form.scheduleCheckinTimeOnly || ''}
-                    options={timeOptions}
-                    onChange={(e) => setFormField('scheduleCheckinTimeOnly', e.target.value)}
-                  />
-                </div>
-              </div>
+          <div className="tw:p-6 tw:space-y-6 tw:max-h-[80vh] tw:overflow-y-auto tw:flex-1">
+            <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+              {/* Left Column: Core Selection & Contacts */}
               <div className="tw:space-y-1.5">
-                <Label>Repeats</Label>
+                <Label className="tw:required" required >Location</Label>
                 <Select
-                  value={form.recurrenceType}
-                  options={repeatOptions}
-                  onChange={(e) => setFormField('recurrenceType', e.target.value)}
+                  value={form.siteId}
+                  options={siteOptions}
+                  onChange={(e) => {
+                    setFormField('siteId', e.target.value);
+                    setFormField('visitorTypeId', '');
+                  }}
                 />
               </div>
 
-              <div className="tw:grid tw:grid-cols-2 tw:gap-4">
-                {form.recurrenceType == 'NONE' && (<div className="tw:space-y-1.5">
-                  <Label >Check-out Date</Label>
-                  <Input
-                    type="date"
-                    value={form.scheduleCheckoutDate ? format(form.scheduleCheckoutDate, 'yyyy-MM-dd') : ''}
-                    onChange={(e) => setFormField('scheduleCheckoutDate', e.target.value ? new Date(e.target.value) : null)}
-                  />
-                </div>
-                )}
-                <div className="tw:space-y-1.5">
-                  <Label>Check-out Time</Label>
-                  <Select
-                    value={form.scheduleCheckoutTimeOnly || ''}
-                    options={timeOptions}
-                    onChange={(e) => setFormField('scheduleCheckoutTimeOnly', e.target.value)}
-                  />
-                </div>
-                {form.recurrenceType !== 'NONE' && (
+              <div className="tw:space-y-4">
+
+                {form.siteId && (
                   <div className="tw:space-y-1.5">
-                    <Label className="tw:required">Ends On</Label>
-                    <Input
-                      type="date"
-                      value={form.recurrenceEndDateOnly ? format(form.recurrenceEndDateOnly, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => setFormField('recurrenceEndDateOnly', e.target.value ? new Date(e.target.value) : null)}
+                    <Label className="tw:required" required>Visitor Type</Label>
+                    <Select
+                      value={form.visitorTypeId}
+                      options={visitorTypeOptions}
+                      onChange={(e) => setFormField('visitorTypeId', e.target.value)}
                     />
                   </div>
                 )}
               </div>
+
+
             </div>
-          )}
-          {form.visitorTypeId && (
-            <>
+            {/* Right Column: Date & Time */}
+            {form.visitorTypeId && (
+              <div className="tw:space-y-4">
+                <div className="tw:grid tw:grid-cols-2 tw:gap-4">
+                  <div className="tw:space-y-1.5">
+                    <Label className="tw:required" required>Check-in Date</Label>
+                    <Input
+                      type="date"
+                      value={form.scheduleCheckinDate ? format(form.scheduleCheckinDate, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => setFormField('scheduleCheckinDate', e.target.value ? new Date(e.target.value) : null)}
+                    />
+                  </div>
+                  <div className="tw:space-y-1.5">
+                    <Label className="tw:required" required>Check-in Time</Label>
+                    <Select
+                      value={form.scheduleCheckinTimeOnly || ''}
+                      options={timeOptions}
+                      onChange={(e) => setFormField('scheduleCheckinTimeOnly', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="tw:space-y-1.5">
+                  <Label>Repeats</Label>
+                  <Select
+                    value={form.recurrenceType}
+                    options={repeatOptions}
+                    onChange={(e) => setFormField('recurrenceType', e.target.value)}
+                  />
+                </div>
+
+                <div className="tw:grid tw:grid-cols-2 tw:gap-4">
+                  {form.recurrenceType == 'NONE' && (<div className="tw:space-y-1.5">
+                    <Label >Check-out Date</Label>
+                    <Input
+                      type="date"
+                      value={form.scheduleCheckoutDate ? format(form.scheduleCheckoutDate, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => setFormField('scheduleCheckoutDate', e.target.value ? new Date(e.target.value) : null)}
+                    />
+                  </div>
+                  )}
+                  <div className="tw:space-y-1.5">
+                    <Label>Check-out Time</Label>
+                    <Select
+                      value={form.scheduleCheckoutTimeOnly || ''}
+                      options={timeOptions}
+                      onChange={(e) => setFormField('scheduleCheckoutTimeOnly', e.target.value)}
+                    />
+                  </div>
+                  {form.recurrenceType !== 'NONE' && (
+                    <div className="tw:space-y-1.5">
+                      <Label className="tw:required">Ends On</Label>
+                      <Input
+                        type="date"
+                        value={form.recurrenceEndDateOnly ? format(form.recurrenceEndDateOnly, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => setFormField('recurrenceEndDateOnly', e.target.value ? new Date(e.target.value) : null)}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {form.visitorTypeId && (
+              <>
 
 
-              <div className="tw:space-y-1.5">
-                <Label>Co-Host(s)</Label>
-                <SearchUserSelect
-                  options={coHostOptions}
-                  onSearch={setCoHostSearch}
-                  onChange={(opt) => {
-                    if (Array.isArray(opt)) {
-                      setFormField('cohostUserIds', opt.map(o => o.value));
-                    } else if (opt) {
-                      const current = form.cohostUserIds || [];
-                      if (!current.includes(opt.value)) {
-                        setFormField('cohostUserIds', [...current, opt.value]);
+                <div className="tw:space-y-1.5">
+                  <Label>Co-Host(s)</Label>
+                  <SearchUserSelect
+                    options={coHostOptions}
+                    onSearch={setCoHostSearch}
+                    value={coHostOptions.filter(opt => (form.cohostUserIds || []).includes(opt.value))}
+                    onChange={(opt) => {
+                      if (Array.isArray(opt)) {
+                        setFormField('cohostUserIds', opt.map(o => o.value));
+                      } else if (opt) {
+                        const current = form.cohostUserIds || [];
+                        if (!current.includes(opt.value)) {
+                          setFormField('cohostUserIds', [...current, opt.value]);
+                        }
                       }
-                    }
-                  }}
-                  multi={true}
-                  placeholder="Search co-hosts"
-                />
-              </div>
-            </>
-          )}
-          {form.visitorTypeId && (
-            <>
-              <hr className="tw:border-gray-100" />
-
-              {/* Dynamic Fields & Mega Location - Render directly from synchronized form state */}
-              <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-                {form.preregisterVisitCustomFieldModels.map((field, index) => renderDynamicField(field, index))}
-              </div>
-
-              <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-                <Input
-                  type="text"
-                  name="groupName"
-                  label="Group Name"
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  value={form.groupName}
-                />
-                <Input
-                  name="internalNote"
-                  label="Internal Note"
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  value={form.internalNote}
-                />
-              </div>
-              <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-                <div className="tw:flex tw:items-center tw:gap-2">
-                  <Checkbox
-                    checked={form.notifyVisitFlag}
-                    onChange={(e: any) => setFormField('notifyVisitFlag', e)}
-                    label="Send Email to Visitor"
+                    }}
+                    multi={true}
+                    placeholder="Search co-hosts"
                   />
                 </div>
-                <div className="tw:flex tw:items-center tw:gap-2">
-                  <Checkbox
-                    checked={form.notifyHostFlag}
-                    onChange={(e: any) => setFormField('notifyHostFlag', e)}
-                    label="Send Email to Host"
+              </>
+            )}
+            {form.visitorTypeId && (
+              <>
+                <hr className="tw:border-gray-100" />
+
+                {/* Dynamic Fields & Mega Location - Render directly from synchronized form state */}
+                <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  {form.preregisterVisitCustomFieldModels.map((field, index) => renderDynamicField(field, index))}
+                </div>
+
+                <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  <Input
+                    type="text"
+                    name="groupName"
+                    label="Group Name"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={form.groupName}
+                  />
+                  <Input
+                    name="internalNote"
+                    label="Internal Note"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={form.internalNote}
                   />
                 </div>
-              </div>
-              <div className="tw:grid tw:gap-6">
-
-                <div className="tw:flex tw:items-center tw:gap-2">
-                  <Checkbox
-                    checked={form.shouldPrefill}
-                    onChange={(e: any) => setFormField('shouldPrefill', e)}
-                    label="Allow Visitor to submit information before Arrival"
-                  />
+                <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <Checkbox
+                      checked={form.notifyVisitFlag}
+                      onChange={(e: any) => setFormField('notifyVisitFlag', e)}
+                      label="Send Email to Visitor"
+                    />
+                  </div>
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <Checkbox
+                      checked={form.notifyHostFlag}
+                      onChange={(e: any) => setFormField('notifyHostFlag', e)}
+                      label="Send Email to Host"
+                    />
+                  </div>
                 </div>
-              </div>
-              {preScreenStatus === 'SAFE' && (
-                <div className="tw:bg-green-50 tw:border tw:border-green-200 tw:p-3 tw:rounded tw:text-sm tw:text-green-800">
-                  No watchlist matches found.
+                <div className="tw:grid tw:gap-6">
+
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <Checkbox
+                      checked={form.shouldPrefill}
+                      onChange={(e: any) => setFormField('shouldPrefill', e)}
+                      label="Allow Visitor to submit information before Arrival"
+                    />
+                  </div>
                 </div>
-              )}
-              {preScreenStatus === 'WATCHLIST_HIT' && (
-                <div className="tw:bg-yellow-50 tw:border tw:border-yellow-200 tw:p-3 tw:rounded tw:text-sm tw:text-yellow-800">
-                  Watchlist match found: {matchedRule}. Please review record before saving.
-                </div>
-              )}
+                {preScreenStatus === 'SAFE' && (
+                  <div className="tw:bg-green-50 tw:border tw:border-green-200 tw:p-3 tw:rounded tw:text-sm tw:text-green-800">
+                    No watchlist matches found.
+                  </div>
+                )}
+                {preScreenStatus === 'WATCHLIST_HIT' && (
+                  <div className="tw:bg-yellow-50 tw:border tw:border-yellow-200 tw:p-3 tw:rounded tw:text-sm tw:text-yellow-800">
+                    Watchlist match found: {matchedRule}. Please review record before saving.
+                  </div>
+                )}
 
-            </>
-          )}
+              </>
+            )}
 
-     
 
-        <DialogFooter className="tw:px-6 tw:py-4 tw:border-t tw:bg-gray-50 tw:gap-3 tw:flex tw:justify-end">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handlePreScreen}
-            isLoading={isPreScreening}
-          >
-            Pre-screen
-          </Button>
-          <Button
-           type="submit"
-            isLoading={isSaving}
-            // disabled={!formik.isValid || !form.visitorTypeId}
-          >
-            Save
-          </Button>
-        </DialogFooter>
-           </div>
+
+            <DialogFooter className="tw:px-6 tw:py-4 tw:border-t tw:bg-gray-50 tw:gap-3 tw:flex tw:justify-end">
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handlePreScreen}
+                isLoading={isPreScreening}
+              >
+                Pre-screen
+              </Button>
+              <Button
+                type="submit"
+                isLoading={isSaving}
+              // disabled={!formik.isValid || !form.visitorTypeId}
+              >
+                Save
+              </Button>
+            </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

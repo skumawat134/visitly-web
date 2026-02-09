@@ -2,7 +2,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useCoHosts, useHosts, useSites, useVisitorTypes, useVisitorTypesFields, usePreregistration } from './use-preregistration.queries';
+import { useCoHosts, useHosts, useSites, useVisitorTypes, useVisitorTypesFields, usePreregistration, usePointOfEntry, useParkingLot, useDestination } from './use-preregistration.queries';
 import type { UserOption } from '@visitly/ui';
 import { createPreregistration, updatePreregistration, preScreenSingle } from '../api/pre-registration.api';
 import { useQueryClient } from '@tanstack/react-query';
@@ -124,6 +124,16 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
 
   const form = formik.values;
   const { data: visitorTypeFields } = useVisitorTypesFields(form.visitorTypeId);
+
+  // Data Fetching for Auto-Select fields
+  const { data: poeData } = usePointOfEntry(form.siteId);
+  const { data: parkingData } = useParkingLot(form.siteId);
+  const { data: destData } = useDestination(form.siteId);
+
+  const poeOptions = (poeData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [];
+  const parkingOptions = (parkingData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [];
+  const destOptions = (destData as any)?.results?.map((d: any) => ({ label: d.name, value: d.id })) || [];
+
 
   const preparePayload = () => {
     const checkin = new Date(form.scheduleCheckinDate || new Date());
@@ -249,7 +259,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         value: cf.value,
         isMandatoryForPreregistration: false
       })) || [];
-
       // Inject top-level fields back into custom fields array
       const TOP_LEVEL_FIELDS_MAP: Record<string, any> = {
         'Full Name': existingVisit.fullName,
@@ -310,12 +319,78 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     }
   }, [sites, form.siteId, formik.setFieldValue]);
 
+
+  // Auto-select Point of Entry
+  useEffect(() => {
+    if (poeData && (poeData as any).results && (poeData as any).results.length > 0) {
+      const firstId = (poeData as any).results[0].id;
+      if (!form.poeId) {
+        formik.setFieldValue('poeId', firstId);
+        // Also update custom field array if it exists there
+        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Point of Entry');
+        if (existingIdx >= 0) {
+          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, firstId);
+        }
+      } else {
+        // Always sync the custom field value to match the form field id
+        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Point of Entry');
+        if (existingIdx >= 0) {
+          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, form.poeId);
+        }
+      }
+    }
+  }, [poeData, form.poeId, form.preregisterVisitCustomFieldModels]);
+
+  // Auto-select Building
+  useEffect(() => {
+
+    if (destData && (destData as any).results && (destData as any).results.length > 0) {
+      const firstId = (destData as any).results[0].id;
+      if (!form.buildingId) {
+        formik.setFieldValue('buildingId', firstId);
+        // Also update custom field array if it exists there
+        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Building');
+        if (existingIdx >= 0) {
+          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, firstId);
+        }
+      } else {
+        // Always sync the custom field value to match the form field id
+        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Building');
+        if (existingIdx >= 0) {
+          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, form.buildingId);
+        }
+      }
+    }
+  }, [destData, form.buildingId, form.preregisterVisitCustomFieldModels]);
+
+  // Auto-select Parking Lot
+  useEffect(() => {
+    if (parkingData && (parkingData as any).results && (parkingData as any).results.length > 0) {
+      const firstId = (parkingData as any).results[0].id;
+      if (!form.parkingLotId) {
+        formik.setFieldValue('parkingLotId', firstId);
+        // Also update custom field array if it exists there
+        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Parking Lot');
+        if (existingIdx >= 0) {
+          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, firstId);
+        }
+      } else {
+        // Always sync the custom field value to match the form field id
+        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Parking Lot');
+        if (existingIdx >= 0) {
+          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, form.parkingLotId);
+        }
+      }
+    }
+  }, [parkingData, form.parkingLotId, form.preregisterVisitCustomFieldModels]);
+
   const [hostSearch, setHostSearch] = React.useState('');
   const { data: hostsData } = useHosts(hostSearch, form.siteId);
   const hostOptions = hostsData?.results?.map((user: any) => ({
     value: user.id,
     label: `${user.firstName} ${user.lastName} - ${user.email}`,
     email: user.email,
+    emailValue: user.email // Store email for setting helper field
   })) ?? [];
 
   const [coHostSearch, setCoHostSearch] = React.useState('');
@@ -355,6 +430,14 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     isPreScreening,
     handlePreScreen,
     matchedRule,
-    isSaving
+    isSaving,
+    // Return options for consumption
+    poeOptions,
+    parkingOptions,
+    destOptions,
+    // Return data for consumption if needed
+    poeData,
+    parkingData,
+    destData
   };
 };

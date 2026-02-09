@@ -72,7 +72,7 @@ export async function getVisitPreregistration(visitId: string): Promise<any> {
 }
 
 export async function preScreenBulk(payload: any): Promise<any> {
-    const { data } = await getApiClient().post("/v1/preregistrations/pre-screen/bulk", payload);
+    const { data } = await getApiClient().post("/v1/host/preregistrations", payload);
     return data;
 }
 
