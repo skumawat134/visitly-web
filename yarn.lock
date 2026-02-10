@@ -3270,6 +3270,50 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@visitly/integration-mfe@workspace:apps/integration-mfe":
+  version: 0.0.0-use.local
+  resolution: "@visitly/integration-mfe@workspace:apps/integration-mfe"
+  dependencies:
+    "@babel/core": "npm:^7.28.5"
+    "@babel/preset-env": "npm:^7.28.5"
+    "@babel/preset-react": "npm:^7.28.5"
+    "@babel/preset-typescript": "npm:^7.28.5"
+    "@types/react": "npm:18.3.0"
+    "@types/react-dom": "npm:18.3.0"
+    "@visitly/api-client": "npm:*"
+    "@visitly/app-store": "npm:*"
+    "@visitly/tailwind-config": "npm:*"
+    "@visitly/typescript-config": "npm:*"
+    "@visitly/ui": "npm:*"
+    "@visitly/webpack-config": "npm:*"
+    babel-loader: "npm:^10.0.0"
+    clean-webpack-plugin: "npm:^4.0.0"
+    css-loader: "npm:^7.1.2"
+    date-fns: "npm:^4.1.0"
+    formik: "npm:^2.4.9"
+    html-webpack-plugin: "npm:^5.6.5"
+    lucide-react: "npm:^0.468.0"
+    mini-css-extract-plugin: "npm:^2.9.0"
+    style-loader: "npm:^4.0.0"
+    tailwindcss: "npm:^4.1.18"
+    ts-loader: "npm:^9.x"
+    typescript: "npm:^5.9.2"
+    webpack: "npm:^5.104.1"
+    webpack-bundle-analyzer: "npm:^5.1.1"
+    webpack-cli: "npm:^6.0.1"
+    webpack-dev-server: "npm:^5.2.2"
+    webpack-merge: "npm:^6.0.1"
+    workbox-webpack-plugin: "npm:^7.4.0"
+    yup: "npm:^1.7.1"
+  peerDependencies:
+    "@tanstack/react-query": ^5.90.17
+    react: 18.3.1
+    react-dom: 18.3.1
+    react-router-dom: ^7.12.0
+    zustand: ^5.0.10
+  languageName: unknown
+  linkType: soft
+
 "@visitly/shell@workspace:apps/shell":
   version: 0.0.0-use.local
   resolution: "@visitly/shell@workspace:apps/shell"
@@ -3280,6 +3324,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.28.5"
     "@datadog/browser-logs": "npm:^6.25.4"
     "@datadog/browser-rum": "npm:^6.25.4"
+    "@tailwindcss/cli": "npm:^4.1.5"
     "@tailwindcss/postcss": "npm:^4.1.18"
     "@tanstack/react-query": "npm:^5.90.17"
     "@types/react": "npm:18.3.0"

@@ -11,7 +11,8 @@ import { PermaVisitsRedirect, SamlRedirect } from '@/redirects';
 import HostMFE from '@/mfe/HostMFE';
 import HostLayout from '@/layout/HostLayout';
 import  SwitchRole  from '../shared/components/SwitchRole'
-
+import IntegrationMFE from '@/mfe/IntegrationMFE';
+import IntegrationLayout from '@/layout/IntegrationLayout';
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
 function AppRouter() {
@@ -33,7 +34,11 @@ function AppRouter() {
             } />
           </Route>
           <Route element={<HostLayout />}>
-          <Route path="/host/*" element ={<HostMFE />} />
+           <Route path="/host/*" element ={<HostMFE />} />
+          </Route>
+
+          <Route element={<IntegrationLayout />}>
+           <Route path="/integrations/*" element ={<IntegrationMFE />} />
           </Route>
           
           <Route path='/dashboard/wallboard' element={<Navigate to="/admin/dashboard/wallboard" replace />} />

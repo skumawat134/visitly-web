@@ -3,15 +3,15 @@ import { Outlet } from 'react-router-dom';
 import { Header, Sidebar } from '@/shared/components';
 import { useState } from 'react';
 
-const HostLayout = () => {
+const IntegrationLayout = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     return (
-        <div id="host-layout"  >
+        <div id="integration-layout"  className='tw:bg-[#E5E9FF]'>
             {/* Sidebar */}
             <Header onToggle={() => setIsCollapsed(!isCollapsed)}  isCollapsed={isCollapsed}/>
             
             {/* Main content area */}
-            <div className="tw:flex">
+            <div className="tw:flex ">
                 {/* Header */}
                 <Sidebar isCollapsed={isCollapsed} />
                 {/* Routed content */}
@@ -24,4 +24,4 @@ const HostLayout = () => {
     );
 };
 
-export default HostLayout;
+export default IntegrationLayout;

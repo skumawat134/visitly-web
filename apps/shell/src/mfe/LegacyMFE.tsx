@@ -7,7 +7,6 @@ export default function LegacyMFE() {
     return (
         <MFEWrapper
             mfe={AngularApp}
-            fallback={<div>Loading authentication…</div>}
         />
     );
 }

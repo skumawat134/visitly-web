@@ -2,7 +2,7 @@ import React , { useEffect } from 'react';
 
 const AngularApp  = () => {
     useEffect(() => {
-      window.process = {
+     (window as any).process = {
         env: {
           NG_APP_ENV: 'development',
           NODE_ENV: 'development'
@@ -11,7 +11,7 @@ const AngularApp  = () => {
       let mounted = true;
       const loadAngular = async () => {
         (window as any).isReactShell = true;
-        const { mountAngularApp } = await import('visitlyAngular/Bootstrap');
+        const { mountAngularApp } = await import('visitlyAngular/Bootstrap') as any;
         if (mounted) {
           mountAngularApp('angular-container');
         }

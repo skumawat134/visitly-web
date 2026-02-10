@@ -21,6 +21,7 @@ module.exports = (env) => {
           AuthMFE: `auth_mfe@${process.env.VITE_AUTH_MFE_REMOTE_URL}`,
           visitlyAngular: `visitlyAngular@${process.env.VITE_ANGULAR_MFE_REMOTE_URL}`,
           HOSTMFE : `host_mfe@${process.env.VITE_HOST_MFE_REMOTE_URL}`,
+          INTEGRATIONMFE : `integration_mfe@${process.env.VITE_INTEGRATION_MFE_REMOTE_URL}`
         },
         shared: sharedDeps,
       }),
