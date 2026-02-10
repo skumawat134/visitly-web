@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthMFE from '../mfe/AuthMFE';
 import LegacyMFE from '@/mfe/LegacyMFE';
 import { RequireCapability } from '@/providers/RequireCapability';
-import AppLayout from '@/providers/AppLayout';
 import AuthInitializer from '@/providers/AuthInitializer';
 import { NavigationResolver } from '@/providers/NavigationResolver';
 import NotFound from '@/shared/components/NotFound';
@@ -12,7 +11,7 @@ import HostMFE from '@/mfe/HostMFE';
 import HostLayout from '@/layout/HostLayout';
 import  SwitchRole  from '../shared/components/SwitchRole'
 import IntegrationMFE from '@/mfe/IntegrationMFE';
-import IntegrationLayout from '@/layout/IntegrationLayout';
+import AppLayout from '@/layout/AppLayout';
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
 function AppRouter() {
@@ -37,7 +36,7 @@ function AppRouter() {
            <Route path="/host/*" element ={<HostMFE />} />
           </Route>
 
-          <Route element={<IntegrationLayout />}>
+          <Route element={<AppLayout/>}>
            <Route path="/integrations/*" element ={<IntegrationMFE />} />
           </Route>
           

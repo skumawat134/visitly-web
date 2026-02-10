@@ -19,6 +19,13 @@ export function NavigationResolver() {
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('host:navigation', {
+        detail: { pathname: location.pathname },
+      })
+    );
+  }, [location.pathname]);
+  useEffect(() => {
     const { pathname, search } = location;
     // 1️⃣ Skip auth resolution for special routes
     if (SKIP_AUTH_PATHS.some(p => pathname.startsWith(p))) {

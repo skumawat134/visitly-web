@@ -1,0 +1,27 @@
+/* Custom Scrollbar for Sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #e5e7eb;
+  border-radius: 20px;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+}
+
+/* Ensure sub-menu transitions are smooth */
+.tw\:overflow-hidden {
+  overflow: hidden;
+}
+
+/* Active link indicator transitions */
+.active-indicator {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

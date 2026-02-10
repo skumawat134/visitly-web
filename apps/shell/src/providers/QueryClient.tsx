@@ -4,9 +4,10 @@ import {
   initApiClient,
   initQueryClient,
 } from "@visitly/api-client";
-import {type AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
+import { type AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
 import { GlobalLoader } from "@/shared/components/GlobalLoader";
 import FullScreenLoader from "@/shared/components/FullScreenLoader";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 interface ZustandState<T> {
   state: T
@@ -14,8 +15,8 @@ interface ZustandState<T> {
 const queryClient = initQueryClient();
 const API_URL = process.env.VITE_API_BASE_URL || "https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/";
 initApiClient({
-  baseURL: API_URL,
-  refreshTokenUrl: API_URL + "/v1/users/token",
+  baseURL: API_URL,
+  refreshTokenUrl: API_URL + "/v1/users/token",
   getToken: () => {
     const session = sessionStorage.getItem("auth-session");
     if (!session) return undefined;
@@ -54,6 +55,12 @@ export function QueryClient({ children }: { children: React.ReactNode }) {
       <GlobalLoader />
       <FullScreenLoader />
       {children}
+      {process.env.NODE_ENV === 'development' && (
+        <ReactQueryDevtools
+          initialIsOpen={false}
+          position="right"
+        />
+      )}
     </QueryClientProvider>
   );
 }
