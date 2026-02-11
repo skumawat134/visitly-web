@@ -1,15 +1,14 @@
 import React from 'react';
-import Home from '../components/Home';
+import Home from '../shared/components/Home';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthMFE from '../mfe/AuthMFE';
-import Header from '@/components/Header';
 import { useState } from 'react';
 import LegacyMFE from '@/mfe/LegacyMFE';
 import { RequireCapability } from '@/providers/RequireCapability';
 import AppLayout from '@/providers/AppLayout';
 import AuthInitializer from '@/providers/AuthInitializer';
 import { NavigationResolver } from '@/providers/NavigationResolver';
-import NotFound from '@/components/NotFound';
+import NotFound from '@/shared/components/NotFound';
 import { PermaVisitsRedirect, SamlRedirect } from '@/redirects';
 
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));

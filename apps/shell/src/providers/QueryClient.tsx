@@ -5,8 +5,8 @@ import {
   initQueryClient,
 } from "@visitly/api-client";
 import {type AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
-import { GlobalLoader } from "@/components/GlobalLoader";
-import FullScreenLoader from "@/components/FullScreenLoader";
+import { GlobalLoader } from "@/shared/components/GlobalLoader";
+import FullScreenLoader from "@/shared/components/FullScreenLoader";
 
 interface ZustandState<T> {
   state: T
