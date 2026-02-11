@@ -12696,10 +12696,10 @@ Layouts
   .single-column .left-sidebar {
     left: -240px;
   }
-
+/* 
   .single-column .page-wrapper {
     margin-left: 0px;
-  }
+  } */
 
   .single-column .sidebar-footer {
     display: none;
@@ -12767,9 +12767,9 @@ Layouts
   /* min-height: 1150px; */
 }
 
-.fix-header .page-wrapper {
+/* .fix-header .page-wrapper {
   padding-top: 70px;
-}
+} */
 
 .container-fluid {
   padding: 0 30px 25px 30px;
@@ -18201,20 +18201,20 @@ File: scss
  Small Desktop & above all (1024px)
  ============================================================== */
 @media (min-width: 1024px) {
-  .page-wrapper {
+  /* .page-wrapper {
     margin-left: 240px;
-  }
+  } */
 
-  .footer {
+  /* .footer {
     left: 240px;
-  }
+  } */
 }
 
 @media (max-width: 1023px) {
-  .page-wrapper {
+  /* .page-wrapper {
     margin-left: 60px;
     transition: 0.2s ease-in;
-  }
+  } */
 
   .footer {
     left: 60px;
@@ -18247,10 +18247,10 @@ File: scss
     display: inline-block;
     line-height: 40px;
   }
-
+/* 
   .mini-sidebar .page-wrapper {
     margin-left: 60px;
-  }
+  } */
 
   .mini-sidebar .footer {
     left: 60px;
@@ -18314,7 +18314,7 @@ File: scss
   }
 
   /*Sidebar and wrapper*/
-  .mini-sidebar .page-wrapper {
+  .mini-sidebar  {
     margin-left: 0px;
     padding-top: 70px;
   }

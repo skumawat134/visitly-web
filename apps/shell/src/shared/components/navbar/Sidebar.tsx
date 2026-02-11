@@ -12,6 +12,7 @@ import {
     type SidebarContext
 } from './SidebarConfig';
 import './Sidebar.css';
+import { Button } from '@visitly/ui';
 
 const SidebarItemComponent: React.FC<{
     item: SidebarItem;
@@ -41,7 +42,7 @@ const SidebarItemComponent: React.FC<{
     const linkClass = ({ isActive }: { isActive: boolean }) => `
     tw:flex tw:items-center tw:transition-all tw:duration-200 tw:relative tw:outline-none tw:no-underline
     ${isCollapsed ? 'tw:justify-center tw:py-4' : 'tw:justify-between tw:px-4 tw:py-3'}
-    ${isActive && !item.action ? 'tw:bg-indigo-50 tw:text-indigo-700' : 'tw:text-gray-600 hover:tw:bg-gray-50'}
+    ${isActive && !item.action ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-gray-50!'}
   `;
 
     return (
@@ -57,13 +58,14 @@ const SidebarItemComponent: React.FC<{
                         {isActive && !item.action && !isCollapsed && (
                             <div className="tw:absolute tw:left-0 tw:top-0 tw:bottom-0 tw:w-1 tw:bg-indigo-600" />
                         )}
+                         { console.log('Rendering item:', item.title, 'isActive:', isActive, 'hasChildren:', hasChildren) }
 
                         <div className="tw:flex tw:items-center tw:gap-3">
                             {Icon && (
                                 <Icon
                                     size={isCollapsed ? 24 : 20}
                                     strokeWidth={2}
-                                    className={`${isActive && !item.action ? 'tw:text-indigo-600' : 'tw:text-[#5e5e5e] group-hover:tw:text-indigo-600'}`}
+                                    className={`${isActive && !item.action ? 'tw:text-indigo-600!' : 'tw:text-[#5e5e5e]! group-hover:tw:text-indigo-600!'}`}
                                 />
                             )}
                             {!isCollapsed && <span className="tw:text-sm tw:font-medium">{item.title}</span>}
@@ -89,7 +91,7 @@ const SidebarItemComponent: React.FC<{
                                 to={child.path || '#'}
                                 className={({ isActive }) => `
                   tw:block tw:pl-12 tw:pr-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
-                  ${isActive ? 'tw:text-indigo-700 tw:font-semibold' : 'tw:text-gray-500 hover:tw:text-indigo-700'}
+                  ${isActive ? 'tw:text-indigo-700! tw:font-semibold' : 'tw:text-gray-500! hover:tw:text-indigo-700!'}
                 `}
                                 data-testid={child.testid}
                             >
@@ -111,7 +113,7 @@ const SidebarItemComponent: React.FC<{
          `}>
                     <div className="tw:py-1">
                         <div className={`tw:text-[11px] tw:font-bold tw:uppercase tw:tracking-widest 
-               ${hasChildren ? 'tw:text-gray-400 tw:px-4 tw:py-2 tw:border-b tw:border-gray-50 tw:mb-1' : 'tw:text-indigo-600'}`}>
+               ${hasChildren ? 'tw:text-gray-400! tw:px-4 tw:py-2 tw:border-b tw:border-gray-50 tw:mb-1' : 'tw:text-indigo-600!'}`}>
                             {item.title}
                         </div>
                         {hasChildren && item.children?.map((child) => (
@@ -121,7 +123,7 @@ const SidebarItemComponent: React.FC<{
                                     to={child.path || '#'}
                                     className={({ isActive }) => `
                      tw:block tw:px-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
-                     ${isActive ? 'tw:bg-indigo-50 tw:text-indigo-700' : 'tw:text-gray-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-700'}
+                     ${isActive ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
                    `}
                                 >
                                     {child.title}
@@ -177,13 +179,16 @@ export const Sidebar: React.FC = () => {
     return (
         <aside
             className={`
-        tw:bg-white tw:border-r tw:border-gray-200 
-        tw:transition-all tw:duration-300 tw:z-40 tw:overflow-y-visible tw:flex tw:flex-col
-        ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
-      `}
+    tw:bg-white tw:border-r tw:border-gray-200
+    tw:transition-all tw:duration-300 tw:z-40
+    tw:flex tw:flex-col
+    tw:h-screen
+    tw:overflow-y-auto custom-scrollbar
+    ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
+  `}
             data-testid="left-sidebar"
         >
-            <nav className="tw:flex-1 tw:py-4 tw:overflow-y-auto custom-scrollbar">
+            <nav className="tw:flex-1 tw:py-4 ">
                 {menuItems.map((item, index) => (
                     <SidebarItemComponent
                         key={index}
@@ -195,12 +200,11 @@ export const Sidebar: React.FC = () => {
                 ))}
             </nav>
 
-            {/* Quick Setup Button Example */}
             {!isCollapsed && context.isGlobalAdmin && context.currentPlan === 'Trial' && (
                 <div className="tw:p-4">
-                    <button className="tw:w-full tw:bg-indigo-600 tw:text-white tw:py-2 tw:rounded-md tw:text-sm tw:font-medium hover:tw:bg-indigo-700 tw:transition-colors">
+                    <Button className="tw:w-full tw:bg-indigo-600 tw:text-white tw:py-2 tw:rounded-md tw:text-sm tw:font-medium hover:tw:bg-indigo-700 tw:transition-colors">
                         Quick Setup
-                    </button>
+                    </Button>
                 </div>
             )}
 

@@ -1,19 +1,19 @@
 
 import { Outlet } from 'react-router-dom';
-import { AppSidebar, Header } from '@/shared/components';
+import { AppSidebar, AppHeader, useSidebarStore } from '@/shared/components';
 import { useState } from 'react';
 
 const AppLayout = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const {isCollapsed, setCollapsed} = useSidebarStore();
     return (
         <div id="app-layout"  className='tw:bg-[#E5E9FF]'>
             {/* Sidebar */}
-            <Header onToggle={() => setIsCollapsed(!isCollapsed)}  isCollapsed={isCollapsed}/>
+            <AppHeader onToggle={() => setCollapsed(!isCollapsed)}  isCollapsed={isCollapsed}/>
             
             {/* Main content area */}
             <div className="tw:flex ">
                 {/* Header */}
-                <AppSidebar />
+                <AppSidebar  />
                 {/* Routed content */}
                 <main className="tw:flex-1 tw:overflow-auto">
                     <Outlet />
