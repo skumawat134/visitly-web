@@ -11,8 +11,10 @@ import { exportVisitorsCSV, getUpCommingVisitors } from '../api/upcomming-visito
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { STORAGE_KEY } from '../components/CustomSettings';
 import { Edit2, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const useUpcomingVisitors = () => {
+  const navigate = useNavigate();
   // 1. Pagination & Search States
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -20,7 +22,7 @@ export const useUpcomingVisitors = () => {
 
   // 2. Sorting States
   const [sort, setSort] = useState<'asc' | 'desc'>('asc');
-  const [sortBy, setSortBy] = useState('scheduleCheckinDate');
+  const [sortBy, setSortBy] = useState('scheduledCheckinDate');
   const [showSettingModal, setShowSettingModal] = useState(false);
    const [showPreRegistrationModal, setshowPreRegistrationModal] = useState(false);
   // 3. Filter States using native Dates
@@ -121,16 +123,33 @@ export const useUpcomingVisitors = () => {
 
     // 2. Define ALL possible columns
     const allPossibleCols: ColDef<VisitorsRowsType>[] = [
-      {
-        headerName: "Name",
-        field: "fullName",
-        hide: false, // Name is usually mandatory
-        cellRenderer: (params: ICellRendererParams) => (
-          <button className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline">
-            {params.data?.fullName}
-          </button>
-        ),
-      },
+     {
+  headerName: "Name",
+  field: "fullName",
+  hide: false,
+  cellRenderer: (params: ICellRendererParams) => {
+    const id = !!params.data?.visitInfoModel ?  params.data?.visitInfoModel?.id : params.data?.id;
+    const isPrefill = !!params.data?.visitInfoModel; // true if key exists
+
+    const handleClick = () => {
+      const url = isPrefill
+        ? `/host/visitor-detail/${id}?isPrefill=true`
+        : `/host/visitor-detail/${id}`;
+
+      navigate(url);
+    };
+
+    return (
+      <button
+        onClick={handleClick}
+        className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline"
+      >
+        {params.data?.fullName}
+      </button>
+    );
+  },
+},
+
       { headerName: "Type", field: "visitorType", hide: !isVisible("Type") },
       { headerName: "Host", field: "hostName", hide: !isVisible("Host") },
       { headerName: "Location", field: "siteName", hide: !isVisible("Location") },

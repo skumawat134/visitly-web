@@ -32,12 +32,12 @@ interface UserAuth {
 
 
 export const SIDEBAR_CONFIG = [
-  // {
-  //   title: 'Dashboard',
-  //   icon: LayoutDashboard,
-  //   path: '/dashboard',
-  //   permission: 'view_dashboard'
-  // },
+  {
+    title: 'Dashboard',
+    icon: LayoutDashboard,
+    path: '/host/dashboard',
+    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+  },
   {
     title: 'My Upcoming Visitors',
     permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],

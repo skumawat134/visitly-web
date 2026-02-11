@@ -24,8 +24,10 @@ import { Input, Search } from "@visitly/ui";
 import { GridFooter } from "../components/GridFooter";
 import { VisitorDetailsModal } from "../components/VisitorDetailsModal";
 import { PageHeader } from "@/shared/components";
+import { useNavigate } from "react-router-dom";
 
 const PastVisitors: React.FC = () => {
+  const navigate = useNavigate();
   const {
     rowData,
     totalRecords,
@@ -44,6 +46,13 @@ const PastVisitors: React.FC = () => {
     closeVisitorDetails,
   } = usePastVisitors();
 
+  const redirectToVisitorDetailPage = (data: any) => {   
+          console.log("Row clicked with data:", data); // Debug log to check the data structure
+      if (!data?.id) return;
+          const url = `/host/visitor-detail/${data.id}?source=pastVisitors`;
+          navigate(url);
+      }  
+
   // Column Definitions
   const colDefs = useMemo<ColDef<VisitRecord>[]>(
     () => [
@@ -56,7 +65,7 @@ const PastVisitors: React.FC = () => {
           const data = params.data;
           if (!data) return null;
           return (
-            <div className="tw:flex tw:items-center tw:gap-3">
+            <div className="tw:flex tw:items-center tw:gap-3" onClick={() => redirectToVisitorDetailPage(data)}>
               <img
                 src={data.avatarUri || "/assets/images/defaultuser.jpg"}
                 alt={data.fullName}
