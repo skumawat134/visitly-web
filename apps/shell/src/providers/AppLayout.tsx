@@ -1,18 +1,25 @@
 
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar, AppHeader, useSidebarStore } from '@/shared/components';
 
 const AppLayout = () => {
-    const {isCollapsed, setCollapsed} = useSidebarStore();
+    const { isCollapsed, setCollapsed, isExcluded } = useSidebarStore();
+    const location = useLocation();
+    const hideNavigation = isExcluded(location.pathname);
+
+    if (hideNavigation) {
+        return <Outlet />;
+    }
+
     return (
-        <div id="app-layout"  className='tw:bg-[#E5E9FF]'>
+        <div id="app-layout" className='tw:bg-[#E5E9FF]'>
             {/* Sidebar */}
-            <AppHeader onToggle={() => setCollapsed(!isCollapsed)}  isCollapsed={isCollapsed}/>
-            
+            <AppHeader onToggle={() => setCollapsed(!isCollapsed)} isCollapsed={isCollapsed} />
+
             {/* Main content area */}
             <div className="tw:flex ">
                 {/* Header */}
-                <AppSidebar  />
+                <AppSidebar />
                 {/* Routed content */}
                 <main className="tw:flex-1 tw:overflow-auto">
                     <Outlet />

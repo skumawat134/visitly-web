@@ -40,9 +40,9 @@ const SidebarItemComponent: React.FC<{
     };
 
     const linkClass = ({ isActive }: { isActive: boolean }) => `
-    tw:flex tw:items-center tw:transition-all tw:duration-200 tw:relative tw:outline-none tw:no-underline
+    tw:flex tw:items-center tw:transition-all tw:duration-200 tw:relative tw:outline-none tw:no-underline tw:group
     ${isCollapsed ? 'tw:justify-center tw:py-4' : 'tw:justify-between tw:px-4 tw:py-3'}
-    ${isActive && !item.action ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-gray-50!'}
+    ${isActive && !item.action ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! tw:hover:bg-indigo-50! tw:hover:text-indigo-700!'}
   `;
 
     return (
@@ -58,14 +58,12 @@ const SidebarItemComponent: React.FC<{
                         {isActive && !item.action && !isCollapsed && (
                             <div className="tw:absolute tw:left-0 tw:top-0 tw:bottom-0 tw:w-1 tw:bg-indigo-600" />
                         )}
-                         { console.log('Rendering item:', item.title, 'isActive:', isActive, 'hasChildren:', hasChildren) }
-
-                        <div className="tw:flex tw:items-center tw:gap-3">
+                        <div className="tw:flex tw:items-center tw:gap-3 tw:group">
                             {Icon && (
                                 <Icon
                                     size={isCollapsed ? 24 : 20}
                                     strokeWidth={2}
-                                    className={`${isActive && !item.action ? 'tw:text-indigo-600!' : 'tw:text-[#5e5e5e]! group-hover:tw:text-indigo-600!'}`}
+                                    className={`${isActive && !item.action ? 'tw:text-indigo-600!' : 'tw:text-[#5e5e5e]! group-hover:tw:text-indigo-600!'} tw:group-hover:bg-indigo-50! tw:group-hover:text-indigo-700!`}
                                 />
                             )}
                             {!isCollapsed && <span className="tw:text-sm tw:font-medium">{item.title}</span>}
@@ -92,6 +90,7 @@ const SidebarItemComponent: React.FC<{
                                 className={({ isActive }) => `
                   tw:block tw:pl-12 tw:pr-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
                   ${isActive ? 'tw:text-indigo-700! tw:font-semibold' : 'tw:text-gray-500! hover:tw:text-indigo-700!'}
+                  tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
                 `}
                                 data-testid={child.testid}
                             >
@@ -105,15 +104,15 @@ const SidebarItemComponent: React.FC<{
             {/* Collapsed Tooltip */}
             {isCollapsed && (
                 <div className={`
-           tw:absolute tw:left-full tw:top-1 tw:ml-1 tw:bg-white 
+           tw:absolute tw:left-full tw:top-1 tw:ml-1
            tw:border tw:border-gray-100 tw:shadow-xl tw:rounded-lg 
-           tw:opacity-0 tw:invisible tw:group-hover:opacity-100 tw:group-hover:visible 
+           tw:opacity-0 tw:invisible tw:group-hover:opacity-100 tw:group-hover:visible
            tw:transition-all tw:duration-200 tw:z-50
-           ${hasChildren ? 'tw:w-60' : 'tw:w-max tw:px-6 tw:py-4'}
+           ${hasChildren ? 'tw:w-60  tw:bg-white' : 'tw:w-max tw:px-6 tw:py-3 tw:bg-[#E5E9FF]!'}
          `}>
                     <div className="tw:py-1">
-                        <div className={`tw:text-[11px] tw:font-bold tw:uppercase tw:tracking-widest 
-               ${hasChildren ? 'tw:text-gray-400! tw:px-4 tw:py-2 tw:border-b tw:border-gray-50 tw:mb-1' : 'tw:text-indigo-600!'}`}>
+                        <div className={`tw:text-[11px] tw:font-bold tw:uppercase tw:tracking-widest  
+               ${hasChildren ? 'tw:text-indigo-600! tw:px-4 tw:py-3 tw:border-b tw:border-gray-50 tw:mb-1 tw:bg-[#E5E9FF]!' : 'tw:text-indigo-600!'}`}>
                             {item.title}
                         </div>
                         {hasChildren && item.children?.map((child) => (
@@ -124,7 +123,8 @@ const SidebarItemComponent: React.FC<{
                                     className={({ isActive }) => `
                      tw:block tw:px-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
                      ${isActive ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
-                   `}
+                   tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
+                     `}
                                 >
                                     {child.title}
                                 </NavLink>
@@ -177,17 +177,21 @@ export const Sidebar: React.FC = () => {
     const menuItems = getMenuItems();
     console.log('menuItems:', menuItems);
     return (
-        <aside
-            className={`
-    tw:bg-white tw:border-r tw:border-gray-200
-    tw:transition-all tw:duration-300 tw:z-40
-    tw:flex tw:flex-col
-    tw:h-screen
-    tw:overflow-y-auto custom-scrollbar
-    ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
-  `}
-            data-testid="left-sidebar"
-        >
+        //         <aside
+        //             className={`
+        //     tw:bg-white tw:border-r tw:border-gray-200
+        //     tw:transition-all tw:duration-300 tw:z-40
+        //     tw:flex tw:flex-col
+        //     tw:h-screen
+        //      custom-scrollbar
+        //     ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
+        //   `}
+        <aside className={`
+      tw:bg-white tw:border-r tw:border-gray-200 
+      tw:transition-all tw:duration-300 tw:z-40 tw:overflow-y-visible
+      ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
+    `}
+            data-testid="left-sidebar"  >
             <nav className="tw:flex-1 tw:py-4 ">
                 {menuItems.map((item, index) => (
                     <SidebarItemComponent
@@ -199,7 +203,6 @@ export const Sidebar: React.FC = () => {
                     />
                 ))}
             </nav>
-
             {!isCollapsed && context.isGlobalAdmin && context.currentPlan === 'Trial' && (
                 <div className="tw:p-4">
                     <Button className="tw:w-full tw:bg-indigo-600 tw:text-white tw:py-2 tw:rounded-md tw:text-sm tw:font-medium hover:tw:bg-indigo-700 tw:transition-colors">
