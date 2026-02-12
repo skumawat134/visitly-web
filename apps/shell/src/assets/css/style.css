@@ -12768,7 +12768,7 @@ Layouts
 }
 
 .fix-header .page-wrapper {
-  padding-top: 70px;
+  padding-top: 30px;
 }
 
 .container-fluid {
@@ -18202,7 +18202,7 @@ File: scss
  ============================================================== */
 @media (min-width: 1024px) {
   .page-wrapper {
-    margin-left: 240px;
+    /* margin-left: 240px; */
   }
 
   .footer {
@@ -18212,7 +18212,7 @@ File: scss
 
 @media (max-width: 1023px) {
   .page-wrapper {
-    margin-left: 60px;
+    /* margin-left: 60px; */
     transition: 0.2s ease-in;
   }
 
@@ -18249,7 +18249,7 @@ File: scss
   }
 
   .mini-sidebar .page-wrapper {
-    margin-left: 60px;
+    /* margin-left: 60px; */
   }
 
   .mini-sidebar .footer {

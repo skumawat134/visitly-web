@@ -1,6 +1,6 @@
 import { useAuthStore } from "@visitly/app-store";
 import { useQuery } from "@tanstack/react-query";
-import { UserResponse } from "../types/auth.types";
+import type { UserResponse } from "../types/auth.types";
 import { useEffect } from "react";
 import { getUserInfoApi } from "@/shared/services/auth.api";
 
@@ -14,7 +14,7 @@ export function useFetchUserInfo() {
     enabled: enabled,
   });
   const { data: user } = query;
-  
+
   useEffect(() => {
     if (!user) return;
     setUser(user);

@@ -3,7 +3,7 @@ import React from "react";
 
 const Hero = ({ msg }: { msg: string }) => {
   return (
-    <section className="relative overflow-hidden bg-blue-1000 py-24 sm:py-32">
+    <section className="relative overflow-hidden bg-blue-1000 py-24 sm:py-32" data-testid="hero-section">
       {/* Decorative background glow */}
       <div className="absolute -top-24 left-1/2 -z-10 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl" />
 
@@ -11,38 +11,38 @@ const Hero = ({ msg }: { msg: string }) => {
         <div className="mx-auto max-w-2xl text-center">
           {/* Badge */}
           <div className="mb-8 flex justify-center">
-            <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm font-medium leading-6 text-blue-400">
+            <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm font-medium leading-6 text-blue-400" data-testid="hero-badge">
               New: Visitly Auth v4 is here
             </span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
+          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl" data-testid="hero-title">
             Secure Access for <span className="text-blue-500">Modern Teams</span>
           </h1>
 
-          <p className="mt-6 text-lg leading-8 text-slate-400">
+          <p className="mt-6 text-lg leading-8 text-slate-400" data-testid="hero-description">
             Streamline your authentication workflow with our plug-and-play MFE.
             Built for scale, security, and seamless integration.
           </p>
 
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <button className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-blue-500 hover:shadow-blue-500/25 active:scale-95">
+            <button className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-blue-500 hover:shadow-blue-500/25 active:scale-95" data-testid="hero-start-building-button">
               Start Building
             </button>
-            <button className="text-sm font-semibold leading-6 text-white hover:text-blue-400 transition-colors">
+            <button className="text-sm font-semibold leading-6 text-white hover:text-blue-400 transition-colors" data-testid="hero-live-demo-button">
               Live Demo <span aria-hidden="true">→</span>
             </button>
           </div>
         </div>
 
         {/* Feature Grid Section */}
-        <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3">
+        <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-3" data-testid="hero-feature-grid">
           {[
             { title: 'Encapsulated', desc: 'Runs in its own scope.' },
             { title: 'Tailwind v4', desc: 'CSS-first configuration.' },
             { title: 'Federated', desc: 'Built for monorepos.' }
           ].map((feature, i) => (
-            <div key={i} className="rounded-2xl border border-white/5 bg-white/5 p-6 backdrop-blur-sm">
+            <div key={i} className="rounded-2xl border border-white/5 bg-white/5 p-6 backdrop-blur-sm" data-testid={`hero-feature-${i}`}>
               <h3 className="text-base font-semibold text-white">{feature.title}</h3>
               <p className="mt-2 text-sm text-slate-400">{feature.desc}</p>
             </div>

@@ -24,13 +24,13 @@ module.exports = (env) => {
       }),
     ],
     devServer: {
-      proxy: [
-        {
-          context: ['/assets', '/styles.css', '/data-table.woff', '/data-table.ttf'],
-          target: 'http://localhost:4200', // Redirect requests for /assets to the Auth MFE
-          changeOrigin: true,
-        },
-      ],
+      // proxy: [
+      //   {
+      //     context: ['/assets', '/styles.css', '/data-table.woff', '/data-table.ttf'],
+      //     target: 'http://localhost:4200', // Redirect requests for /assets to the Auth MFE
+      //     changeOrigin: true,
+      //   },
+      // ],
       static: "./dist",
       hot: true,
       historyApiFallback: true,
