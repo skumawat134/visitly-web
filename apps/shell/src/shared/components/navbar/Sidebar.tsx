@@ -189,12 +189,12 @@ export const Sidebar: React.FC = () => {
     const handleAction = (action: string) => {
         if (action === 'BACK_TO_LOCATIONS') {
             setLocationMode(false);
-            navigate('/admin/work_area/locations/list');
+            navigate('/admin/admin/work_area/locations/list');
         }
-        if(action == 'GO_TO_LOCATION'){
+        if (action == 'GO_TO_LOCATION') {
             setLocationMode(true);
-            navigate('/admin/work_area/locations/list');
-        } 
+            navigate('/admin/admin/work_area/locations/list');
+        }
     };
 
     const getMenuItems = () => {
@@ -202,7 +202,7 @@ export const Sidebar: React.FC = () => {
         if (isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return LOCATION_MENU;
         }
-       if (!isLocationMode && context.isGlobalAdmin) {
+        if (!isLocationMode && context.isGlobalAdmin) {
             return MAIN_MENU;
         }
 
@@ -218,7 +218,7 @@ export const Sidebar: React.FC = () => {
         if (!context.isGlobalAdmin && context.isEvacManager) {
             return EVAC_HOST_MENU;
         }
-        if(context.isHost){
+        if (context.isHost) {
             return EVAC_HOST_MENU;
         }
 

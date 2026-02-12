@@ -50,13 +50,13 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
             sessionStorage.setItem('flagForMenu', JSON.stringify(true));
 
             // Redirect to locations general settings as per Angular logic
-            navigate('/admin/work_area/locations/general');
+            navigate('/admin/admin/work_area/locations/general');
             // window.location.reload(); // Angular does a reload if on the same page, typical for location switch
         }
     };
 
     const handleUpgradePlan = () => {
-        navigate('/admin/work_area/settings/upgrade-plan');
+        navigate('/admin/admin/work_area/settings/upgrade-plan');
     };
 
     const isTrial = permissions.currentPlan === 'Trial';
@@ -118,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                     </Button>
                 )}
 
-              
+
                 {/* Help Dropdown */}
                 <Popover
                     placement="bottom"
@@ -208,7 +208,7 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
             <div className="tw:py-1">
                 <Link
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
-                    to={"/admin/work_area/profile"}
+                    to={"/admin/admin/work_area/profile"}
                     data-testid="profile-link"
                 >
                     <User size={16} /> Profile
@@ -216,7 +216,7 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
 
                 <Link
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
-                    to={"/admin/work_area/change-password"}
+                    to={"/admin/admin/work_area/change-password"}
                     data-testid="change-password-link"
                 >
                     <LockOpen size={16} /> Change Password
