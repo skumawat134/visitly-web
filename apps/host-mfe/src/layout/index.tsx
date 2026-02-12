@@ -1,22 +1,21 @@
 
 import { Outlet } from 'react-router-dom';
 import { Header, Sidebar } from '@/shared/components';
+import { useState } from 'react';
 
 const HostLayout = () => {
+    const [isCollapsed, setIsCollapsed] = useState(false);
     return (
-        <div id="host-layout" className="flex h-screen">
+        <div id="host-layout" >
             {/* Sidebar */}
-            <aside className="w-64">
-                <Sidebar />
-            </aside>
+            <Header onToggle={() => setIsCollapsed(!isCollapsed)}  isCollapsed={isCollapsed}/>
+            
             {/* Main content area */}
-            <div className="flex flex-col flex-1">
+            <div className="tw:flex">
                 {/* Header */}
-                <header>
-                    <Header />
-                </header>
+                <Sidebar isCollapsed={isCollapsed} />
                 {/* Routed content */}
-                <main className="flex-1 overflow-auto">
+                <main className="tw:flex-1 tw:overflow-auto">
                     <Outlet />
                 </main>
 
