@@ -26,7 +26,7 @@ export const GridFooter: React.FC<GridFooterProps> = ({
   const end = Math.min(start + pageSize - 1, totalRecords);
 
   return (
-    <div className="tw:flex tw:justify-between tw:items-center tw:p-3 tw:border-t tw:border-gray-200 tw:bg-white">
+    <div className="tw:flex tw:justify-between tw:items-center tw:p-3  tw:border-gray-200 tw:bg-white">
       {/* LEFT */}
       {/* <span className="tw:text-sm tw:text-gray-600">
         Total Records: <b>{totalRecords}</b>

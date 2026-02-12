@@ -7,7 +7,7 @@ import { useDebounce } from "../../../shared/hooks/useDebounce"
 
 
 export const useCompanyDirectory = () => {
-    const [pageSize, setPageSize] = useState(50);
+    const [pageSize, setPageSize] = useState(24);
     const [pageIndex, setPageIndex] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export const useCompanyDirectory = () => {
 
     // Fetch directory users using React Query
     const { data, isLoading, refetch, isFetching } = useQuery<CompanyDirectoryResponse>({
-        queryKey: ['evacDirectory', pageIndex, pageSize, debouncedSearch,sortBy,sortOrder],
+        queryKey: ['evacDirectory', pageIndex, pageSize, debouncedSearch, sortBy, sortOrder],
         queryFn: () =>
             getCompanyDirectoryUsers({
                 limit: pageSize,
@@ -80,6 +80,8 @@ export const useCompanyDirectory = () => {
         openViewUserModal,
         closeViewUserModal,
         setSortBy,
+        sortBy,
+        sortOrder,
         setSortOrder
     };
 };

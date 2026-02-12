@@ -1,17 +1,20 @@
 import React, { useMemo } from "react";
-import { AgGridReact } from "ag-grid-react";
 import {
-  themeQuartz,
-  type ColDef,
-  type ICellRendererParams,
-} from "ag-grid-community";
-import { RotateCw, Search } from "lucide-react";
+  RotateCw,
+  Search,
+  Mail,
+  Phone,
+  Building,
+  User,
+  ArrowUpDown,
+  Filter,
+  Users
+} from "lucide-react";
 import { useCompanyDirectory } from "../hooks/useCompanyDirectory";
-import type { companyDirectoryUserRecord } from "../api/companyDirectory.types";
-
-import { Input } from "@visitly/ui";
+import { Input, cn } from "@visitly/ui";
 import { GridFooter } from "../components/GridFooter";
 import { CompanyDirectoryModal } from "../components/CompanyDirectoryModal";
+import DirectoryCard from "../components/DirectoryCard";
 
 const CompanyDirectory: React.FC = () => {
   const {
@@ -29,209 +32,140 @@ const CompanyDirectory: React.FC = () => {
     selectedUserDetail,
     openViewUserModal,
     closeViewUserModal,
+    sortBy,
     setSortBy,
+    sortOrder,
     setSortOrder,
   } = useCompanyDirectory();
 
-  // Column Definitions
-  const colDefs = useMemo<ColDef<companyDirectoryUserRecord>[]>(
-    () => [
-      {
-        headerName: "Name",
-        field: "firstName",
-        flex: 2,
-        minWidth: 200,
-        cellRenderer: (
-          params: ICellRendererParams<companyDirectoryUserRecord>,
-        ) => {
-          const data = params.data;
-          if (!data) return null;
-          return (
-            <div className="tw:flex tw:items-center tw:gap-3">
-              <img
-                src={data.avatarUri || "/assets/images/defaultuser.jpg"}
-                alt={data.firstName}
-                className="tw:w-8 tw:h-8 tw:rounded-full tw:object-cover tw:border tw:border-gray-200"
-              />
-              <button
-                onClick={() => openViewUserModal(data)}
-                className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline tw:font-medium tw:text-left tw:transition-colors"
-              >
-                {data.firstName} {data.lastName}
-              </button>
-            </div>
-          );
-        },
-      },
-      {
-        headerName: "Email",
-        field: "email",
-        flex: 2,
-        minWidth: 200,
-        valueFormatter: (params) => params.value || "-",
-      },
-      {
-        headerName: "Department",
-        field: "department",
-        flex: 1.5,
-        minWidth: 150,
-        valueFormatter: (params) => params.value || "-",
-      },
-      {
-        headerName: "Work Number",
-        field: "workPhone",
-        flex: 1.5,
-        minWidth: 150,
-        cellRenderer: (
-          params: ICellRendererParams<companyDirectoryUserRecord>,
-        ) => {
-          const data = params.data;
-          if (!data || !data.workPhone) return "-";
-          return `+${data.workPhoneCountryCode}-${data.workPhone}`;
-        },
-      },
-      {
-        headerName: "Extension",
-        field: "extension",
-        flex: 1,
-        minWidth: 100,
-        valueFormatter: (params) => params.value || "-",
-      },
-      {
-        headerName: "Mobile Number",
-        field: "mobilePhone",
-        flex: 1.5,
-        minWidth: 150,
-        cellRenderer: (
-          params: ICellRendererParams<companyDirectoryUserRecord>,
-        ) => {
-          const data = params.data;
-          if (!data || !data.mobilePhone) return "-";
-          return `+${data.mobilePhoneCountryCode}-${data.mobilePhone}`;
-        },
-      },
-    ],
-    [openViewUserModal],
-  );
-
-  // Default Column properties
-  const defaultColDef = useMemo<ColDef>(
-    () => ({
-      sortable: true,
-      filter: true,
-      resizable: true,
-      suppressHeaderMenuButton: true,
-      suppressMultiSort: true,
-    }),
-    [],
-  );
-
-  // Customizing the Theme for AG Grid v35
-  const myTheme = themeQuartz.withParams({
-    headerBackgroundColor: "#f9fafb",
-    headerTextColor: "#374151",
-    headerFontWeight: 600,
-    rowHoverColor: "#f3f4f6",
-    oddRowBackgroundColor: "#ffffff",
-    borderRadius: "12px",
-    accentColor: "#2563eb",
-    fontSize: "14px",
-  });
-
-  const onSortChanged = (event: any) => {
-    const columnState = event.api.getColumnState();
-
-    const sortedColumn = columnState.find((col: any) => col.sort);
-
-    if (!sortedColumn) return;
-
-    const sortBy = sortedColumn.colId;
-    const sortOrder = sortedColumn.sort; // 'asc' | 'desc'
-
-    setSortBy(sortBy);
-    setSortOrder(sortOrder);
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
 
   return (
-    <div className="tw:p-4 md:tw:p-6 tw:bg-gray-50 tw:min-h-screen tw:font-sans">
-      <div className="tw:w-full tw:mx-auto">
-        {/* Header Section */}
-        <div className="tw:mb-6 tw:flex tw:flex-col sm:tw:flex-row tw:justify-between tw:items-start sm:tw:items-center tw:gap-4">
-          <div>
-            <div className="tw:flex tw:items-center tw:gap-2">
-              <h1 className="tw:text-2xl tw:font-bold tw:text-gray-900 tw:italic">
-                Directory
-              </h1>
-              <button
-                onClick={() => refetch()}
-                className="tw:p-2 tw:text-gray-500 tw:hover:text-blue-600 tw:transition-colors tw:rounded-full tw:hover:bg-blue-50"
-                title="Refresh List"
-              >
-                <RotateCw
-                  size={18}
-                  className={isLoading ? "tw:animate-spin" : ""}
-                />
-              </button>
+    <div className="tw:min-h-screen tw:bg-[#F8FAFC] tw:pb-12">
+      {/* Page Header - Premium Style */}
+      <div className="tw:bg-white tw:border-b tw:border-slate-200/60 tw:mb-8">
+        <div className="tw:max-w-7xl tw:mx-auto tw:px-6 tw:py-8 tw:md:py-10">
+          <div className="tw:flex tw:items-center tw:justify-between tw:gap-6 tw:flex-wrap">
+            <div>
+              <div className="tw:flex tw:items-center tw:gap-3">
+                <div className="tw:p-2.5 tw:bg-indigo-600 tw:rounded-2xl tw:shadow-lg tw:shadow-indigo-200">
+                  <Users size={24} className="tw:text-white" />
+                </div>
+                <h1 className="tw:text-3xl tw:font-bold tw:text-slate-900 tw:tracking-tight">
+                  Company Directory
+                </h1>
+                <button
+                  onClick={() => refetch()}
+                  className="tw:p-2.5 tw:text-slate-400 tw:hover:text-indigo-600 tw:transition-all tw:rounded-xl tw:hover:bg-indigo-50 tw:active:scale-95"
+                  title="Refresh Directory"
+                >
+                  <RotateCw
+                    size={20}
+                    className={isLoading ? "tw:animate-spin" : ""}
+                  />
+                </button>
+              </div>
+              <p className="tw:text-slate-500 tw:mt-2 tw:text-[15px] tw:font-medium">
+                Find and connect with colleagues across the organization
+              </p>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Search and Table Container */}
-        <div className="tw:bg-white tw:shadow-xl tw:border tw:border-gray-200 tw:overflow-hidden tw:p-4">
-          {/* Table Header Controls */}
-          <div className="tw:flex tw:flex-col tw:sm:flex-row tw:md:flex-row tw:justify-between tw:items-center tw:gap-4">
-            <div className="tw:relative tw:w-full tw:sm:w-[30vw] tw:md:w-[30vw] tw:lg:w-[20vw] tw:w-[20vw]">
+      <div className="tw:max-w-7xl tw:mx-auto tw:px-4">
+        {/* Controls Section - Floating Style */}
+        <div className="tw:bg-white tw:p-2 tw:shadow-[0_8px_30px_rgb(0,0,0,0.04)] tw:border tw:border-slate-200/50 tw:mb-4">
+          <div className="tw:flex tw:flex-col tw:lg:flex-row tw:justify-between tw:items-center tw:gap-6">
+            <div className="tw:relative tw:w-full tw:lg:max-w-md">
               <Search
-                className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400"
+                className="tw:absolute tw:left-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-slate-400"
                 size={18}
               />
               <Input
                 type="text"
-                placeholder="Search directory..."
+                placeholder="Search colleagues by name, email, department..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="tw:w-full tw:pl-10 tw:pr-4 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-blue-500/20 tw:focus:border-blue-500 tw:transition-all tw:bg-gray-50/50"
+                className="tw:w-full tw:pl-12 tw:pr-4 tw:py-3.5 tw:text-[15px] tw:border-slate-200 tw:rounded-2xl tw:focus:ring-4 tw:focus:ring-indigo-500/10 tw:focus:border-indigo-500 tw:transition-all tw:bg-slate-50/50 tw:placeholder:text-slate-400"
               />
             </div>
 
-            <div className="tw:flex tw:items-center tw:gap-3 tw:text-sm tw:text-gray-600">
-              <span>Rows Per Page</span>
-              <select
-                value={pageSize}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="tw:border tw:border-gray-200 tw:rounded-lg tw:px-2 tw:py-1.5 tw:focus:outline-none tw:bg-white"
-              >
-                {[50, 100, 250, 500, 1000].map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
+            <div className="tw:flex tw:items-center tw:gap-4 tw:w-full tw:lg:w-auto">
+              <div className="tw:flex tw:items-center tw:gap-2 tw:p-1.5 tw:bg-slate-50 tw:rounded-xl tw:border tw:border-slate-200/60">
+                <div className="tw:px-3 tw:py-1.5 tw:text-xs tw:font-bold tw:text-slate-400 tw:uppercase tw:tracking-wider">
+                  Sort
+                </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="tw:bg-transparent tw:text-sm tw:font-bold tw:text-slate-700 tw:pr-8 tw:pl-2 tw:py-1.5 tw:focus:outline-none tw:cursor-pointer"
+                >
+                  <option value="firstName">Name</option>
+                  <option value="email">Email</option>
+                  <option value="department">Department</option>
+                </select>
+                <button
+                  onClick={toggleSortOrder}
+                  className="tw:p-1.5 tw:bg-white tw:rounded-lg tw:border tw:border-slate-200 tw:text-slate-600 tw:hover:text-indigo-600 tw:hover:border-indigo-100 tw:transition-all tw:active:scale-90"
+                >
+                  <ArrowUpDown size={16} />
+                </button>
+              </div>
+
+              <div className="tw:h-8 tw:w-px tw:bg-slate-200/60 tw:hidden tw:lg:block" />
+
+              <div className="tw:flex tw:items-center tw:gap-3 tw:text-sm">
+                <span className="tw:text-slate-500 tw:font-medium">Rows</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-sm tw:font-bold tw:text-slate-700 tw:focus:ring-2 tw:focus:ring-indigo-500/20 tw:cursor-pointer"
+                >
+                  {[24, 48, 96, 200].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* AG Grid Body */}
-          <div
-            style={{ height: 600, width: "100%" }}
-            className="tw:ag-theme-quartz tw:mt-4"
-          >
-            <AgGridReact<companyDirectoryUserRecord>
-              rowData={rowData}
-              columnDefs={colDefs}
-              defaultColDef={defaultColDef}
-              theme={myTheme}
-              loading={isLoading}
-              onSortChanged={onSortChanged}
-              overlayNoRowsTemplate="<span className='tw:text-red-900 '>No records found.</span>"
-              rowSelection={{
-                mode: "multiRow",
-                checkboxes: false,
-                headerCheckbox: false,
-                enableClickSelection: false,
-              }}
-              className="tw:h-full"
-            />
+        {/* Directory Grid */}
+        {isLoading && rowData.length === 0 ? (
+          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:lg:grid-cols-3 tw:xl:grid-cols-4 tw:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="tw:h-64 tw:bg-white tw:rounded-[28px] tw:animate-pulse tw:border tw:border-slate-100" />
+            ))}
           </div>
+        ) : rowData.length === 0 ? (
+          <div className="tw:flex tw:flex-col tw:items-center tw:justify-center tw:py-20 tw:bg-white tw:rounded-[32px] tw:border tw:border-slate-200/60 tw:shadow-sm">
+            <div className="tw:p-6 tw:bg-slate-50 tw:rounded-full tw:mb-6">
+              <User size={48} className="tw:text-slate-300" />
+            </div>
+            <h3 className="tw:text-xl tw:font-bold tw:text-slate-900">No matches found</h3>
+            <p className="tw:text-slate-500 tw:mt-2 tw:text-center tw:max-w-xs">
+              Try adjusting your search terms or filters to find what you're looking for.
+            </p>
+          </div>
+        ) : (
+          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:lg:grid-cols-3 tw:xl:grid-cols-4 tw:gap-6">
+            {rowData.map((user) => (
+              <DirectoryCard
+                key={user.id}
+                user={user}
+                onClick={() => openViewUserModal(user)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Footer / Pagination */}
+        <div className="tw:mt-2 tw:bg-white tw:rounded-[14px]  tw:shadow-sm tw:border tw:border-slate-200/60">
           <GridFooter
             pageIndex={pageIndex}
             pageSize={pageSize}
@@ -250,5 +184,7 @@ const CompanyDirectory: React.FC = () => {
     </div>
   );
 };
+
+
 
 export default CompanyDirectory;
