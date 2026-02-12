@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, User, Clock, MapPin, Building } from 'lucide-react';
 import { Avatar } from './Avatar';
-import { Visitor } from '../types/host-dashboard.types';
+import type { VisitorVisit } from '../api/hoastDashboard.types'
+import type { VisitorDetail } from '@/features/visitor-detail/api/visitorDetail.types';
 
 interface HoverCardProps {
-    visitor: Visitor;
+    visitor: VisitorDetail;
     isUpcoming: boolean;
     anchorRect: { clientX: number; clientY: number } | null;
     containerRef: React.RefObject<HTMLDivElement>;
