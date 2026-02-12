@@ -129,7 +129,7 @@ export const MAIN_MENU: SidebarItem[] = [
         path: '/admin/admin/work_area/locations/list',
         condition: (ctx) => ctx.isGlobalAdmin,
         testid: 'nav-locations',
-        action :'GO_TO_LOCATION'
+        // action :'GO_TO_LOCATION'
     },
     {
         title: 'Evacuation & Emergency',

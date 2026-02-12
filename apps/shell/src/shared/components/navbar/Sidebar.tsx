@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronRight, Menu } from 'lucide-react';
 import { useSidebarStore } from './useSidebarStore';
@@ -186,15 +186,38 @@ export const Sidebar: React.FC = () => {
     const context = useSidebarPermissions();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const handler = (event: any) => {
+            const path = event.detail.pathname;
+            // update location 
+            const match = path.match(
+                /^\/admin\/work_area\/locations(\/(?!list$).*)?$/
+            );
+            if (match) {
+                setLocationMode(true);
+            }
+        };
+        window.addEventListener('angular:navigation', handler);
+        return () => {
+            window.removeEventListener('angular:navigation', handler);
+        };
+    }, []);
+
     const handleAction = (action: string) => {
         if (action === 'BACK_TO_LOCATIONS') {
             setLocationMode(false);
             navigate('/admin/admin/work_area/locations/list');
+            //dispatch a custom event to angular
+            window.dispatchEvent(
+                new CustomEvent('host:navigation', {
+                    detail: { pathname: '/admin/admin/work_area/locations/list' },
+                })
+            );
         }
-        if (action == 'GO_TO_LOCATION') {
-            setLocationMode(true);
-            navigate('/admin/admin/work_area/locations/list');
-        }
+        // if (action == 'GO_TO_LOCATION') {
+        //     setLocationMode(true);
+        //     navigate('/admin/admin/work_area/locations/list');
+        // }
     };
 
     const getMenuItems = () => {
