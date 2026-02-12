@@ -1,8 +1,22 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePreRegistrationForm } from "../../hooks/use-preregistration";
 import { format } from "date-fns";
-import { Button, cn, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Radio, SearchUserSelect, Select } from "@visitly/ui";
-import { CalendarIcon } from "lucide-react";
+import {
+  Button,
+  cn,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Radio,
+  SearchUserSelect,
+  Select,
+  Checkbox,
+} from "@visitly/ui";
+import { getIn } from "formik";
 
 interface PreRegistrationModalProps {
   isOpen: boolean;
@@ -11,326 +25,485 @@ interface PreRegistrationModalProps {
   visitId?: string;
 }
 
+const EXCLUDED_DYNAMIC_FILEDS = ['Point of Entry', 'Building', 'Parking Lot', 'Host'];
+
 export const PreRegistrationModal: React.FC<PreRegistrationModalProps> = ({
   isOpen,
   onClose,
   status,
   visitId,
 }) => {
-  const { form, setFormField, setCustomField, resetForm, siteOptions, visitorTypeOptions, hostOptions, setHostSearch, coHostOptions, setCoHostSearch, visitorTypeFields } = usePreRegistrationForm();
-
+  const {
+    form,
+    setFormField,
+    resetForm,
+    formik,
+    siteOptions,
+    visitorTypeOptions,
+    hostOptions,
+    setHostSearch,
+    coHostOptions,
+    setCoHostSearch,
+    visitorTypeFields,
+    preScreenStatus,
+    handlePreScreen,
+    isPreScreening,
+    matchedRule,
+    isSaving,
+    // Use options from hook
+    poeData,
+    parkingData,
+    destData
+  } = usePreRegistrationForm(visitId, onClose, status);
   const [timeOptions, setTimeOptions] = useState<{ label: string; value: string }[]>([]);
 
+  // Removed local data fetching hooks as they are now in usePreRegistrationForm
 
-  // ── Fetch Sites & Visitor Types ─────────────────────────────────────────────
-  // useEffect(() => {
-  //   if (!isOpen) return;
-
-    // if (form.siteId) {
-      // api.get('/visitor-types', { siteId: form.siteId, status: 'ACTIVE' }).then((data) => {
-      // setVisitorTypes(data.results || []);
-      // });
-    // }
-  // }, [isOpen, form.siteId]);
-
-  // ── Fetch Pre-registration data on Update ───────────────────────────────────
-  // useEffect(() => {
-  //   if (status === 'Update' && visitId && isOpen) {
-      // api.get(`/preregistrations/${visitId}`).then((data) => {
-      //   // Prefill form
-      //   setFormField('siteId', data.siteId);
-      //   setFormField('visitorTypeId', data.visitorTypeId);
-      //   setFormField('scheduleCheckinDate', data.scheduleCheckinDate ? new Date(data.scheduleCheckinDate) : null);
-      //   setFormField('scheduleCheckoutDate', data.scheduleCheckoutDate ? new Date(data.scheduleCheckoutDate) : null);
-      //   setFormField('recurrenceType', data.recurrenceType || 'NONE');
-      //   setFormField('hostUserId', data.hostUserId);
-      //   setFormField('groupName', data.groupName);
-      //   setFormField('internalNote', data.internalNote);
-      //   setFormField('notifyVisitFlag', !!data.notifyVisitFlag);
-      //   setFormField('notifyHostFlag', !!data.notifyHostFlag);
-      //   setFormField('cohostUserIds', data.cohostUserIds || []);
-      //   // Custom fields prefill would go here
-      // });
-  //   } else if (status === 'Create') {
-  //     resetForm();
-  //   }
-  // }, [status, visitId, isOpen, setFormField, resetForm]);
-
-  // ── Generate Time Options (15-min intervals) ────────────────────────────────
-  // useEffect(() => {
-  //   const opts: typeof timeOptions = [];
-  //   for (let h = 0; h < 24; h++) {
-  //     for (let m = 0; m < 60; m += 15) {
-  //       const hour = h % 12 || 12;
-  //       const ampm = h < 12 ? 'AM' : 'PM';
-  //       const hh = h.toString().padStart(2, '0');
-  //       const mm = m.toString().padStart(2, '0');
-  //       opts.push({ label: `${hour}:${mm} ${ampm}`, value: `${hh}:${mm}` });
-  //     }
-  //   }
-  //   setTimeOptions(opts);
-  // }, []);
-
-  // ── Form Submit ─────────────────────────────────────────────────────────────
-  const handleSave = async () => {
-    const payload = {
-      ...form,
-      scheduleCheckinDate: form.scheduleCheckinDate
-        ? format(form.scheduleCheckinDate, "yyyy-MM-dd'T'HH:mm:ss")
-        : null,
-      scheduleCheckoutDate: form.scheduleCheckoutDate
-        ? format(form.scheduleCheckoutDate, "yyyy-MM-dd'T'HH:mm:ss")
-        : null,
-      // preregisterVisitCustomFieldModels: visitorTypeFields
-      //   .filter((f) => f.isPreregistrationOnly)
-      //   .map((f) => ({
-      //     name: f.name,
-      //     orgCustomFieldId: f.orgCustomFieldId!,
-      //     visitTypeFieldId: f.id,
-      //     value: f.value ?? '',
-      //   })),
-      checkinMethod: 'WEB',
-    };
-
-    try {
-      if (status === 'Create') {
-        // await api.post('/preregistrations', payload);
-        // toast.success('Visit added successfully');
-      } else if (visitId) {
-        // await api.patch(`/preregistrations/${visitId}?updateType=SELECTED_VISIT`, payload);
-        // toast.success('Visit updated successfully');
+  useEffect(() => {
+    const opts: typeof timeOptions = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        const hour = h % 12 || 12;
+        const ampm = h < 12 ? 'AM' : 'PM';
+        const hh = h.toString().padStart(2, '0');
+        const mm = m.toString().padStart(2, '0');
+        opts.push({ label: `${hour}:${mm} ${ampm}`, value: `${hh}:${mm}` });
       }
-      resetForm();
-      onClose();
-    } catch (err) {
-      // toast.error('Failed to save visit');
-      console.error(err);
     }
+    setTimeOptions(opts);
+  }, []);
+
+
+  // const handleSave = async () => {
+  //   setIsSaving(true);
+  //   try {
+  //     const payload = preparePayload();
+  //     if (status === 'Create') {
+  //       await createPreregistration(payload);
+  //     } else if (visitId) {
+  //       await updatePreregistration(visitId, 'SELECTED_VISIT', payload);
+  //     }
+  //     queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+  //     resetForm();
+  //     onClose();
+
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setIsSaving(false);
+  //   }
+  // };
+
+  const repeatOptions = [
+    { label: 'Does Not Repeat', value: 'NONE' },
+    { label: 'Daily', value: 'DAILY' },
+    { label: 'Weekly', value: 'WEEKLY' },
+    { label: 'Monthly', value: 'MONTHLY' },
+    { label: 'Annually', value: 'ANNUALLY' },
+    { label: 'Weekdays (Mon–Fri)', value: 'WEEKDAY' },
+  ];
+
+  const renderDynamicField = (field: any, index: number) => {
+    // We now have the field directly from local form state, which includes type, options, etc.
+    const fieldName = `preregisterVisitCustomFieldModels[${index}].value`;
+    const errorPath = `preregisterVisitCustomFieldModels[${index}].value`;
+    const fieldError = getIn(formik.errors, errorPath);
+    const isTouched = getIn(formik.touched, errorPath);
+    const value = field.value || '';
+
+    if (field.name === 'Point of Entry') {
+      return (<div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+        <Select
+          options={(poeData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || []}
+          value={form.poeId || ''}
+          onChange={(e: any) => {
+            setFormField('poeId', e.target.value);
+            // Update the array value too so dynamic validation passes
+            formik.setFieldValue(fieldName, e.target.value);
+          }}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          name="poeId"
+          required={field.isMandatoryForPreregistration}
+          label="Point of Entry"
+          error={isTouched ? fieldError : undefined}
+        />
+      </div>)
+    }
+    if (field.name === 'Building') {
+      return <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+        <Select
+          options={(destData as any)?.results?.map((d: any) => ({ label: d.name, value: d.id })) || []}
+          value={form.buildingId || ''}
+          onChange={(e: any) => {
+            setFormField('buildingId', e.target.value);
+            formik.setFieldValue(fieldName, e.target.value);
+          }}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          name="buildingId"
+          label="Building / Destination"
+          required={field.isMandatoryForPreregistration}
+          error={isTouched ? fieldError : undefined}
+        />
+      </div>
+
+    }
+    if (field.name === 'Parking Lot') {
+      return (<div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+        <Select
+          options={(parkingData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || []}
+          value={form.parkingLotId || ''}
+          onChange={(e: any) => {
+            setFormField('parkingLotId', e.target.value);
+            formik.setFieldValue(fieldName, e.target.value);
+          }}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          name="parkingLotId"
+          label="Parking Lot"
+          required={field.isMandatoryForPreregistration}
+          error={isTouched ? fieldError : undefined}
+        />
+      </div>)
+    }
+    if (field.name === 'Host') {
+        return (
+          <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+            <Label required={field.isMandatoryForPreregistration}>Host</Label>
+            <SearchUserSelect
+              options={hostOptions}
+              onSearch={setHostSearch}
+              value={hostOptions.filter(opt => opt.value == form.hostUserId)}
+              onChange={(opt) => {
+                if (Array.isArray(opt)) {
+                  setFormField('hostUserId', opt[0]?.value || null);
+                  setFormField('hostEmail', opt[0]?.email || '');
+                  formik.setFieldValue(fieldName, opt[0]?.value || '');
+                } else {
+                  setFormField('hostUserId', opt?.value || null);
+                  setFormField('hostEmail', opt?.email || '');
+                  formik.setFieldValue(fieldName, opt?.value || '');
+                }
+              }}
+              placeholder="Search host"
+              error={isTouched ? fieldError : undefined}
+            />
+          </div>
+        );
+    }
+
+    if (field.type === 'TEXT') {
+      return (
+        <Input
+          key={field.orgCustomFieldId}
+          label={field.name}
+          name={fieldName}
+          placeholder={field.displayText}
+          required={field.isMandatoryForPreregistration}
+          error={isTouched ? fieldError : undefined}
+          value={value}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+        />
+      );
+    }
+
+    if (field.type === 'DROPDOWN') {
+      return (
+        <Select
+          key={field.orgCustomFieldId}
+          label={field.name}
+          required={field.isMandatoryForPreregistration}
+          options={
+            field.options?.map((o: any) => ({
+              label: o.label,
+              value: o.value
+            })) || []
+          }
+          value={value}
+          onChange={(e) => formik.setFieldValue(fieldName, e.target.value)}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          error={isTouched ? fieldError : undefined}
+        />
+      );
+    }
+
+    if (field.type === 'RADIO') {
+      return (
+        <div className="tw:flex tw:gap-4" key={field.orgCustomFieldId}>
+          <Label>{field.name} {field.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}</Label>
+          {field.options?.map((o: any) => (
+            <div key={o.value} className="tw:flex tw:items-center tw:gap-2">
+              <Radio
+                label={o.label}
+                checked={value === o.value}
+                required={field.isMandatoryForPreregistration}
+                onChange={() => {
+                  formik.setFieldValue(fieldName, o.value);
+                  formik.setFieldTouched(fieldName, true);
+                }}
+              />
+            </div>
+          ))}
+          {isTouched && fieldError && <p className="tw:text-xs tw:text-red-500">{fieldError}</p>}
+        </div>
+      );
+    }
+
+    if (field.type === 'DATEPICKER') {
+      return (
+        <Input
+          key={field.orgCustomFieldId}
+          type="date"
+          label={field.name}
+          required={field.isMandatoryForPreregistration}
+          value={value ? format(new Date(value), 'yyyy-MM-dd') : ''}
+          onChange={(e) => formik.setFieldValue(fieldName, e.target.value ? new Date(e.target.value).toISOString() : '')}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          error={isTouched ? fieldError : undefined}
+        />
+      );
+    }
+
+    // Default fallback
+    return (
+      <Input
+        key={field.orgCustomFieldId}
+        type={(field.type || 'text').toLowerCase()}
+        placeholder={field.displayText}
+        label={field.name}
+        name={fieldName}
+        required={field.isMandatoryForPreregistration}
+        value={value}
+        onChange={formik.handleChange}
+        onBlur={formik.handleBlur}
+        error={isTouched ? fieldError : undefined}
+      />
+    );
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
-  console.log('Form state', siteOptions);
+  console.log('Rendering PreRegistrationModal with form state:', formik);
+
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         onClose={onClose}
-        className="tw:max-w-2xl tw:p-0 tw:overflow-hidden tw:rounded-xl tw:shadow-xl"
-        style={{ "width": "1112px", "maxWidth": "unset" }}
+        className="tw:max-w-3xl  tw:min-w-300 tw:w-full tw:min-h-[60vh] tw:p-0 tw:overflow-hidden tw:rounded-xl"
       >
-        {/* Header */}
-        <DialogHeader className="tw:flex tw:flex-row tw:items-center tw:justify-between tw:px-6 tw:py-4 tw:border-b tw:border-gray-400">
-          <DialogTitle className="tw:text-lg tw:font-semibold">
-            Pre-Registration
+        <DialogHeader className="tw:px-6 tw:py-4 tw:border-b tw:border-gray-200">
+          <DialogTitle className="tw:text-xl tw:font-bold">
+          {status}  Pre-Registration
           </DialogTitle>
         </DialogHeader>
-        {/* Body */}
-        <div className="tw:flex-1 tw:overflow-y-auto tw:py-3">
-          {/* Form */}
-          <form className="tw:px-6 tw:py-6  md:tw:grid-cols-2 tw:gap-6 tw:grid tw:grid-cols-2" >
+        <form onSubmit={formik.handleSubmit}>
 
-            {/* Site */}
-            <div className="tw-space-y-1.5">
-              <label className="tw:text-sm tw:font-medium">Site</label>
-              <Select
-                value={form.siteId}
-                options={siteOptions ?? []}
-                onChange={(e) => setFormField("siteId", e.target.value)}
-              />
-            </div>
+          <div className="tw:p-6 tw:space-y-6 tw:max-h-[80vh] tw:overflow-y-auto tw:flex-1">
+            <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+              {/* Left Column: Core Selection & Contacts */}
+              <div className="tw:space-y-1.5">
+                <Label className="tw:required" required >Location</Label>
+                <Select
+                  value={form.siteId}
+                  options={siteOptions}
+                  onChange={(e) => {
+                    setFormField('siteId', e.target.value);
+                    setFormField('visitorTypeId', '');
+                  }}
+                />
+              </div>
 
-            {/* Visitor Type */}
-            <div className="tw-space-y-1.5">
-              <label className="tw:text-sm tw:font-medium">Visitor Type</label>
-              <Select
-                value={form.visitorTypeId}
-                options={visitorTypeOptions ?? []}
-                disabled={!form.siteId}
-                onChange={(e) => setFormField("visitorTypeId", e.target.value)}
-              />
-            </div>
+              <div className="tw:space-y-4">
 
-            {/* Host – full width */}
-            <div className="tw-space-y-1.5 md:tw:col-span-2">
-              <label className="tw:text-sm tw:font-medium">Host</label>
-              <SearchUserSelect
-                options={hostOptions}
-                onChange={(option) => {
-                  setFormField('hostUserId', option?.value || null);
-                }}
-                onSearch={setHostSearch}
-                placeholder="Search host by name or email"
-              />
-
-            </div>
-            <div className="tw-space-y-1.5 md:tw:col-span-2">
-              <label className="tw:text-sm tw:font-medium">Co Host</label>
-              <SearchUserSelect
-                options={coHostOptions}
-                onChange={(option) => {
-                  if (option?.value) {
-                    setFormField('cohostUserIds', [option.value]);
-                  }
-                }}
-                onSearch={setCoHostSearch}
-                placeholder="Search co-host by name or email"
-              />
-
-            </div>
-
-            {visitorTypeFields && visitorTypeFields.fields?.filter((field) => field.isPreregistrationOnly)
-              .map((field) => (
-                <div
-                  // key={field.fid}
-                  className={cn(
-                    'tw:space-y-1.5',
-                    // Full width for some fields if needed
-                    ['Point of Entry', 'Building', 'Parking Lot'].includes(field.name) && 'md:tw:col-span-2'
-                  )}
-                >
-                  <Label className="tw:text-sm tw:font-medium">
-                    {field.name}
-                    {field.isMandatoryForPreregistration && <span className="tw:text-red-600">*</span>}
-                  </Label>
-
-                  {/* ── TEXT ────────────────────────────────────────────────────────────── */}
-                  {field.type === 'TEXT' && (
-                    <Input
-                      // value={field.value || ''}
-                      onChange={(e) => {
-                        // Update local field + form state
-                        // setVisitorTypeFields((prev) =>
-                        //   prev.map((f) => (f.fid === field.fid ? { ...f, value: e.target.value } : f))
-                        // );
-                        // setCustomField(field.orgCustomFieldId || field.fid, e.target.value);
-                      }}
-                      // disabled={status === 'Update' && isPrefilledVisit}
-                      placeholder={field.displayText || field.name}
-                      className={cn(
-                        'tw:w-full',
-                        field.isMandatoryForPreregistration && 'tw:border-red-500'
-                      )}
+                {form.siteId && (
+                  <div className="tw:space-y-1.5">
+                    <Label className="tw:required" required>Visitor Type</Label>
+                    <Select
+                      value={form.visitorTypeId}
+                      options={visitorTypeOptions}
+                      onChange={(e) => setFormField('visitorTypeId', e.target.value)}
                     />
-                  )}
+                  </div>
+                )}
+              </div>
 
-                  {/* ── NUMBER (Phone) ──────────────────────────────────────────────────── */}
-                  {field.type === 'NUMBER' && (
+
+            </div>
+            {/* Right Column: Date & Time */}
+            {form.visitorTypeId && (
+              <div className="tw:space-y-4">
+                <div className="tw:grid tw:grid-cols-2 tw:gap-4">
+                  <div className="tw:space-y-1.5">
+                    <Label className="tw:required" required>Check-in Date</Label>
                     <Input
-                      type="tel"
-                      // value={field.value || ''}
-                      onChange={(e) => {
-                        // setVisitorTypeFields((prev) =>
-                        //   prev.map((f) => (f.fid === field.fid ? { ...f, value: e.target.value } : f))
-                        // );
-                        // setCustomField(field.orgCustomFieldId || field.fid, e.target.value);
-                      }}
-                      // disabled={status === 'Update' && isPrefilledVisit}
-                      placeholder={field.displayText || field.name}
+                      type="date"
+                      value={form.scheduleCheckinDate ? format(form.scheduleCheckinDate, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => setFormField('scheduleCheckinDate', e.target.value ? new Date(e.target.value) : null)}
                     />
+                  </div>
+                  <div className="tw:space-y-1.5">
+                    <Label className="tw:required" required>Check-in Time</Label>
+                    <Select
+                      value={form.scheduleCheckinTimeOnly || ''}
+                      options={timeOptions}
+                      onChange={(e) => setFormField('scheduleCheckinTimeOnly', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="tw:space-y-1.5">
+                  <Label>Repeats</Label>
+                  <Select
+                    value={form.recurrenceType}
+                    options={repeatOptions}
+                    onChange={(e) => setFormField('recurrenceType', e.target.value)}
+                  />
+                </div>
+
+                <div className="tw:grid tw:grid-cols-2 tw:gap-4">
+                  {form.recurrenceType == 'NONE' && (<div className="tw:space-y-1.5">
+                    <Label >Check-out Date</Label>
+                    <Input
+                      type="date"
+                      value={form.scheduleCheckoutDate ? format(form.scheduleCheckoutDate, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => setFormField('scheduleCheckoutDate', e.target.value ? new Date(e.target.value) : null)}
+                    />
+                  </div>
                   )}
-
-                  {/* ── DROPDOWN ────────────────────────────────────────────────────────── */}
-                  {field.type === 'DROPDOWN' && (
-                    <>
-                      <Select
-                        options={field.options?.map((opt) => ({ label: opt.label, value: opt.value })) || []}
-                        onChange={(val) => {
-                          // setVisitorTypeFields((prev) =>
-                          //   prev.map((f) => (f.fid === field.fid ? { ...f, value: val } : f))
-                          // );
-                          // setCustomField(field.orgCustomFieldId || field.fid, val);
-                          // Optional: logModel-like side effect
-                          if (field.name === 'Parking Lot') {
-                            // const selected = getDropdownOptions(field.name)?.find((o) => o.value === val);
-                            // if (selected) {
-                            // Update spots info if needed
-                            // }
-                          }
-                        }}
-                        disabled={status === 'Update'}
-                      >
-
-                      </Select>
-
-                      {/* Parking Lot spots info */}
-                      {/* {field.name === 'Parking Lot' && field.availableSpots !== undefined && (
-                      <div className="tw:mt-1 tw:text-sm tw:text-gray-600">
-                        <span className="tw:bg-green-100 tw:px-2 tw:py-0.5 tw:rounded">
-                          {field.availableSpots} Available
-                        </span>
-                        <span className="tw:ml-2 tw:bg-gray-100 tw:px-2 tw:py-0.5 tw:rounded">
-                          {field.totalSpots} Total
-                        </span>
-                      </div>
-                    )} */}
-                    </>
-                  )}
-
-                  {/* ── DATEPICKER ──────────────────────────────────────────────────────── */}
-                  {field.type === 'DATEPICKER' && (
-                    <div className="tw:relative">
+                  <div className="tw:space-y-1.5">
+                    <Label>Check-out Time</Label>
+                    <Select
+                      value={form.scheduleCheckoutTimeOnly || ''}
+                      options={timeOptions}
+                      onChange={(e) => setFormField('scheduleCheckoutTimeOnly', e.target.value)}
+                    />
+                  </div>
+                  {form.recurrenceType !== 'NONE' && (
+                    <div className="tw:space-y-1.5">
+                      <Label className="tw:required">Ends On</Label>
                       <Input
                         type="date"
-                        // value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                        onChange={(e) => {
-                          const date = e.target.value ? new Date(e.target.value) : null;
-                          // setVisitorTypeFields((prev) =>
-                          //   prev.map((f) => (f.fid === field.fid ? { ...f, value: date } : f))
-                          // );
-                          // setCustomField(field.orgCustomFieldId || field.fid, date);
-                        }}
-                        // disabled={status === 'Update' && isPrefilledVisit}
-                        className="tw:w-full"
-                        rightIcon={<CalendarIcon className="tw:h-4 tw:w-4" />}
+                        value={form.recurrenceEndDateOnly ? format(form.recurrenceEndDateOnly, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => setFormField('recurrenceEndDateOnly', e.target.value ? new Date(e.target.value) : null)}
                       />
                     </div>
                   )}
-                  {field.type === 'RADIO' && (
-                    <div className="tw:flex tw:flex-wrap tw:gap-4">
-                      {field.options?.map((opt) => (
-                        <div key={opt.value} className="tw:flex tw:items-center tw:gap-2">
-                          <Radio
-                            id={`${field.id}-${opt.value}`}
-                            name={opt.label}
-                            value={opt.value}
-                            // checked={fieldValue === opt.value}
-                            onChange={() => {
-                              // setVisitorTypeFields((prev) =>
-                              //   prev.map((f) => (f.fid === field.fid ? { ...f, value: opt.value } : f))
-                              // );
-                              // setCustomField(fieldId, opt.value);
-                            }}
-                            // disabled={isDisabled}
-                            className="tw:h-4 tw:w-4"
-                          />
-                          {/* <Label htmlFor={`${field.fid}-${opt.value}`}>{opt.label}</Label> */}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              ))}
-          </form>
-        </div>
-        {/* Footer */}
-        <DialogFooter className="tw:px-6 tw:py-4 tw:border-t tw:bg-gray-50 tw:border-gray-400">
-          <div className="tw:flex tw:justify-end tw:gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="tw:px-5 tw:text-sm"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="tw:px-6 tw:text-sm tw:font-semibold"
-            >
-              Save
-            </Button>
+              </div>
+            )}
+            {form.visitorTypeId && (
+              <>
+
+
+                <div className="tw:space-y-1.5">
+                  <Label>Co-Host(s)</Label>
+                  <SearchUserSelect
+                    options={coHostOptions}
+                    onSearch={setCoHostSearch}
+                    value={coHostOptions.filter(opt => (form.cohostUserIds || []).includes(opt.value))}
+                    onChange={(opt) => {
+                      if (Array.isArray(opt)) {
+                        setFormField('cohostUserIds', opt.map(o => o.value));
+                      } else if (opt) {
+                        const current = form.cohostUserIds || [];
+                        if (!current.includes(opt.value)) {
+                          setFormField('cohostUserIds', [...current, opt.value]);
+                        }
+                      }
+                    }}
+                    multi={true}
+                    placeholder="Search co-hosts"
+                  />
+                </div>
+              </>
+            )}
+            {form.visitorTypeId && (
+              <>
+                <hr className="tw:border-gray-100" />
+
+                {/* Dynamic Fields & Mega Location - Render directly from synchronized form state */}
+                <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  {form.preregisterVisitCustomFieldModels.map((field, index) => renderDynamicField(field, index))}
+                </div>
+
+                <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  <Input
+                    type="text"
+                    name="groupName"
+                    label="Group Name"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={form.groupName}
+                  />
+                  <Input
+                    name="internalNote"
+                    label="Internal Note"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={form.internalNote}
+                  />
+                </div>
+                <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <Checkbox
+                      checked={form.notifyVisitFlag}
+                      onChange={(e: any) => setFormField('notifyVisitFlag', e)}
+                      label="Send Email to Visitor"
+                    />
+                  </div>
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <Checkbox
+                      checked={form.notifyHostFlag}
+                      onChange={(e: any) => setFormField('notifyHostFlag', e)}
+                      label="Send Email to Host"
+                    />
+                  </div>
+                </div>
+                <div className="tw:grid tw:gap-6">
+
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <Checkbox
+                      checked={form.shouldPrefill}
+                      onChange={(e: any) => setFormField('shouldPrefill', e)}
+                      label="Allow Visitor to submit information before Arrival"
+                    />
+                  </div>
+                </div>
+                {preScreenStatus === 'SAFE' && (
+                  <div className="tw:bg-green-50 tw:border tw:border-green-200 tw:p-3 tw:rounded tw:text-sm tw:text-green-800">
+                    No watchlist matches found.
+                  </div>
+                )}
+                {preScreenStatus === 'WATCHLIST_HIT' && (
+                  <div className="tw:bg-yellow-50 tw:border tw:border-yellow-200 tw:p-3 tw:rounded tw:text-sm tw:text-yellow-800">
+                    Watchlist match found: {matchedRule}. Please review record before saving.
+                  </div>
+                )}
+
+              </>
+            )}
+
+
+
+            <DialogFooter className="tw:px-6 tw:py-4 tw:border-t tw:bg-gray-50 tw:gap-3 tw:flex tw:justify-end">
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handlePreScreen}
+                isLoading={isPreScreening}
+              >
+                Pre-screen
+              </Button>
+              <Button
+                type="submit"
+                isLoading={isSaving}
+              // disabled={!formik.isValid || !form.visitorTypeId}
+              >
+                Save
+              </Button>
+            </DialogFooter>
           </div>
-        </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
-
   );
 };

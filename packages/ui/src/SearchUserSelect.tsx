@@ -1,6 +1,6 @@
 // packages/ui/src/components/SearchUserSelect.tsx
 import React, { type ReactNode } from 'react';
-import AsyncSelect from 'react-select/async';
+import Select from 'react-select';
 import { cn } from './utils';
 
 export interface UserOption {
@@ -13,16 +13,16 @@ export interface UserOption {
 
 export interface SearchUserSelectProps {
     options: UserOption[];               // ← passed from parent (React Query data)
-    value?: UserOption | null;
-    onChange: (option: UserOption | null) => void;
+    value?: UserOption | UserOption[] | null;
+    onChange: (option: UserOption | UserOption[] | null) => void;
     placeholder?: string;
     className?: string;
     isLoading?: boolean;                 // ← from useQuery isLoading
     isDisabled?: boolean;
     error?: string;
     noOptionsMessage?: (inputValue: string) => ReactNode;
-   onSearch?: (inputValue: string) => void;
-
+    onSearch?: (inputValue: string) => void;
+    multi?: boolean;
 }
 
 export const SearchUserSelect = ({
@@ -35,21 +35,21 @@ export const SearchUserSelect = ({
     isDisabled = false,
     error,
     noOptionsMessage = (inputValue: string) => inputValue.length < 3 ? <div className="text-sm text-gray-500">Type at least 3 characters...</div> : <div className="text-sm text-gray-500">No users found</div>,
-    onSearch
+    onSearch,
+    multi = false,
 }: SearchUserSelectProps) => {
     return (
         <div className={cn('tw:space-y-1', className)}>
-            <AsyncSelect<UserOption>
-                cacheOptions
-                defaultOptions={options} 
-                loadOptions={(inputValue, callback) => {
-                    const filtered = options.filter((opt) =>
-                        opt.label.toLowerCase().includes(inputValue.toLowerCase())
-                    );
-                    callback(filtered);
-                }}
+            <Select<UserOption, typeof multi>
+                options={options}
                 value={value}
-                onChange={onChange}
+                onChange={(selected) => {
+                  if (multi) {
+                    onChange(selected as UserOption[]);
+                  } else {
+                    onChange(selected as UserOption | null);
+                  }
+                }}
                 placeholder={placeholder}
                 isDisabled={isDisabled || isLoading}
                 isClearable
@@ -58,6 +58,7 @@ export const SearchUserSelect = ({
                 loadingMessage={() => 'Searching...'}
                 isLoading={isLoading}
                 classNamePrefix="react-select"
+                isMulti={multi}
                 styles={{
                     control: (base) => ({
                         ...base,
@@ -106,9 +107,13 @@ export const SearchUserSelect = ({
                     if (action === 'input-change') {
                         onSearch?.(inputValue);
                     }
-                    return inputValue;
                 }}
-
+                filterOption={(candidate, input) => {
+                    if (input) {
+                        return candidate.label.toLowerCase().includes(input.toLowerCase());
+                    }
+                    return true;
+                }}
             />
 
             {error && <p className="tw:text-sm tw:text-red-600 tw:mt-1">{error}</p>}
