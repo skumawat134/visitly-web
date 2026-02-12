@@ -46,6 +46,7 @@ export function NavigationResolver() {
       ) {
         return;
       }
+      debugger
       const redirect =
         new URLSearchParams(location.search).get('redirect') ||
         sessionStorage.getItem('redirect_after_login');

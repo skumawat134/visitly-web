@@ -22,7 +22,6 @@ const SidebarItemComponent: React.FC<{
 }> = ({ item, context, isCollapsed, onAction }) => {
     const [isOpen, setIsOpen] = useState(false);
     const Icon = item.icon;
-    const navigate = useNavigate();
     const location = useLocation();
 
     // Condition check

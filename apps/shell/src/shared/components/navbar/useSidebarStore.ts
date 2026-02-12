@@ -3,24 +3,31 @@ import { create } from 'zustand';
 interface SidebarState {
     isLocationMode: boolean;
     isCollapsed: boolean;
-    excludedRoutes: string[];
+    excludedSidbarRoutes: string[];
+    excludedHeaderRoutes: string[];
     setLocationMode: (mode: boolean) => void;
     toggleCollapse: () => void;
     setCollapsed: (collapsed: boolean) => void;
-    setExcludedRoutes: (routes: string[]) => void;
-    isExcluded: (route: string) => boolean;
+    setSidebarExcludedRoutes: (routes: string[]) => void;
+    isHeaderExcluded: (route: string) => boolean;
+    isSidbarExcluded: (route: string) => boolean;
 }
 
 export const useSidebarStore = create<SidebarState>((set, get) => ({
     isLocationMode: false,
     isCollapsed: false,
-    excludedRoutes: ['/onboarding', '/admin/onboarding'],
+    excludedHeaderRoutes: ['/onboarding', '/admin/onboarding', '/admin/internalAdmin/org-list'],
+    excludedSidbarRoutes: ['/onboarding', '/admin/onboarding', '/admin/internalAdmin/org-list'],
     setLocationMode: (mode) => set({ isLocationMode: mode }),
     toggleCollapse: () => set((state) => ({ isCollapsed: !state.isCollapsed })),
     setCollapsed: (collapsed) => set({ isCollapsed: collapsed }),
-    setExcludedRoutes: (routes) => set({ excludedRoutes: routes }),
-    isExcluded: (route) => {
-        const { excludedRoutes } = get();
-        return excludedRoutes.some(excluded => route.startsWith(excluded));
+    setSidebarExcludedRoutes: (routes) => set({ excludedSidbarRoutes: routes }),
+    isHeaderExcluded: (route) => {
+        const { excludedHeaderRoutes } = get();
+        return excludedHeaderRoutes.some(excluded => route.startsWith(excluded));
     },
+    isSidbarExcluded: (route) => {
+        const { excludedSidbarRoutes } = get();
+        return excludedSidbarRoutes.some(excluded => route.startsWith(excluded));
+    }
 }));

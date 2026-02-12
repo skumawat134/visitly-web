@@ -7,7 +7,6 @@ export const useSidebarPermissions = (): SidebarContext => {
         const userinfoStr = sessionStorage.getItem('userinfo');
         const userDetail = userinfoStr ? JSON.parse(userinfoStr) : null;
         const roles = userDetail?.roles || [];
-       console.log('User roles from session storage:', roles);
         const isGlobalAdmin = roles.some((x: any) => x.role === 'GLOBAL_ORG_ADMIN') || roles.some((x: any) => x.role === 'SITE_ADMIN');
         // Note: Angular logic says checkGlobalAdmin is true for SITE_ADMIN too?
         // Let's re-verify Angular code.
