@@ -36,6 +36,7 @@ export interface SidebarItem {
     // If provided, item is only shown if this function returns true
     condition?: (context: SidebarContext) => boolean;
     testid?: string;
+    isActive?: (path: string) => boolean;
 }
 
 export interface SidebarContext {

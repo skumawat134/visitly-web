@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronRight, Menu } from 'lucide-react';
 import { useSidebarStore } from './useSidebarStore';
 import { useSidebarPermissions } from './useSidebarPermissions';
@@ -23,6 +23,7 @@ const SidebarItemComponent: React.FC<{
     const [isOpen, setIsOpen] = useState(false);
     const Icon = item.icon;
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Condition check
     if (item.condition && !item.condition(context)) return null;
@@ -39,11 +40,41 @@ const SidebarItemComponent: React.FC<{
         }
     };
 
-    const linkClass = ({ isActive }: { isActive: boolean }) => `
+    // Custom active check
+    const isItemActive = (reactActive: boolean, path?: string) => {
+        // 1. React Router active
+        // if (reactActive) return true;
+
+        // 2. Custom isActive function from config
+        if (item.isActive && item.isActive(location.pathname)) return true;
+
+        // 3. Fallback: Check if current location starts with the item's path (for Angular routes)
+        // Ensure path is defined and not just '#' or empty
+        if (path && path !== '#' && location.pathname.startsWith(path)) return true;
+
+        // 4. Check if any child is active (Recursive)
+        const isAnyChildActive = (children?: SidebarItem[]): boolean => {
+            if (!children) return false;
+            return children.some(child => {
+                if (child.isActive && child.isActive(location.pathname)) return true;
+                if (child.path && child.path !== '#' && location.pathname.startsWith(child.path)) return true;
+                if (child.children) return isAnyChildActive(child.children);
+                return false;
+            });
+        }
+
+        if (isAnyChildActive(item.children)) return true;
+
+        return false;
+    };
+
+    const linkClass = ({ isActive }: { isActive: boolean }) => {
+        const active = isItemActive(isActive, item.path);
+        return `
     tw:flex tw:items-center tw:transition-all tw:duration-200 tw:relative tw:outline-none tw:no-underline tw:group
     ${isCollapsed ? 'tw:justify-center tw:py-4' : 'tw:justify-between tw:px-4 tw:py-3'}
-    ${isActive && !item.action ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! tw:hover:bg-indigo-50! tw:hover:text-indigo-700!'}
-  `;
+    ${active && !item.action ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! tw:hover:bg-indigo-50! tw:hover:text-indigo-700!'}
+  `};
 
     return (
         <div className="tw:relative tw:group">
@@ -53,30 +84,33 @@ const SidebarItemComponent: React.FC<{
                 className={linkClass}
                 data-testid={item.testid}
             >
-                {({ isActive }) => (
-                    <>
-                        {isActive && !item.action && !isCollapsed && (
-                            <div className="tw:absolute tw:left-0 tw:top-0 tw:bottom-0 tw:w-1 tw:bg-indigo-600" />
-                        )}
-                        <div className="tw:flex tw:items-center tw:gap-3 tw:group">
-                            {Icon && (
-                                <Icon
-                                    size={isCollapsed ? 24 : 20}
-                                    strokeWidth={2}
-                                    className={`${isActive && !item.action ? 'tw:text-indigo-600!' : 'tw:text-[#5e5e5e]! group-hover:tw:text-indigo-600!'} tw:group-hover:bg-indigo-50! tw:group-hover:text-indigo-700!`}
+                {({ isActive }) => {
+                    const active = isItemActive(isActive, item.path);
+                    return (
+                        <>
+                            {active && !item.action && !isCollapsed && (
+                                <div className="tw:absolute tw:left-0 tw:top-0 tw:bottom-0 tw:w-1 tw:bg-indigo-600" />
+                            )}
+                            <div className="tw:flex tw:items-center tw:gap-3 tw:group">
+                                {Icon && (
+                                    <Icon
+                                        size={isCollapsed ? 24 : 20}
+                                        strokeWidth={2}
+                                        className={`${active && !item.action ? 'tw:text-indigo-600!' : 'tw:text-[#5e5e5e]! group-hover:tw:text-indigo-600!'} tw:group-hover:bg-indigo-50! tw:group-hover:text-indigo-700!`}
+                                    />
+                                )}
+                                {!isCollapsed && <span className="tw:text-sm tw:font-medium">{item.title}</span>}
+                            </div>
+
+                            {!isCollapsed && hasChildren && (
+                                <ChevronRight
+                                    size={14}
+                                    className={`tw:transition-transform tw:duration-200 ${isOpen ? 'tw:rotate-90' : ''}`}
                                 />
                             )}
-                            {!isCollapsed && <span className="tw:text-sm tw:font-medium">{item.title}</span>}
-                        </div>
-
-                        {!isCollapsed && hasChildren && (
-                            <ChevronRight
-                                size={14}
-                                className={`tw:transition-transform tw:duration-200 ${isOpen ? 'tw:rotate-90' : ''}`}
-                            />
-                        )}
-                    </>
-                )}
+                        </>
+                    )
+                }}
             </NavLink>
 
             {/* Submenu */}
@@ -87,11 +121,17 @@ const SidebarItemComponent: React.FC<{
                             <NavLink
                                 key={child.title}
                                 to={child.path || '#'}
-                                className={({ isActive }) => `
+                                className={({ isActive }) => {
+                                    // Submenu item active check
+                                    const active = isActive ||
+                                        (child.isActive && child.isActive(location.pathname)) ||
+                                        (child.path && child.path !== '#' && location.pathname.startsWith(child.path));
+
+                                    return `
                   tw:block tw:pl-12 tw:pr-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
-                  ${isActive ? 'tw:text-indigo-700! tw:font-semibold' : 'tw:text-gray-500! hover:tw:text-indigo-700!'}
+                  ${active ? 'tw:text-indigo-700! tw:font-semibold' : 'tw:text-gray-500! hover:tw:text-indigo-700!'}
                   tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
-                `}
+                `}}
                                 data-testid={child.testid}
                             >
                                 {child.title}
@@ -120,11 +160,16 @@ const SidebarItemComponent: React.FC<{
                                 <NavLink
                                     key={child.title}
                                     to={child.path || '#'}
-                                    className={({ isActive }) => `
+                                    className={({ isActive }) => {
+                                        const active = isActive ||
+                                            (child.isActive && child.isActive(location.pathname)) ||
+                                            (child.path && child.path !== '#' && location.pathname.startsWith(child.path));
+
+                                        return `
                      tw:block tw:px-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
-                     ${isActive ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
+                     ${active ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
                    tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
-                     `}
+                     `}}
                                 >
                                     {child.title}
                                 </NavLink>
