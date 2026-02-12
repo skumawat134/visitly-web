@@ -1,21 +1,25 @@
-import { AuthState, useAuthStore } from '@visitly/app-store';
+import { type AuthState, useAuthStore } from '@visitly/app-store';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-// import { canAccessRoute } from './routeAccess';
-// import { resolveLanding } from './resolveLanding';
+import { useSidebarPermissions } from '../shared/components/navbar/useSidebarPermissions';
+import { type SidebarContext } from '../shared/components/navbar/SidebarConfig';
 
 const SKIP_AUTH_PATHS = [
   '/permaVisits',
   '/admin/permaVisits',
   '/impersonate/user',
   '/admin/impersonate/user',
+  '/visitly/login',
+  '/visitly/signup',
+  '/visitly/forgot-password'
 ];
 
 export function NavigationResolver() {
   const status = useAuthStore(s => s.status);
-  const user = useAuthStore(s => s.user);
+  const permissions = useSidebarPermissions();
   const navigate = useNavigate();
   const location = useLocation();
+
   useEffect(() => {
     window.dispatchEvent(
       new CustomEvent('host:navigation', {
@@ -23,72 +27,94 @@ export function NavigationResolver() {
       })
     );
   }, [location.pathname]);
+
   useEffect(() => {
-    if (SKIP_AUTH_PATHS.some(path => location.pathname.startsWith(path))) {
-      return;
-    }
+    console.log('[NavResolver] Status:', status, '| Path:', location.pathname);
 
     if (status === 'checking') return;
-    const currentPath = location.pathname + location.search;
-    if (status === 'unauthenticated') {
-      if (!location.pathname.startsWith('/visitly')) {
-        sessionStorage.setItem('redirect_after_login', currentPath);
-        navigate('/visitly', { replace: true });
+
+    const isAuthPath = location.pathname.startsWith('/visitly');
+    const isRoot = location.pathname === '/' || location.pathname === '';
+
+    // Auth paths we should skip if UNAUTHENTICATED (don't force redirect to login)
+    const AUTH_LOGIN_PATHS = ['/visitly/login', '/visitly/signup', '/visitly/forgot-password'];
+    const isLoginPath = AUTH_LOGIN_PATHS.some(path => location.pathname.startsWith(path));
+
+    // 1. Authenticated Logic
+    if (status === 'authenticated') {
+      // const storedRedirect = sessionStorage.getItem('redirect_after_login');
+      const queryRedirect = new URLSearchParams(location.search).get('redirect');
+      const explicitRedirect = queryRedirect; 
+      // || storedRedirect;
+
+      // Handle Redirection from login/root to app
+      if (isAuthPath || isRoot) {
+        console.log('[NavResolver] Authenticated but on Auth/Root path. Resolving destination...');
+
+        // if (storedRedirect) {
+        //   sessionStorage.removeItem('redirect_after_login');
+        // }
+
+        if (explicitRedirect && !explicitRedirect.startsWith('/visitly') && explicitRedirect !== '/') {
+          console.log('[NavResolver] Deep linking to:', explicitRedirect);
+          navigate(explicitRedirect, { replace: true });
+          return;
+        }
+
+        const target = resolveLanding(permissions);
+        console.log('[NavResolver] Navigating to default landing:', target);
+        navigate(target, { replace: true });
+        return;
       }
+
+      // If already on internal path, just clear potential stale redirects and stay
+      // if (storedRedirect) {
+      //   sessionStorage.removeItem('redirect_after_login');
+      // }
       return;
     }
 
-    if (status === 'authenticated') {
-      // Already inside app → don't fight navigation
-      if (
-        location.pathname.startsWith('/admin') ||
-        location.pathname.startsWith('/internalAdmin')
-      ) {
+    // 2. Unauthenticated Logic
+    if (status === 'unauthenticated') {
+      // If we are on a public "skip" path or login path, stay there
+      const isPublicPath = SKIP_AUTH_PATHS.some(path => location.pathname.startsWith(path));
+      if (isPublicPath || isLoginPath || isAuthPath) {
         return;
       }
-      const redirect =
-        new URLSearchParams(location.search).get('redirect') ||
-        sessionStorage.getItem('redirect_after_login');
 
-      const target = redirect || resolveLanding({ user } as AuthState);
-
-      sessionStorage.removeItem('redirect_after_login');
-
-      if (location.pathname !== target) {
-        navigate(target, { replace: true });
+      // If on root or internal path, save current as redirect and go to login
+      const currentPath = location.pathname + location.search;
+      if (!isRoot) {
+        console.log('[NavResolver] Saving redirect path:', currentPath);
+        sessionStorage.setItem('redirect_after_login', currentPath);
       }
+
+      console.log('[NavResolver] Redirecting unauthenticated user to login');
+      navigate('/visitly/login', { replace: true });
     }
-  }, [status, user, location.pathname, location.search, navigate]);
+  }, [status, permissions, location.pathname, location.search, navigate]);
 
   return null;
 }
 
-function resolveLanding(auth: AuthState) {
-  // if (auth.capabilities.includes('ADMIN_DASHBOARD'))
-  //   return '/admin/dashboard';
-  // if (auth.capabilities.includes('VISITOR_DASHBOARD'))
-  //   return '/visitors';
-  // return '/unauthorized';
-  const roles = auth.user?.roles;
-  if (roles) {
-    if (roles.find(x => (x.role === 'GLOBAL_INTERNAL_ADMIN'))) {
-      return '/admin/internalAdmin/org-list';
-    }
-    else if (roles.find(x => (x.role === 'GLOBAL_ORG_ADMIN' || x.role === 'FRONTDESK_ADMIN' || x.role === 'SITE_ADMIN'))) {
-
-      // if (productDetails?.products?.length > 0) {
-      // this.utilsService.redirectTo('/admin/work_area/dashboard');
-      // } else {
-      // this.utilsService.redirectTo('/admin/work_area/settings/upgrade-plan');
-      // }
-      // return true;
-      return '/admin/work_area/dashboard';
-    } else if (roles.find(x => x.role === 'DELIVERY_MANAGER')) {
-      return "/admin/work_area/delivery-manager/dashboard'"
-    }
-    else if (roles.find(x => (x.role === 'HOST' || x.role === 'EVAC_MANAGER'))) {
-      return '/admin/work_area/evacuation/past-visitors';
-    }
+function resolveLanding(permissions: SidebarContext) {
+  if (permissions.isGlobalInternalAdmin) {
+    return '/admin/internalAdmin/org-list';
   }
-  return "/admin";
+
+  if (permissions.isGlobalAdmin || permissions.isSiteAdmin || permissions.isFrontDeskManager) {
+    return '/admin/admin/work_area/dashboard';
+  }
+
+  // Delivery Manager but NOT Global Admin (handled above)
+  if (permissions.isDeliveryManager) {
+    return '/admin/admin/work_area/delivery-manager/dashboard';
+  }
+
+  if (permissions.isHost || permissions.isEvacManager) {
+    return '/admin/admin/work_area/evacuation/past-visitors';
+  }
+
+  // Fallback
+  return '/admin/admin/work_area/dashboard';
 }

@@ -40,6 +40,7 @@ export interface SidebarItem {
 }
 
 export interface SidebarContext {
+    isGlobalInternalAdmin: boolean;
     isGlobalAdmin: boolean;
     isSiteAdmin: boolean;
     isFrontDeskManager: boolean;
@@ -125,9 +126,10 @@ export const MAIN_MENU: SidebarItem[] = [
     {
         title: 'Locations',
         icon: Building2,
-        path: '/admin/admin/work_area/locations/list',
+        // path: '/admin/admin/work_area/locations/list',
         condition: (ctx) => ctx.isGlobalAdmin,
-        testid: 'nav-locations'
+        testid: 'nav-locations',
+        action :'GO_TO_LOCATION'
     },
     {
         title: 'Evacuation & Emergency',
@@ -220,7 +222,7 @@ export const LOCATION_MENU: SidebarItem[] = [
     {
         title: 'General',
         icon: Settings,
-        path: '/admin/admin/work_area/locations/general',
+        path: '/admin/work_area/locations/general',
         testid: 'location-general-link'
     },
     {
@@ -229,83 +231,83 @@ export const LOCATION_MENU: SidebarItem[] = [
         condition: (ctx) => ctx.isAdvancedMegaLocationEntitled,
         testid: 'nav-advance-location-submenu',
         children: [
-            { title: 'Point of Entry', path: '/admin/admin/work_area/locations/advance-location/point-of-entry', testid: 'location-point-of-entry-link' },
-            { title: 'Parking Lot', path: '/admin/admin/work_area/locations/advance-location/parking-lot', testid: 'location-parking-lot-link' },
-            { title: 'Building', path: '/admin/admin/work_area/locations/advance-location/building', testid: 'location-building-link' }
+            { title: 'Point of Entry', path: '/admin/work_area/locations/advance-location/point-of-entry', testid: 'location-point-of-entry-link' },
+            { title: 'Parking Lot', path: '/admin/work_area/locations/advance-location/parking-lot', testid: 'location-parking-lot-link' },
+            { title: 'Building', path: '/admin/work_area/locations/advance-location/building', testid: 'location-building-link' }
         ]
     },
     {
         title: 'Employee Sign In',
         icon: KeyRound,
-        path: '/admin/admin/work_area/locations/employee-sign-in',
+        path: '/admin/work_area/locations/employee-sign-in',
         testid: 'location-employee-sign-in-link'
     },
     {
         title: 'Delivery Areas',
         icon: Truck,
-        path: '/admin/admin/work_area/locations/delivery-area',
+        path: '/admin/work_area/locations/delivery-area',
         condition: (ctx) => ctx.isDeliveryManagerEntitled,
         testid: 'location-delivery-areas-link'
     },
     {
         title: 'Look and Feel',
         icon: Smartphone,
-        path: '/admin/admin/work_area/locations/look-and-feel',
+        path: '/admin/work_area/locations/look-and-feel',
         testid: 'location-look-and-feel-link'
     },
     {
         title: 'Guest WiFi',
         icon: Wifi,
-        path: '/admin/admin/work_area/locations/guest-wifi',
+        path: '/admin/work_area/locations/guest-wifi',
         testid: 'location-guest-wifi-link'
     },
     {
         title: 'Custom Badge',
         icon: User,
-        path: '/admin/admin/work_area/locations/custom-badge',
+        path: '/admin/work_area/locations/custom-badge',
         testid: 'location-custom-badge-link'
     },
     {
         title: 'Devices',
         icon: Tablet,
-        path: '/admin/admin/work_area/locations/devices',
+        path: '/admin/work_area/locations/devices',
         testid: 'location-devices-link'
     },
     {
         title: 'Visitor Types',
         icon: Users,
-        path: '/admin/admin/work_area/locations/visitor-types',
+        path: '/admin/work_area/locations/visitor-types',
         testid: 'location-visitor-types-link'
     },
     {
         title: 'Documents',
         icon: FileText,
-        path: '/admin/admin/work_area/locations/documents',
+        path: '/admin/work_area/locations/documents',
         testid: 'location-documents-link'
     },
     {
         title: 'Notification Templates',
         icon: BellRing,
-        path: '/admin/admin/work_area/locations/notification-templates',
+        path: '/admin/work_area/locations/notification-templates',
         testid: 'location-notification-templates-link'
     },
     {
         title: 'Notifications',
         icon: MessageSquare,
-        path: '/admin/admin/work_area/locations/notifications',
+        path: '/admin/work_area/locations/notifications',
         testid: 'location-notifications-link'
     },
     {
         title: 'Visitor Verification',
         icon: Camera,
-        path: '/admin/admin/work_area/locations/visitor-verification',
+        path: '/admin/work_area/locations/visitor-verification',
         condition: (ctx) => ctx.isBackgroundCheckEntitled,
         testid: 'location-visitor-verification-link'
     },
     {
         title: 'Location Watchlist',
         icon: Map,
-        path: '/admin/admin/work_area/locations/location-watchlist',
+        path: '/admin/work_area/locations/location-watchlist',
         testid: 'location-watchlist-link'
     }
 ];

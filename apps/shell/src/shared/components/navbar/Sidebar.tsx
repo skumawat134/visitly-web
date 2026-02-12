@@ -23,7 +23,7 @@ const SidebarItemComponent: React.FC<{
     const [isOpen, setIsOpen] = useState(false);
     const Icon = item.icon;
     const location = useLocation();
-
+    console.log('Rendering SidebarItem:', item.title, context);
     // Condition check
     if (item.condition && !item.condition(context)) return null;
 
@@ -191,12 +191,19 @@ export const Sidebar: React.FC = () => {
             setLocationMode(false);
             navigate('/admin/work_area/locations/list');
         }
+        if(action == 'GO_TO_LOCATION'){
+            setLocationMode(true);
+            navigate('/admin/work_area/locations/list');
+        } 
     };
 
     const getMenuItems = () => {
         console.log('Evaluating menu items with context:', context);
         if (isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return LOCATION_MENU;
+        }
+       if (!isLocationMode && context.isGlobalAdmin) {
+            return MAIN_MENU;
         }
 
         // Delivery Manager specific view (only if not viewing as Global Admin in standard mode? 
@@ -209,6 +216,9 @@ export const Sidebar: React.FC = () => {
         }
 
         if (!context.isGlobalAdmin && context.isEvacManager) {
+            return EVAC_HOST_MENU;
+        }
+        if(context.isHost){
             return EVAC_HOST_MENU;
         }
 

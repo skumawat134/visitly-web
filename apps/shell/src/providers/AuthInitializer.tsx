@@ -26,7 +26,6 @@ const AuthInitializer = () => {
       setAuthenticated({
         user: userQuery.data,
         tokens: tokens!,
-        // entitlements: entitlementsQuery.data,
       });
     }
   }, [isChecking, hasToken, isReady, hasError, userQuery.data, entitlementsQuery.data, tokens, failAuth, setAuthenticated, userQuery.isLoading, entitlementsQuery.isLoading]);

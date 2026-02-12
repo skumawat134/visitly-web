@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import { type SidebarContext } from './SidebarConfig';
+import { useAuthStore } from '@visitly/app-store';
 
 export const useSidebarPermissions = (): SidebarContext => {
+    const user = useAuthStore(s => s.user);
+
     const context = useMemo(() => {
         // 1. Roles from Session Storage
         const userinfoStr = sessionStorage.getItem('userinfo');
@@ -17,6 +20,7 @@ export const useSidebarPermissions = (): SidebarContext => {
         // Let's stick to the boolean flags used in the Sidebar Config conditions:
         // ctx.isGlobalAdmin used for 'Locations', 'Evacuation', etc.
 
+        const checkGlobalInternalAdmin = roles.some((x: any) => x.role === 'GLOBAL_INTERNAL_ADMIN');
         const checkGlobalAdmin = roles.some((x: any) => x.role === 'GLOBAL_ORG_ADMIN') || roles.some((x: any) => x.role === 'SITE_ADMIN');
         const isSiteAdmin = roles.some((x: any) => x.role === 'SITE_ADMIN');
         const isFrontDeskManager = roles.some((x: any) => x.role === 'FRONTDESK_ADMIN');
@@ -56,6 +60,7 @@ export const useSidebarPermissions = (): SidebarContext => {
         }
 
         return {
+            isGlobalInternalAdmin: checkGlobalInternalAdmin,
             isGlobalAdmin: checkGlobalAdmin,
             isSiteAdmin,
             isFrontDeskManager,
@@ -69,7 +74,7 @@ export const useSidebarPermissions = (): SidebarContext => {
             isAdvancedMegaLocationEntitled,
             currentPlan
         };
-    }, []);
+    }, [user]);
 
     return context;
 };
