@@ -1,5 +1,5 @@
 import { useAuthStore } from '@visitly/app-store';
-import { AlertTriangle, ChevronRight, IdCard, LogIn, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ChevronRight, IdCard, LampFloor, LogIn, type LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +8,7 @@ import {
   MapPin,
   Settings
 } from 'lucide-react';
-import { useState } from 'react';
+import { Children, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
 export interface SidebarChildItem {
@@ -32,12 +32,12 @@ interface UserAuth {
 
 
 export const SIDEBAR_CONFIG = [
-  {
-    title: 'Dashboard',
-    icon: LayoutDashboard,
-    path: '/host/dashboard',
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
-  },
+  // {
+  //   title: 'Dashboard',
+  //   icon: LayoutDashboard,
+  //   path: '/dashboard',
+  //   permission: 'view_dashboard'
+  // },
   {
     title: 'My Upcoming Visitors',
     permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
@@ -80,6 +80,46 @@ export const SIDEBAR_CONFIG = [
   //   testid: 'evac-evacuation-link',
   //   permission: [ 'EVAC_MANAGER']
   // }
+  {
+    title: 'Integration',
+    icon: IdCard,
+    path: '/integrations/notifications',
+    testid: "inte-integrations-link",
+    permission: ['GLOBAL_ORG_ADMIN'],
+    children: [
+      {
+        title: 'Notifications',
+        path: '/integrations/notifications',
+        permission: ['GLOBAL_ORG_ADMIN'],
+        testid: "inte-integrations-notifications-link",
+      },
+      {
+        title: 'Guest Wifi',
+        path: '/integrations/guest-wifi',
+        permission: ['GLOBAL_ORG_ADMIN'],
+        testid: "inte-integrations-guest-wifi-link",
+      },
+      {
+        title: 'Employee/Staff Directory',
+        path: '/integrations/employee-staff-directory',
+        permission: ['GLOBAL_ORG_ADMIN'],
+        testid: "inte-integrations-employee-staff-directory-link",
+      },
+      {
+        title: 'Single Sign-On (SSO)',
+        path: '/integrations/sso',
+        permission: ['GLOBAL_ORG_ADMIN'],
+        testid: "inte-integrations-sso-link",
+      },
+      {
+        title: 'Webhooks',
+        path: '/integrations/webhooks',
+        permission: ['GLOBAL_ORG_ADMIN'],
+        testid: "inte-integrations-webhooks-link",
+      }
+    ]
+  },
+ 
 ];
 
 
@@ -215,7 +255,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, permissions, isCollapse
   );
 };
 
-export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => {
+export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed , }) => {
   const user = useAuthStore((s) => s.user);
   const permissions = user?.roles?.map((r) => r.role) || [];
   return (

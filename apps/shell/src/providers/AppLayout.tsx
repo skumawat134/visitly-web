@@ -1,24 +1,42 @@
-import { useAuthStore } from "@visitly/app-store";
-import { Outlet } from "react-router-dom";
 
-function AppLayout() {
-    // const auth = useAuthStore();
-  
-    // if (auth.status !== 'authenticated') {
-    //   return <Outlet />; // login / public pages
-    // }
-  
+import { Outlet, useLocation } from 'react-router-dom';
+import { AppSidebar, AppHeader, useSidebarStore } from '@/shared/components';
+
+const AppLayout = () => {
+    const { isCollapsed, setCollapsed, isSidbarExcluded, isHeaderExcluded } = useSidebarStore();
+    const location = useLocation();
+    const hideSidbar = isSidbarExcluded(location.pathname);
+     const hideHeader = isHeaderExcluded(location.pathname);
+    if (hideSidbar && hideHeader) {
+        return <Outlet />;
+    }
+    if(hideSidbar && !hideHeader) {
+        return (
+            <div id="app-layout" className='tw:bg-[#E5E9FF]'>   
+                <AppHeader onToggle={() => setCollapsed(!isCollapsed)} isCollapsed={isCollapsed} />
+                <main className="tw:overflow-auto">
+                    <Outlet />
+                </main>
+            </div>
+        );
+    }
     return (
-      <div className="app-shell">
-        {/* <Header /> */}
-        <div className="body">
-          {/* <Sidebar /> */}
-          <main>
-            <Outlet />
-          </main>
+        <div id="app-layout" className='tw:bg-[#E5E9FF]'>
+            {/* Sidebar */}
+            <AppHeader onToggle={() => setCollapsed(!isCollapsed)} isCollapsed={isCollapsed} />
+
+            {/* Main content area */}
+            <div className="tw:flex ">
+                {/* Header */}
+                <AppSidebar />
+                {/* Routed content */}
+                <main className="tw:flex-1 tw:overflow-auto">
+                    <Outlet />
+                </main>
+
+            </div>
         </div>
-      </div>
     );
-  }
-  
-  export default AppLayout;
+};
+
+export default AppLayout;

@@ -1,6 +1,8 @@
 import React from 'react';
+import Home from '../shared/components/Home';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthMFE from '../mfe/AuthMFE';
+import { useState } from 'react';
 import LegacyMFE from '@/mfe/LegacyMFE';
 import { RequireCapability } from '@/providers/RequireCapability';
 import AppLayout from '@/providers/AppLayout';

@@ -230,6 +230,7 @@ const Signup: React.FC = () => {
                           to="/visitly/login"
                           onClick={() => sendEvent("signin")}
                           className="tw:text-primary-100 tw:font-semibold hover:tw:underline"
+                          data-testid="login-link"
                         >
                           Login
                         </Link>

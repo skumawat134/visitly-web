@@ -1,105 +1,150 @@
 import { type AuthState, useAuthStore } from '@visitly/app-store';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-// import { canAccessRoute } from './routeAccess';
-// import { resolveLanding } from './resolveLanding';
+import { useSidebarPermissions } from '../shared/components/navbar/useSidebarPermissions';
+import { type SidebarContext } from '../shared/components/navbar/SidebarConfig';
+import { useFetchOnboardingStatus } from '../shared/hooks/useFetchOnboardingStatus';
 
 const SKIP_AUTH_PATHS = [
   '/permaVisits',
   '/admin/permaVisits',
   '/impersonate/user',
   '/admin/impersonate/user',
+  '/visitly/login',
+  '/visitly/signup',
+  '/visitly/forgot-password',
   '/switch'
 ];
 const APP_ROOTS = ['/', '/visitly'];
 
 export function NavigationResolver() {
   const status = useAuthStore(s => s.status);
-  const user = useAuthStore(s => s.user);
+  const permissions = useSidebarPermissions();
   const navigate = useNavigate();
   const location = useLocation();
+  const onboardingQuery = useFetchOnboardingStatus();
+
   useEffect(() => {
-    const { pathname, search } = location;
-    // 1️⃣ Skip auth resolution for special routes
-    if (SKIP_AUTH_PATHS.some(p => pathname.startsWith(p))) {
-      return;
-    }
-    // 2️⃣ Wait until auth is resolved
-    if (status === 'checking') {
+    const handleOnboardingComplete = () => {
+      console.log('[NavResolver] Onboarding complete event received. Refetching...');
+      onboardingQuery.refetch();
+    };
+
+    window.addEventListener('onboarding:complete', handleOnboardingComplete);
+    return () => window.removeEventListener('onboarding:complete', handleOnboardingComplete);
+  }, [onboardingQuery]);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('host:navigation', {
+        detail: { pathname: location.pathname },
+      })
+    );
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (status === 'checking') return;
+
+    const isAuthPath = location.pathname.startsWith('/visitly');
+    const isRoot = location.pathname === '/' || location.pathname === '';
+
+    // Auth paths we should skip if UNAUTHENTICATED (don't force redirect to login)
+    const AUTH_LOGIN_PATHS = ['/visitly/login', '/visitly/signup', '/visitly/forgot-password'];
+    const isLoginPath = AUTH_LOGIN_PATHS.some(path => location.pathname.startsWith(path));
+
+    // 1. Authenticated Logic
+    if (status === 'authenticated') {
+      const queryRedirect = new URLSearchParams(location.search).get('redirect');
+      const explicitRedirect = queryRedirect;
+
+      // Wait for onboarding status to be known before making navigation decisions
+      if (onboardingQuery.isLoading) {
+        return;
+      }
+
+      // Onboarding Check (Only if we have the data)
+      if (onboardingQuery.isSuccess) {
+        const isOnboarded = onboardingQuery.data?.onboarded;
+        const isOnboardingRoute = location.pathname.startsWith('/admin/onboarding');
+        if (isOnboarded === false && !isOnboardingRoute) {
+          console.log('[NavResolver] Not onboarded. Redirecting to onboarding');
+          navigate('/admin/onboarding', { replace: true });
+          return;
+        }
+
+        if (isOnboarded === true && isOnboardingRoute) {
+          console.log('[NavResolver] Already onboarded. Redirecting to landing');
+          const target = resolveLanding(permissions);
+          navigate(target, { replace: true });
+          return;
+        }
+      }
+
+      const target = resolveLanding(permissions);
+      const isDefaultDashboard = location.pathname === '/admin/work_area/dashboard';
+
+      // Handle Redirection from login/root to app, OR if on default dashboard but should be elsewhere (like Internal Admin)
+      if (isAuthPath || isRoot || (isDefaultDashboard && target !== location.pathname)) {
+        console.log('[NavResolver] Authenticated. Current:', location.pathname, '| Target:', target);
+
+        if (explicitRedirect && !explicitRedirect.startsWith('/visitly') && explicitRedirect !== '/') {
+          if (location.pathname !== explicitRedirect) {
+            console.log('[NavResolver] Deep linking to:', explicitRedirect);
+            navigate(explicitRedirect, { replace: true });
+          }
+          return;
+        }
+
+        if (location.pathname !== target) {
+          console.log('[NavResolver] Navigating to target landing:', target);
+          navigate(target, { replace: true });
+        }
+        return;
+      }
       return;
     }
 
-    const currentPath = pathname + search;
-
-    // 3️⃣ Unauthenticated → redirect to login
+    // 2. Unauthenticated Logic
     if (status === 'unauthenticated') {
-      if (!pathname.startsWith('/visitly')) {
-        // sessionStorage.setItem('redirect_after_login', currentPath);
-        navigate('/visitly', { replace: true });
+      // If we are on a public "skip" path or login path, stay there
+      const isPublicPath = SKIP_AUTH_PATHS.some(path => location.pathname.startsWith(path));
+      if (isPublicPath || isLoginPath || isAuthPath) {
+        return;
       }
-      return;
-    }
 
-    // 4️⃣ Authenticated but already inside app → DO NOTHING
-    // const isAtAppRoot = APP_ROOTS.includes(pathname);
-    // if (!isAtAppRoot) {
-    //   return;
-    // }
-    // 5️⃣ Resolve post-login or landing redirect
-    // ────────────────────────────────────────────────
-    // Case B: Already authenticated
-    // ────────────────────────────────────────────────
-    // We only want to redirect when:
-    //   • coming from login page, or
-    //   • there's a stored redirect (from before login), or
-    //   • there's ?redirect=xxx in current URL
-    const fromLogin = pathname.startsWith('/visitly');
-    const storedRedirect = sessionStorage.getItem('redirect_after_login');
-    const urlRedirect = new URLSearchParams(search).get('redirect');
-
-    const hasRedirectIntent = fromLogin || !!storedRedirect || !!urlRedirect;
-    if (hasRedirectIntent) {
-      const target =
-        urlRedirect ||
-        storedRedirect ||
-        resolveLanding({ user } as AuthState);   // fallback only if nothing else
-      sessionStorage.removeItem('redirect_after_login');
-      // Prevent redirect loop / noop
-      if (target && target !== pathname) {
-        navigate(target, { replace: true });
+      // If on root or internal path, save current as redirect and go to login
+      const currentPath = location.pathname + location.search;
+      if (!isRoot) {
+        console.log('[NavResolver] Saving redirect path:', currentPath);
+        sessionStorage.setItem('redirect_after_login', currentPath);
       }
+
+      console.log('[NavResolver] Redirecting unauthenticated user to login');
+      navigate('/visitly/login', { replace: true });
     }
-  }, [status, user, location.pathname, location.search, navigate, location]);
+  }, [status, permissions, location.pathname, location.search, navigate, onboardingQuery.isLoading]);
 
   return null;
 }
 
-
-function resolveLanding(auth: AuthState): string {
-  const roles = auth.user?.roles ?? [];
-
-  if (roles.some(r => r.role === 'GLOBAL_INTERNAL_ADMIN')) {
+function resolveLanding(permissions: SidebarContext) {
+  if (permissions.isGlobalInternalAdmin) {
     return '/admin/internalAdmin/org-list';
   }
 
-  if (
-    roles.some(r =>
-      ['GLOBAL_ORG_ADMIN', 'FRONTDESK_ADMIN', 'SITE_ADMIN'].includes(r.role)
-    )
-  ) {
+  if (permissions.isGlobalAdmin || permissions.isSiteAdmin || permissions.isFrontDeskManager) {
     return '/admin/work_area/dashboard';
   }
 
-  if (roles.some(r => r.role === 'DELIVERY_MANAGER')) {
+  // Delivery Manager but NOT Global Admin (handled above)
+  if (permissions.isDeliveryManager) {
     return '/admin/work_area/delivery-manager/dashboard';
   }
 
-    if (roles.some(r => r.role === 'EVAC_MANAGER')) {
-    return '/admin/work_area/evacuation/main';
-  }
-  if (roles.some(r => ['HOST'].includes(r.role))) {
-    return '/host/upcoming-visitors';
+  if (permissions.isHost || permissions.isEvacManager) {
+    return '/admin/work_area/evacuation/past-visitors';
   }
 
-  return '/admin';
+  // Fallback
+  return '/admin/work_area/dashboard';
 }

@@ -1,12 +1,9 @@
 // useSwitchLogin.ts
-import { useNavigate } from "react-router-dom";
 
 const SESSION_TO_LOCAL_KEYS = "__session_backup_keys__";
 
 export function useSwitchLogin() {
-  const navigate = useNavigate();
   const roles = getRolesFromJWT();
-  console.log("roles",roles)
 
 
   function setToLocalStorageTemporarily() {

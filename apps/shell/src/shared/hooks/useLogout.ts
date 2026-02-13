@@ -1,7 +1,7 @@
 import { useAuthStore } from "@visitly/app-store";
 import { useNavigate } from "react-router-dom";
 import { useToastStore } from "@visitly/app-store";
-import { deleteAllCookies } from "@/utils/cookie.utils";
+// import { deleteAllCookies } from "@/utils/cookie.utils";
 import { useMutation } from "@tanstack/react-query";
 import { logoutApi } from "../../shared/services/auth.api";
 
@@ -16,7 +16,7 @@ export function useLogout() {
       sessionStorage.clear();
       localStorage.clear();
       clearAuthStore();
-      deleteAllCookies("/");
+      // deleteAllCookies("/");
       CheckFreshworksWidget();
       navigate("/visitly/login");
       toast({ message: "Logout Successfully!" });

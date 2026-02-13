@@ -14,7 +14,7 @@ export function useFetchUserInfo() {
     enabled: enabled,
   });
   const { data: user } = query;
-  
+
   useEffect(() => {
     if (!user) return;
     setUser(user);

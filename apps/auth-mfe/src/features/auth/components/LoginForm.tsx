@@ -11,8 +11,8 @@ const LoginForm = () => {
     return (
         <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8" data-test-id="auth-mfe-login-form-root">
             {/* Visitly Logo */}
-            <div className="tw:flex tw:items-center tw:gap-2 tw:my-12">
-                <Image src={appLogo} alt='visity-web-logo' width={196} />
+            <div className="tw:flex tw:items-center tw:gap-2 tw:my-12" data-testid="login-logo-container">
+                <Image src={appLogo} alt='visity-web-logo' width={196} data-testid="login-logo" />
             </div>
 
             {/* Card Container */}
@@ -36,6 +36,7 @@ const LoginForm = () => {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             className="tw:bg-[#eff4ff] tw:border-none focus:tw:ring-2 focus:tw:ring-indigo-500"
+                            data-testid="login-email-input"
                         />
 
                         {/* Password Field */}
@@ -49,9 +50,9 @@ const LoginForm = () => {
                                 leftIcon={<Lock className="tw:h-4 tw:w-4" />}
                                 rightIcon={
                                     showPassword ? (
-                                        <EyeOff className="tw:h-4 tw:w-4" />
+                                        <EyeOff className="tw:h-4 tw:w-4" data-testid="hide-password-icon" />
                                     ) : (
-                                        <Eye className="tw:h-4 tw:w-4" />
+                                        <Eye className="tw:h-4 tw:w-4" data-testid="show-password-icon" />
                                     )
                                 }
                                 rightIconClickable
@@ -60,6 +61,7 @@ const LoginForm = () => {
                                 value={values.password}
                                 onChange={handleChange}
                                 onBlur={handleBlur}
+                                data-testid="login-password-input"
                             />)
                         }
                         {
@@ -77,9 +79,9 @@ const LoginForm = () => {
                         {
                             showPasswordField && <div className="tw:flex tw:items-center">
                                 <Link
-                                 to={'/visitly/forgot-password'}
+                                    to={'/visitly/forgot-password'}
                                     className="tw:text-sm tw:font-bold tw:text-primary-1000 hover:tw:underline"
-                                   
+                                    data-testid="forgot-password-link"
                                 >
                                     Forgot password?
                                 </Link>
@@ -95,8 +97,9 @@ const LoginForm = () => {
                             isLoading={isSubmitting}
                             className={"tw:w-full  hover:tw:bg-[#4a36e6] tw:shadow-md tw:cursor-pointer"}
                             disabled={isSubmitting}
+                            data-testid="login-submit-button"
                         >
-                           {showPasswordField ?  'Login'  : 'Continue'}
+                            {showPasswordField ? 'Login' : 'Continue'}
                         </Button>
 
                         {/* Secondary Actions */}
@@ -109,6 +112,7 @@ const LoginForm = () => {
                                     onClick={(e) => {
                                         setStep("email");
                                     }}
+                                    data-testid="use-password-login-link"
                                 >
                                     Use password instead
                                 </a>
@@ -121,6 +125,7 @@ const LoginForm = () => {
                                     onClick={(e) => {
                                         setStep("sso");
                                     }}
+                                    data-testid="use-sso-login-link"
                                 >
                                     Use single sign-on instead
                                 </a>
@@ -130,7 +135,7 @@ const LoginForm = () => {
                                 <Link
                                     to={'/visitly/signup'}
                                     className=" tw:text-primary-100 hover:tw:underline tw:cursor-pointer"
-
+                                    data-testid="join-us-link"
                                 >
                                     Join Us
                                 </Link>

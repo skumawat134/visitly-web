@@ -27,8 +27,7 @@ const getMiddlewareTarget = (): string => {
 // Check if Middleware should be enabled
 const isMiddlewareEnabled = (): boolean => {
     const env = getEnvironment();
-    // return (env === 'prod' || env === 'stage' || env === 'dev') && !isLocalDevelopment();
-    return true;
+    return (env === 'prod' || env === 'stage' || env === 'dev') && !isLocalDevelopment();
 };
 
 // Get API origin for CORS trace propagation
