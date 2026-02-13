@@ -2,16 +2,16 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMySignInLogs, getHostSites } from '../api/mySignInLog.api';
 import type { SignInLogRecord, MySignInLogResponse, Site } from '../api/mySignInLog.types'
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfDay, startOfToday, endOfDay } from 'date-fns';
+import type { DateRangeValue } from '../components/LogDateRangePicker';
 
 export const useMySignInLog = () => {
     const [pageSize, setPageSize] = useState(15);
     const [pageIndex, setPageIndex] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterSiteId, setFilterSiteId] = useState<string>('');
-    const [dateRange, setDateRange] = useState<{ startDate: string; endDate: string }>({
-        startDate: '',
-        endDate: '',
+    const [dateRange, setDateRange] = useState<DateRangeValue>({
+        preset: 'all',
     });
     const [sortBy, setSortBy] = useState('checkinTime');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -22,9 +22,40 @@ export const useMySignInLog = () => {
         queryFn: getHostSites,
     });
 
+    const apiDateRange = useMemo(() => {
+        const today = startOfToday();
+        let start = '';
+        let end = '';
+
+        switch (dateRange.preset) {
+            case 'today':
+                start = format(today, 'yyyy-MM-dd');
+                break;
+            case 'yesterday':
+                const yest = subDays(today, 1);
+                start = format(yest, 'yyyy-MM-dd');
+                end = format(yest, 'yyyy-MM-dd');
+                break;
+            case '7d':
+                start = format(subDays(today, 7), 'yyyy-MM-dd');
+                break;
+            case '30d':
+                start = format(subDays(today, 30), 'yyyy-MM-dd');
+                break;
+            case 'custom':
+                start = dateRange.from || '';
+                end = dateRange.to || '';
+                break;
+            default:
+                break;
+        }
+
+        return { start, end };
+    }, [dateRange]);
+
     // Fetch sign-in logs
     const { data, isLoading, refetch, isFetching } = useQuery<MySignInLogResponse>({
-        queryKey: ['mySignInLogs', pageIndex, pageSize, filterSiteId, dateRange, searchTerm, sortBy, sortOrder],
+        queryKey: ['mySignInLogs', pageIndex, pageSize, filterSiteId, apiDateRange, sortBy, sortOrder],
         queryFn: () =>
             getMySignInLogs({
                 limit: pageSize,
@@ -33,12 +64,10 @@ export const useMySignInLog = () => {
                 sortBy: sortBy,
                 q: searchTerm,
                 siteId: filterSiteId,
-                signinStartDate: dateRange.startDate,
-                signinEndDate: dateRange.endDate,
+                signinStartDate: apiDateRange.start,
+                signinEndDate: apiDateRange.end,
             }),
     });
-
-    
 
     const handlePageChange = (newPageIndex: number) => {
         setPageIndex(newPageIndex);

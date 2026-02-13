@@ -5,7 +5,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { Button } from "@visitly/ui";
 
 type GridFooterProps = {
   pageIndex: number;
@@ -27,7 +26,7 @@ export const GridFooter: React.FC<GridFooterProps> = ({
   const end = Math.min(start + pageSize - 1, totalRecords);
 
   return (
-    <div className="tw:flex tw:justify-between tw:items-center tw:p-3 tw:border-t tw:border-gray-200 tw:bg-white">
+    <div className="tw:flex tw:justify-between tw:items-center tw:p-3  tw:border-gray-200 tw:bg-white">
       {/* LEFT */}
       {/* <span className="tw:text-sm tw:text-gray-600">
         Total Records: <b>{totalRecords}</b>
@@ -40,26 +39,22 @@ export const GridFooter: React.FC<GridFooterProps> = ({
       {/* RIGHT PAGINATION */}
       <div className="tw:flex tw:items-center tw:gap-3 tw:text-sm  tw:px-3 tw:py-1.5 tw:rounded-xl tw:border tw:border-gray-200">
         {/* First Page */}
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           disabled={pageIndex === 0}
           onClick={() => onPageChange(0)}
-          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronsLeft size={16} />
-        </Button>
+        </button>
 
         {/* Previous */}
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           disabled={pageIndex === 0}
           onClick={() => onPageChange(pageIndex - 1)}
-          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronLeft size={16} />
-        </Button>
+        </button>
 
         {/* Page Info */}
         <span className="tw:px-3 tw:py-1 tw:bg-white   tw:rounded-lg tw:text-gray-700 tw-font-medium">
@@ -67,26 +62,22 @@ export const GridFooter: React.FC<GridFooterProps> = ({
         </span>
 
         {/* Next */}
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(pageIndex + 1)}
-          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronRight size={16} />
-        </Button>
+        </button>
 
         {/* Last Page */}
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(totalPages - 1)}
-          className="tw:p-1.5 tw:h-auto tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
+          className="tw:p-1.5 tw:rounded-lg tw:hover:bg-white tw:border tw:border-transparent hover:tw:border-gray-200 tw:transition disabled:tw-opacity-40"
         >
           <ChevronsRight size={16} />
-        </Button>
+        </button>
       </div>
       <div></div>
     </div>

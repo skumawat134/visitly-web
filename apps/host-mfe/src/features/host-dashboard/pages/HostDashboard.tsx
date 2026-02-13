@@ -203,7 +203,22 @@ export const HostDashboard: React.FC = () => {
         valueFormatter: (params : any) => params.value || "—",
       },
       { headerName: "Host", field: "hostName", flex: 1.5, minWidth: 120 },
-      { headerName: "Pre-Fill Status", field: "prefill", flex: 1.5, minWidth: 120 },
+      {
+  headerName: "Pre-Fill Status",
+  field: "prefill",
+  flex: 1.5,
+  minWidth: 120,
+  cellRenderer: (params: ICellRendererParams) => {
+    const hasPrefill = params.data?.visitInfoModel ? true : false;
+
+    return (
+      <span className="tw:flex tw:items-center tw:gap-1.5">
+        {hasPrefill ? "Yes" : "No"}
+      </span>
+    );
+  },
+}
+,
       { headerName: "Phone", field: "phoneNumber", flex: 1.5, minWidth: 120 },
 
 
@@ -752,14 +767,14 @@ export const HostDashboard: React.FC = () => {
                     <Clock size={14} /> Checkout Time{" "}
                    
                     <span className="tw:bg-emerald-200 tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold">
-                      {formatDate(mySignInLogsData.results[0].checkoutTime)}
+                      {formatDate(mySignInLogsData.results[0].checkoutTime)}sndfb
                     </span>
                   </div>}
                   {mySignInLogsData.results[0].duration &&  <div className="tw:flex tw:items-center tw:gap-2 tw:text-[13px] tw:text-emerald-700">
                     <Clock size={14} /> Duration{" "}
                    
                     <span className="tw:bg-emerald-200 tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold">
-                      {formatDuration(+mySignInLogsData.results[0].duration)}
+                      {formatDuration(+mySignInLogsData.results[0].duration)}shbfkae
                     </span>
                   </div>}
                 </div>

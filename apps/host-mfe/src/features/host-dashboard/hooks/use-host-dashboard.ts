@@ -61,7 +61,7 @@ export const useHostDashboard = () => {
                 getMySignInLogs({
                     limit: 1,
                     offset: 0,
-                    sort: 'asc',
+                    sort: 'desc',
                     sortBy: 'checkinTime',
                 }),
         });
@@ -170,7 +170,7 @@ export const useHostDashboard = () => {
 
     try {
       const user = JSON.parse(raw)?.delegateFor ?? []
-      const formatted = user.map((u: any) => ({ id: u.delegateUserId, name: u.delegateFirstName + " " + u.delegateLastName }));
+      const formatted = user.map((u: any) => ({ id: u.hostUserId, name: u.hostFirstName + " " + u.hostLastName }));
       return formatted;
     } catch (e) {
       console.error("Invalid userinfo in sessionStorage", e);
