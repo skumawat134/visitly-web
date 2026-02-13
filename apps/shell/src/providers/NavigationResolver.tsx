@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSidebarPermissions } from '../shared/components/navbar/useSidebarPermissions';
 import { type SidebarContext } from '../shared/components/navbar/SidebarConfig';
+import { useFetchOnboardingStatus } from '../shared/hooks/useFetchOnboardingStatus';
 
 const SKIP_AUTH_PATHS = [
   '/permaVisits',
@@ -19,6 +20,17 @@ export function NavigationResolver() {
   const permissions = useSidebarPermissions();
   const navigate = useNavigate();
   const location = useLocation();
+  const onboardingQuery = useFetchOnboardingStatus();
+
+  useEffect(() => {
+    const handleOnboardingComplete = () => {
+      console.log('[NavResolver] Onboarding complete event received. Refetching...');
+      onboardingQuery.refetch();
+    };
+
+    window.addEventListener('onboarding:complete', handleOnboardingComplete);
+    return () => window.removeEventListener('onboarding:complete', handleOnboardingComplete);
+  }, [onboardingQuery]);
 
   useEffect(() => {
     window.dispatchEvent(
@@ -37,11 +49,34 @@ export function NavigationResolver() {
     // Auth paths we should skip if UNAUTHENTICATED (don't force redirect to login)
     const AUTH_LOGIN_PATHS = ['/visitly/login', '/visitly/signup', '/visitly/forgot-password'];
     const isLoginPath = AUTH_LOGIN_PATHS.some(path => location.pathname.startsWith(path));
-    debugger;
+
     // 1. Authenticated Logic
     if (status === 'authenticated') {
       const queryRedirect = new URLSearchParams(location.search).get('redirect');
       const explicitRedirect = queryRedirect;
+
+      // Wait for onboarding status to be known before making navigation decisions
+      if (onboardingQuery.isLoading) {
+        return;
+      }
+
+      // Onboarding Check (Only if we have the data)
+      if (onboardingQuery.isSuccess) {
+        const isOnboarded = onboardingQuery.data?.onboarded;
+        const isOnboardingRoute = location.pathname.startsWith('/admin/onboarding');
+        if (isOnboarded === false && !isOnboardingRoute) {
+          console.log('[NavResolver] Not onboarded. Redirecting to onboarding');
+          navigate('/admin/onboarding', { replace: true });
+          return;
+        }
+
+        if (isOnboarded === true && isOnboardingRoute) {
+          console.log('[NavResolver] Already onboarded. Redirecting to landing');
+          const target = resolveLanding(permissions);
+          navigate(target, { replace: true });
+          return;
+        }
+      }
 
       const target = resolveLanding(permissions);
       const isDefaultDashboard = location.pathname === '/admin/work_area/dashboard';
@@ -85,7 +120,7 @@ export function NavigationResolver() {
       console.log('[NavResolver] Redirecting unauthenticated user to login');
       navigate('/visitly/login', { replace: true });
     }
-  }, [status, permissions, location.pathname, location.search, navigate]);
+  }, [status, permissions, location.pathname, location.search, navigate, onboardingQuery.isLoading]);
 
   return null;
 }

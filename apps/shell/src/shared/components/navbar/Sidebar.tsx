@@ -226,7 +226,7 @@ export const Sidebar: React.FC = () => {
         if (isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return LOCATION_MENU;
         }
-        if (!isLocationMode && context.isGlobalAdmin) {
+        if (!isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return MAIN_MENU;
         }
 
@@ -242,6 +242,7 @@ export const Sidebar: React.FC = () => {
         if (!context.isGlobalAdmin && context.isEvacManager) {
             return EVAC_HOST_MENU;
         }
+        
         if (context.isHost) {
             return EVAC_HOST_MENU;
         }
