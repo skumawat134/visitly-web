@@ -1,5 +1,5 @@
 import { useAuthStore } from '@visitly/app-store';
-import { AlertTriangle, ChevronRight, IdCard, LogIn, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ChevronRight, IdCard, LogIn, User, type LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard,
   Users,
@@ -71,6 +71,13 @@ export const SIDEBAR_CONFIG = [
     icon: IdCard,
     path: '/host/directory',
     testid: "evac-company-directory-link",
+    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+  },
+   {
+    title: 'Profile',
+    icon: User,
+    path: '/host/profile',
+    testid: "evac-profile-settings-link",
     permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
   },
   // {

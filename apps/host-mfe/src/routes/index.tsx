@@ -6,9 +6,9 @@ import HostLayout from '@/layout';
 import { Route, Routes } from 'react-router-dom';
 import { MySignInLog } from '@/features/signin-log';
 import { ChangePassword } from '@/features/change-password';
-import { Profile } from '@/features/profile'
 import { HostDashboard } from '@/features/host-dashboard';
 import { VisitorDetail } from '@/features/visitor-detail';
+import ProfileDetail from '@/features/profile-detail/pages/ProfileDetail';
 
 function AppRouter() {
   return (
@@ -22,7 +22,7 @@ function AppRouter() {
         <Route path="/my-deliveries" element={<MyDeliveryLogs />} />
         <Route path="/directory" element={<CompanyDirectory />} />
         <Route path="/change-password" element={<ChangePassword />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<ProfileDetail />} />
         <Route path="/visitor-detail/:id" element={<VisitorDetail/>} />
        </Route>
       </Routes>

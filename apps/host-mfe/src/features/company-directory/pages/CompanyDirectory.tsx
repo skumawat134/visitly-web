@@ -43,20 +43,20 @@ const CompanyDirectory: React.FC = () => {
   };
 
   return (
-    <div className="tw:min-h-screen tw:bg-[#F8FAFC] tw:pb-12">
+    <div className="tw:min-h-screen tw:bg-[#F8FAFC] tw:pb-4">
       {/* Page Header - Premium Style */}
-      <div className="tw:bg-white tw:border-b tw:border-slate-200/60 tw:mb-8">
-        <div className="tw:max-w-7xl tw:mx-auto tw:px-6 tw:py-8 tw:md:py-10">
+      <div className="tw:bg-transparent tw:mb-4">
+        <div className="tw:max-w-full tw:mx-auto tw:px-6 tw:py-8 tw:md:py-10">
           <div className="tw:flex tw:items-center tw:justify-between tw:gap-6 tw:flex-wrap">
             <div>
               <div className="tw:flex tw:items-center tw:gap-3">
-                <div className="tw:p-2.5 tw:bg-indigo-600 tw:rounded-2xl tw:shadow-lg tw:shadow-indigo-200">
+                {/* <div className="tw:p-2.5 tw:bg-indigo-600 tw:rounded-2xl tw:shadow-lg tw:shadow-indigo-200">
                   <Users size={24} className="tw:text-white" />
-                </div>
+                </div> */}
                 <h1 className="tw:text-3xl tw:font-bold tw:text-slate-900 tw:tracking-tight">
                   Company Directory
                 </h1>
-                <button
+                {/* <button
                   onClick={() => refetch()}
                   className="tw:p-2.5 tw:text-slate-400 tw:hover:text-indigo-600 tw:transition-all tw:rounded-xl tw:hover:bg-indigo-50 tw:active:scale-95"
                   title="Refresh Directory"
@@ -65,7 +65,7 @@ const CompanyDirectory: React.FC = () => {
                     size={20}
                     className={isLoading ? "tw:animate-spin" : ""}
                   />
-                </button>
+                </button> */}
               </div>
               <p className="tw:text-slate-500 tw:mt-2 tw:text-[15px] tw:font-medium">
                 Find and connect with colleagues across the organization
@@ -75,7 +75,7 @@ const CompanyDirectory: React.FC = () => {
         </div>
       </div>
 
-      <div className="tw:max-w-7xl tw:mx-auto tw:px-4">
+      <div className="tw:max-w-full tw:mx-auto tw:px-4">
         {/* Controls Section - Floating Style */}
         <div className="tw:bg-white tw:p-2 tw:shadow-[0_8px_30px_rgb(0,0,0,0.04)] tw:border tw:border-slate-200/50 tw:mb-4">
           <div className="tw:flex tw:flex-col tw:lg:flex-row tw:justify-between tw:items-center tw:gap-6">

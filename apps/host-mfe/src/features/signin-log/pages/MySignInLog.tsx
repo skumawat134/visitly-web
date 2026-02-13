@@ -220,14 +220,14 @@ const MySignInLog: React.FC = () => {
   return (
     <div className="tw:min-h-screen tw:bg-[#F8FAFC] tw:pb-12">
       {/* Page Header */}
-      <div className="tw:bg-white tw:border-b tw:border-slate-200/60 tw:mb-4">
-        <div className="tw:max-w-5xl tw:mx-auto tw:px-4 tw:py-10 tw:md:py-12">
+      <div className="tw:bg-transparent tw:mb-4">
+        <div className="tw:max-w-full tw:mx-auto tw:px-4 tw:py-10 tw:md:py-8">
           <div className="tw:flex tw:items-center tw:justify-between tw:gap-6">
             <div>
               <div className="tw:flex tw:items-center tw:gap-3">
-                <div className="tw:p-2.5 tw:bg-indigo-600 tw:rounded-2xl tw:shadow-lg tw:shadow-indigo-200">
+                {/* <div className="tw:p-2.5 tw:bg-indigo-600 tw:rounded-2xl tw:shadow-lg tw:shadow-indigo-200">
                   <Calendar size={24} className="tw:text-white" />
-                </div>
+                </div> */}
                 <h1 className="tw:text-3xl tw:font-bold tw:text-slate-900 tw:tracking-tight">
                   My Sign-In Log
                 </h1>
