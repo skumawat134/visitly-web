@@ -68,10 +68,11 @@ export default function SwitchRole() {
     if (redirectFrom == 'ADMIN') {
       navigate("/host/past-visitors", { replace: true });
     } else {
-      navigate("/admin/work_area/dashboard", { replace: true });
+      const target = resolveLanding();
+      navigate(target, { replace: true });
     }
     localStorage.removeItem('redirectFrom')
-  }, []);
+  }, [roles, navigate]);
 
   return <div>Switching account...</div>;
 }

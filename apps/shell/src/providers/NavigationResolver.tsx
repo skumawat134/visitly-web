@@ -37,15 +37,18 @@ export function NavigationResolver() {
     // Auth paths we should skip if UNAUTHENTICATED (don't force redirect to login)
     const AUTH_LOGIN_PATHS = ['/visitly/login', '/visitly/signup', '/visitly/forgot-password'];
     const isLoginPath = AUTH_LOGIN_PATHS.some(path => location.pathname.startsWith(path));
-        debugger;
+    debugger;
     // 1. Authenticated Logic
     if (status === 'authenticated') {
       const queryRedirect = new URLSearchParams(location.search).get('redirect');
       const explicitRedirect = queryRedirect;
 
-      // Handle Redirection from login/root to app
-      if (isAuthPath || isRoot) {
-        console.log('[NavResolver] Authenticated but on Auth/Root path. Resolving destination...');
+      const target = resolveLanding(permissions);
+      const isDefaultDashboard = location.pathname === '/admin/work_area/dashboard';
+
+      // Handle Redirection from login/root to app, OR if on default dashboard but should be elsewhere (like Internal Admin)
+      if (isAuthPath || isRoot || (isDefaultDashboard && target !== location.pathname)) {
+        console.log('[NavResolver] Authenticated. Current:', location.pathname, '| Target:', target);
 
         if (explicitRedirect && !explicitRedirect.startsWith('/visitly') && explicitRedirect !== '/') {
           if (location.pathname !== explicitRedirect) {
@@ -55,9 +58,8 @@ export function NavigationResolver() {
           return;
         }
 
-        const target = resolveLanding(permissions);
         if (location.pathname !== target) {
-          console.log('[NavResolver] Navigating to default landing:', target);
+          console.log('[NavResolver] Navigating to target landing:', target);
           navigate(target, { replace: true });
         }
         return;
