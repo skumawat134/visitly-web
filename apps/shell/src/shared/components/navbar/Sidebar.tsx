@@ -196,6 +196,7 @@ export const Sidebar: React.FC = () => {
             if (match) {
                 setLocationMode(true);
             }
+            debugger;
         };
         window.addEventListener('angular:navigation', handler);
         return () => {
@@ -206,11 +207,11 @@ export const Sidebar: React.FC = () => {
     const handleAction = (action: string) => {
         if (action === 'BACK_TO_LOCATIONS') {
             setLocationMode(false);
-            navigate('/admin/admin/work_area/locations/list');
+            navigate('/admin/work_area/locations/list');
             //dispatch a custom event to angular
             window.dispatchEvent(
                 new CustomEvent('host:navigation', {
-                    detail: { pathname: '/admin/admin/work_area/locations/list' },
+                    detail: { pathname: '/admin/work_area/locations/list' },
                 })
             );
         }
@@ -225,7 +226,7 @@ export const Sidebar: React.FC = () => {
         if (isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return LOCATION_MENU;
         }
-        if (!isLocationMode && context.isGlobalAdmin) {
+        if (!isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return MAIN_MENU;
         }
 
@@ -241,6 +242,7 @@ export const Sidebar: React.FC = () => {
         if (!context.isGlobalAdmin && context.isEvacManager) {
             return EVAC_HOST_MENU;
         }
+        
         if (context.isHost) {
             return EVAC_HOST_MENU;
         }

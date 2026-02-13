@@ -44,15 +44,15 @@ export default function SwitchRole() {
     }
 
     if (roles.some(r => ["GLOBAL_ORG_ADMIN", "FRONTDESK_ADMIN", "SITE_ADMIN"].includes(r))) {
-      return "/admin/admin/work_area/dashboard";
+      return "/admin/work_area/dashboard";
     }
 
     if (roles.includes("DELIVERY_MANAGER")) {
-      return "/admin/admin/work_area/delivery-manager/dashboard";
+      return "/admin/work_area/delivery-manager/dashboard";
     }
 
     if (roles.some(r => ["EVAC_MANAGER"].includes(r))) {
-      return "/admin/admin/work_area/evacuation/main";
+      return "/admin/work_area/evacuation/main";
     }
 
     return "/admin";
@@ -68,10 +68,11 @@ export default function SwitchRole() {
     if (redirectFrom == 'ADMIN') {
       navigate("/host/past-visitors", { replace: true });
     } else {
-      navigate("/admin/admin/work_area/dashboard", { replace: true });
+      const target = resolveLanding();
+      navigate(target, { replace: true });
     }
     localStorage.removeItem('redirectFrom')
-  }, []);
+  }, [roles, navigate]);
 
   return <div>Switching account...</div>;
 }

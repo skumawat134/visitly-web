@@ -21,7 +21,7 @@ export interface ConfirmEmailPayload {
 
 export interface ConfirmEmailResponse {
     message: string;
-}   
+}
 
 export interface ForgotPasswordPayload {
     email: string;
@@ -31,9 +31,9 @@ export interface ForgotPasswordResponse {
     result: string;
     message?: string;
     code?: string;
- }
+}
 
- export interface VerifyEmailPayload {
+export interface VerifyEmailPayload {
     email: string;
 }
 
@@ -49,60 +49,61 @@ export interface ResetPasswordPayload {
     confirmPassword: string;
 }
 export interface SSOCheckResponse {
-    enabledSso : boolean;
-    ssoRequestUrl : string;
+    enabledSso: boolean;
+    ssoRequestUrl: string;
 }
 
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 
 export type UserRoleType =
-  | 'GLOBAL_ORG_ADMIN'
-  | 'FRONTDESK_ADMIN'
-  | 'EVAC_MANAGER'
-  | 'DELIVERY_MANAGER'
-  | 'SITE_ADMIN';
+    | 'GLOBAL_ORG_ADMIN'
+    | 'FRONTDESK_ADMIN'
+    | 'EVAC_MANAGER'
+    | 'DELIVERY_MANAGER'
+    | 'SITE_ADMIN'
+    | 'GLOBAL_INTERNAL_ADMIN';
 
 export interface UserRole {
-  role: UserRoleType;
-  allSitesFlag: boolean;
+    role: UserRoleType;
+    allSitesFlag: boolean;
 }
 
 export interface UserResponse {
-  id: string;
-  externalId: string;
+    id: string;
+    externalId: string;
 
-  firstName: string;
-  lastName: string;
-  email: string;
-  emailVerified: boolean;
+    firstName: string;
+    lastName: string;
+    email: string;
+    emailVerified: boolean;
 
-  status: UserStatus;
+    status: UserStatus;
 
-  workPhoneCountryCode?: string;
-  workPhone?: string;
+    workPhoneCountryCode?: string;
+    workPhone?: string;
 
-  mobilePhoneCountryCode?: string;
-  mobilePhone?: string;
+    mobilePhoneCountryCode?: string;
+    mobilePhone?: string;
 
-  orgId: string;
-  employeeId?: string;
+    orgId: string;
+    employeeId?: string;
 
-  avatarUri?: string;
+    avatarUri?: string;
 
-  roles: UserRole[];
+    roles: UserRole[];
 
-  department?: string;
-  title?: string;
+    department?: string;
+    title?: string;
 
-  allowSigninFlag: boolean;
-  skipHostNotification: boolean;
+    allowSigninFlag: boolean;
+    skipHostNotification: boolean;
 
-  deleted: boolean;
+    deleted: boolean;
 
-  createTime: string;   // ISO timestamp
-  modifyTime: string;   // ISO timestamp
+    createTime: string;   // ISO timestamp
+    modifyTime: string;   // ISO timestamp
 }
-export interface SignUpPayload{
+export interface SignUpPayload {
     firstName: string;
     lastName: string;
     email: string;

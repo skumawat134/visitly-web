@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSidebarPermissions } from '../shared/components/navbar/useSidebarPermissions';
 import { type SidebarContext } from '../shared/components/navbar/SidebarConfig';
+import { useFetchOnboardingStatus } from '../shared/hooks/useFetchOnboardingStatus';
 
 const SKIP_AUTH_PATHS = [
   '/permaVisits',
@@ -19,6 +20,17 @@ export function NavigationResolver() {
   const permissions = useSidebarPermissions();
   const navigate = useNavigate();
   const location = useLocation();
+  const onboardingQuery = useFetchOnboardingStatus();
+
+  useEffect(() => {
+    const handleOnboardingComplete = () => {
+      console.log('[NavResolver] Onboarding complete event received. Refetching...');
+      onboardingQuery.refetch();
+    };
+
+    window.addEventListener('onboarding:complete', handleOnboardingComplete);
+    return () => window.removeEventListener('onboarding:complete', handleOnboardingComplete);
+  }, [onboardingQuery]);
 
   useEffect(() => {
     window.dispatchEvent(
@@ -29,8 +41,6 @@ export function NavigationResolver() {
   }, [location.pathname]);
 
   useEffect(() => {
-    console.log('[NavResolver] Status:', status, '| Path:', location.pathname);
-
     if (status === 'checking') return;
 
     const isAuthPath = location.pathname.startsWith('/visitly');
@@ -42,35 +52,53 @@ export function NavigationResolver() {
 
     // 1. Authenticated Logic
     if (status === 'authenticated') {
-      // const storedRedirect = sessionStorage.getItem('redirect_after_login');
       const queryRedirect = new URLSearchParams(location.search).get('redirect');
-      const explicitRedirect = queryRedirect; 
-      // || storedRedirect;
+      const explicitRedirect = queryRedirect;
 
-      // Handle Redirection from login/root to app
-      if (isAuthPath || isRoot) {
-        console.log('[NavResolver] Authenticated but on Auth/Root path. Resolving destination...');
-
-        // if (storedRedirect) {
-        //   sessionStorage.removeItem('redirect_after_login');
-        // }
-
-        if (explicitRedirect && !explicitRedirect.startsWith('/visitly') && explicitRedirect !== '/') {
-          console.log('[NavResolver] Deep linking to:', explicitRedirect);
-          navigate(explicitRedirect, { replace: true });
-          return;
-        }
-
-        const target = resolveLanding(permissions);
-        console.log('[NavResolver] Navigating to default landing:', target);
-        navigate(target, { replace: true });
+      // Wait for onboarding status to be known before making navigation decisions
+      if (onboardingQuery.isLoading) {
         return;
       }
 
-      // If already on internal path, just clear potential stale redirects and stay
-      // if (storedRedirect) {
-      //   sessionStorage.removeItem('redirect_after_login');
-      // }
+      // Onboarding Check (Only if we have the data)
+      if (onboardingQuery.isSuccess) {
+        const isOnboarded = onboardingQuery.data?.onboarded;
+        const isOnboardingRoute = location.pathname.startsWith('/admin/onboarding');
+        if (isOnboarded === false && !isOnboardingRoute) {
+          console.log('[NavResolver] Not onboarded. Redirecting to onboarding');
+          navigate('/admin/onboarding', { replace: true });
+          return;
+        }
+
+        if (isOnboarded === true && isOnboardingRoute) {
+          console.log('[NavResolver] Already onboarded. Redirecting to landing');
+          const target = resolveLanding(permissions);
+          navigate(target, { replace: true });
+          return;
+        }
+      }
+
+      const target = resolveLanding(permissions);
+      const isDefaultDashboard = location.pathname === '/admin/work_area/dashboard';
+
+      // Handle Redirection from login/root to app, OR if on default dashboard but should be elsewhere (like Internal Admin)
+      if (isAuthPath || isRoot || (isDefaultDashboard && target !== location.pathname)) {
+        console.log('[NavResolver] Authenticated. Current:', location.pathname, '| Target:', target);
+
+        if (explicitRedirect && !explicitRedirect.startsWith('/visitly') && explicitRedirect !== '/') {
+          if (location.pathname !== explicitRedirect) {
+            console.log('[NavResolver] Deep linking to:', explicitRedirect);
+            navigate(explicitRedirect, { replace: true });
+          }
+          return;
+        }
+
+        if (location.pathname !== target) {
+          console.log('[NavResolver] Navigating to target landing:', target);
+          navigate(target, { replace: true });
+        }
+        return;
+      }
       return;
     }
 
@@ -92,7 +120,7 @@ export function NavigationResolver() {
       console.log('[NavResolver] Redirecting unauthenticated user to login');
       navigate('/visitly/login', { replace: true });
     }
-  }, [status, permissions, location.pathname, location.search, navigate]);
+  }, [status, permissions, location.pathname, location.search, navigate, onboardingQuery.isLoading]);
 
   return null;
 }
@@ -103,18 +131,18 @@ function resolveLanding(permissions: SidebarContext) {
   }
 
   if (permissions.isGlobalAdmin || permissions.isSiteAdmin || permissions.isFrontDeskManager) {
-    return '/admin/admin/work_area/dashboard';
+    return '/admin/work_area/dashboard';
   }
 
   // Delivery Manager but NOT Global Admin (handled above)
   if (permissions.isDeliveryManager) {
-    return '/admin/admin/work_area/delivery-manager/dashboard';
+    return '/admin/work_area/delivery-manager/dashboard';
   }
 
   if (permissions.isHost || permissions.isEvacManager) {
-    return '/admin/admin/work_area/evacuation/past-visitors';
+    return '/admin/work_area/evacuation/past-visitors';
   }
 
   // Fallback
-  return '/admin/admin/work_area/dashboard';
+  return '/admin/work_area/dashboard';
 }
