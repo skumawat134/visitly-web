@@ -196,7 +196,6 @@ export const Sidebar: React.FC = () => {
             if (match) {
                 setLocationMode(true);
             }
-            debugger;
         };
         window.addEventListener('angular:navigation', handler);
         return () => {
