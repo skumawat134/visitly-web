@@ -196,6 +196,7 @@ export const Sidebar: React.FC = () => {
             if (match) {
                 setLocationMode(true);
             }
+            debugger;
         };
         window.addEventListener('angular:navigation', handler);
         return () => {
@@ -206,11 +207,11 @@ export const Sidebar: React.FC = () => {
     const handleAction = (action: string) => {
         if (action === 'BACK_TO_LOCATIONS') {
             setLocationMode(false);
-            navigate('/admin/admin/work_area/locations/list');
+            navigate('/admin/work_area/locations/list');
             //dispatch a custom event to angular
             window.dispatchEvent(
                 new CustomEvent('host:navigation', {
-                    detail: { pathname: '/admin/admin/work_area/locations/list' },
+                    detail: { pathname: '/admin/work_area/locations/list' },
                 })
             );
         }

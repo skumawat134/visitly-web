@@ -29,8 +29,6 @@ export function NavigationResolver() {
   }, [location.pathname]);
 
   useEffect(() => {
-    console.log('[NavResolver] Status:', status, '| Path:', location.pathname);
-
     if (status === 'checking') return;
 
     const isAuthPath = location.pathname.startsWith('/visitly');
@@ -39,38 +37,31 @@ export function NavigationResolver() {
     // Auth paths we should skip if UNAUTHENTICATED (don't force redirect to login)
     const AUTH_LOGIN_PATHS = ['/visitly/login', '/visitly/signup', '/visitly/forgot-password'];
     const isLoginPath = AUTH_LOGIN_PATHS.some(path => location.pathname.startsWith(path));
-
+        debugger;
     // 1. Authenticated Logic
     if (status === 'authenticated') {
-      // const storedRedirect = sessionStorage.getItem('redirect_after_login');
       const queryRedirect = new URLSearchParams(location.search).get('redirect');
-      const explicitRedirect = queryRedirect; 
-      // || storedRedirect;
+      const explicitRedirect = queryRedirect;
 
       // Handle Redirection from login/root to app
       if (isAuthPath || isRoot) {
         console.log('[NavResolver] Authenticated but on Auth/Root path. Resolving destination...');
 
-        // if (storedRedirect) {
-        //   sessionStorage.removeItem('redirect_after_login');
-        // }
-
         if (explicitRedirect && !explicitRedirect.startsWith('/visitly') && explicitRedirect !== '/') {
-          console.log('[NavResolver] Deep linking to:', explicitRedirect);
-          navigate(explicitRedirect, { replace: true });
+          if (location.pathname !== explicitRedirect) {
+            console.log('[NavResolver] Deep linking to:', explicitRedirect);
+            navigate(explicitRedirect, { replace: true });
+          }
           return;
         }
 
         const target = resolveLanding(permissions);
-        console.log('[NavResolver] Navigating to default landing:', target);
-        navigate(target, { replace: true });
+        if (location.pathname !== target) {
+          console.log('[NavResolver] Navigating to default landing:', target);
+          navigate(target, { replace: true });
+        }
         return;
       }
-
-      // If already on internal path, just clear potential stale redirects and stay
-      // if (storedRedirect) {
-      //   sessionStorage.removeItem('redirect_after_login');
-      // }
       return;
     }
 
@@ -103,18 +94,18 @@ function resolveLanding(permissions: SidebarContext) {
   }
 
   if (permissions.isGlobalAdmin || permissions.isSiteAdmin || permissions.isFrontDeskManager) {
-    return '/admin/admin/work_area/dashboard';
+    return '/admin/work_area/dashboard';
   }
 
   // Delivery Manager but NOT Global Admin (handled above)
   if (permissions.isDeliveryManager) {
-    return '/admin/admin/work_area/delivery-manager/dashboard';
+    return '/admin/work_area/delivery-manager/dashboard';
   }
 
   if (permissions.isHost || permissions.isEvacManager) {
-    return '/admin/admin/work_area/evacuation/past-visitors';
+    return '/admin/work_area/evacuation/past-visitors';
   }
 
   // Fallback
-  return '/admin/admin/work_area/dashboard';
+  return '/admin/work_area/dashboard';
 }
