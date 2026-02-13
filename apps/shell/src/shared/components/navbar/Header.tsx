@@ -21,6 +21,32 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
     const user = useAuthStore((s) => s.user);
 
     const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
+    const   SESSION_TO_LOCAL_KEYS: string = "__session_backup_keys__";
+
+
+    async function switchToHost() {
+    await setToLocalStorageTemporarily();
+    window.open("/switch", "_blank");
+  }
+
+ function setToLocalStorageTemporarily() {
+    const copiedKeys: string[] = [];
+    localStorage.setItem('redirectFrom', 'ADMIN')
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (!key) continue;
+
+      const value = sessionStorage.getItem(key);
+      if (value !== null) {
+        localStorage.setItem(key, value);
+        copiedKeys.push(key);
+      }
+    }
+
+    localStorage.setItem(SESSION_TO_LOCAL_KEYS, JSON.stringify(copiedKeys));
+  }
+
+
 
     // Fetch Sites
     const { data: sitesData } = useQuery({
@@ -117,7 +143,9 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                         Upgrade Plan
                     </Button>
                 )}
-
+                    <Button variant="primary" onClick={switchToHost} data-testid="upgrade-plan-button">
+                       Launch My Visitly
+                    </Button>
 
                 {/* Help Dropdown */}
                 <Popover

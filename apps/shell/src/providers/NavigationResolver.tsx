@@ -140,9 +140,13 @@ function resolveLanding(permissions: SidebarContext) {
   if (permissions.isDeliveryManager) {
     return '/admin/work_area/delivery-manager/dashboard';
   }
+  
+  if (permissions.isEvacManager) {
+    return '/admin/work_area/evacuation/main';
+  }
 
-  if (permissions.isHost || permissions.isEvacManager) {
-    return '/admin/work_area/evacuation/past-visitors';
+    if (permissions.isHost) {
+    return '/host/dashboard';
   }
 
   // Fallback
