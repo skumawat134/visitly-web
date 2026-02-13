@@ -66,7 +66,7 @@ export default function SwitchRole() {
     // redirect to dashboard or role page
     const redirectFrom = localStorage.getItem('redirectFrom')
     if(redirectFrom == 'ADMIN'){
-    navigate("/host/past-visitors", { replace: true });
+    navigate("/host/dashboard", { replace: true });
     }else{
      const url =  resolveLanding();
      navigate(url, { replace: true });

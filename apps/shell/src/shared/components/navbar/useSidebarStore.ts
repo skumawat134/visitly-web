@@ -16,8 +16,8 @@ interface SidebarState {
 export const useSidebarStore = create<SidebarState>((set, get) => ({
     isLocationMode: false,
     isCollapsed: false,
-    excludedHeaderRoutes: ['/onboarding', '/admin/onboarding', '/admin/internalAdmin/org-list'],
-    excludedSidbarRoutes: ['/onboarding', '/admin/onboarding', '/admin/internalAdmin/org-list'],
+    excludedHeaderRoutes: ['/onboarding', '/admin/onboarding', '/admin/internalAdmin/org-list','/admin/dashboard/wallboard','/dashboard/wallboard','/admin/permaVisits'],
+    excludedSidbarRoutes: ['/onboarding', '/admin/onboarding', '/admin/internalAdmin/org-list','/admin/dashboard/wallboard','/dashboard/wallboard','/admin/permaVisits'],
     setLocationMode: (mode) => set({ isLocationMode: mode }),
     toggleCollapse: () => set((state) => ({ isCollapsed: !state.isCollapsed })),
     setCollapsed: (collapsed) => set({ isCollapsed: collapsed }),
