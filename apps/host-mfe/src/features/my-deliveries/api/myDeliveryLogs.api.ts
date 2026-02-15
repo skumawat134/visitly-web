@@ -35,7 +35,7 @@ export async function updateDeliveryLogBulk(payload: any[]): Promise<any> {
 }
 
 // Used for updating status (Picked Up, Discard, Disposed, Unidentified)
-export async function updateDeliveryStatus(id: string, payload: { status: string; pickupD?: string }): Promise<any> {
+export async function updateDeliveryStatus(id: string, payload: { status: string; pickupD?: string }): Promise<any> {   
     const { data } = await getApiClient().patch(`/v1/host/delivery/${id}`, payload);
     return data;
 }

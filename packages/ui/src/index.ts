@@ -10,6 +10,7 @@ export { Checkbox, type CheckboxProps } from "./Checkbox";
 export { Radio, type RadioProps } from "./Radio";
 export { Switch, type SwitchProps } from "./Switch";
 export { SharedDateRangePicker } from "./DateRangePicker";
+export  { RightSlide }  from './RightSlide'
 
 // Layout Components
 export {
