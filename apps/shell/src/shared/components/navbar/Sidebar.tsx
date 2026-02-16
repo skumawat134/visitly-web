@@ -134,8 +134,9 @@ const SidebarItemComponent: React.FC<{
             {/* Submenu */}
             {!isCollapsed && hasChildren && isOpen && (
                 <div className="tw:bg-gray-50/50">
-                    {item.children?.map((child) => (
-                        (!child.condition || child.condition(context)) && (
+                    {item.children
+                        ?.filter(child => !child.condition || child.condition(context))
+                        .map(child => (
                             <NavLink
                                 key={child.title}
                                 to={child.path || '#'}
@@ -154,13 +155,12 @@ const SidebarItemComponent: React.FC<{
                             >
                                 {child.title}
                             </NavLink>
-                        )
-                    ))}
+                        ))}
                 </div>
             )}
 
             {/* Collapsed Tooltip - Using Portals to escape stacking context */}
-            {isCollapsed && isHovered && createPortal(
+            {(isCollapsed && isHovered && createPortal(
                 <div
                     className={`
                         tw:fixed tw:border tw:border-gray-100 tw:shadow-xl tw:rounded-lg 
@@ -204,7 +204,7 @@ const SidebarItemComponent: React.FC<{
                     </div>
                 </div>,
                 document.body
-            )}
+            ) as any)}
         </div>
     );
 };
