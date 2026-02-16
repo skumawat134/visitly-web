@@ -2,11 +2,12 @@ import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { resetPasswordApi } from '../services/auth.api';
-// import { toast } from 'react-hot-toast'; // Assuming toast is available, otherwise can use a local state or custom toast
+import { useToastStore } from '@visitly/app-store';
 
 export const useResetPassword = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { showToast } = useToastStore();
     const email = searchParams.get('email');
     const code = searchParams.get('code');
     // Google Analytics Tracking
@@ -19,15 +20,14 @@ export const useResetPassword = () => {
     const resetMutation = useMutation({
         mutationFn: resetPasswordApi,
         onSuccess: () => {
-            // Using a generic success message matching the original
-          //  toast.success('You have successfully reset visitly password.');
+            showToast({ message: 'You have successfully reset your Visitly password.', type: 'info' });
             navigate('/visitly/login');
         },
         onError: (error: any) => {
             if (error.status === 400 || error.status === 401) {
-               // toast.error('Your code is invalid or expired, please send the email to help@visitly.io for assistance.');
+                showToast({ message: 'Your code is invalid or expired, please send the email to help@visitly.io for assistance.', type: 'error' });
             } else {
-              //  toast.error('We have encountered an error. If the problem persists, please contact Visitly Support at support@visitly.io');
+                showToast({ message: 'We have encountered an error. If the problem persists, please contact Visitly Support at support@visitly.io', type: 'error' });
             }
         }
     });

@@ -287,7 +287,7 @@ export const Sidebar: React.FC = () => {
             className={`
                 tw:bg-white tw:border-r tw:border-gray-200
                 tw:transition-all tw:duration-300 tw:z-40
-                tw:flex tw:flex-col tw:h-full tw:min-h-0 tw:overflow-y-auto custom-scrollbar
+                tw:flex tw:flex-col tw:h-full tw:min-h-0 tw:overflow-y-auto tw:flex-shrink-0 custom-scrollbar
                 ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
             `}
             data-testid="left-sidebar"

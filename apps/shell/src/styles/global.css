@@ -32,6 +32,3 @@ body {
   width: 100%;
 }
 
-#app-layout-full #angular-container {
-  max-width: 85vw;
-}
