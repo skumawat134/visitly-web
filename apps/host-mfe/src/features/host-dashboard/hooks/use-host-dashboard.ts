@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
-import type { MatrixData, MySignInLogResponse } from "../api/hoastDashboard.types";
+import type {
+  MatrixData,
+  MySignInLogResponse,
+} from "../api/hoastDashboard.types";
 import {
   getUpCommingVisitors,
   getPastVisitors,
@@ -11,65 +14,95 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@visitly/app-store";
 import type { VisitorVisit } from "../api/hoastDashboard.types";
-
+import { useEntitlements } from "@/features/visitor-detail/hooks/useEntitlement";
 export const useHostDashboard = () => {
+  const { isDeliveryManagerEntitled } = useEntitlements();
+
+  console.log("isDeliveryManagerEntitled", isDeliveryManagerEntitled);
   const queryClient = useQueryClient();
   const [viewAs, setViewAs] = useState("all"); // 'all' | 'myself' | delegate userId
   const [upcomingSearch, setUpcomingSearch] = useState("");
   const [checkedInSearch, setCheckedInSearch] = useState("");
   const [upcomingLocation, setUpcomingLocation] = useState("all");
   const [checkedInLocation, setCheckedInLocation] = useState("all");
-  const currentUser = useAuthStore((state) => state.user);  
+  const currentUser = useAuthStore((state) => state.user);
 
   const now = new Date();
   const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const { data: upcomingVisitorsData = [] } = useQuery<any>({
     queryKey: ["upcomingVisitors"],
-    queryFn: () => getUpCommingVisitors({
-      userId : currentUser?.id,
-      scheduleCheckinStartDate : new Date().toISOString().split("T")[0],
-    }),
+    queryFn: () =>
+      getUpCommingVisitors({
+        userId: currentUser?.id,
+        scheduleCheckinStartDate: new Date().toISOString().split("T")[0],
+      }),
   });
 
   const { data: pastVisitorsData = [] } = useQuery<any>({
-  queryKey: ["pastVisitors"],
+    queryKey: ["pastVisitors"],
+    queryFn: () =>
+      getPastVisitors({
+        visitStartDate: new Date().toISOString().split("T")[0],
+        visitEndDate: new Date().toISOString().split("T")[0],
+      }),
+  });
+
+  const { data: deliveriesData = [] } = useQuery<any>({
+    queryKey: ["deliveries"],
+    queryFn: () => getMyDeliveryLogs({}),
+    enabled: isDeliveryManagerEntitled,
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      pickupD,
+    }: {
+      id: string;
+      status: string;
+      pickupD?: string;
+    }) => updateDeliveryStatus(id, { status, pickupD }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
+    },
+  });
+
+ const { data: mySignInLogsData } = useQuery<
+  MySignInLogResponse,
+  Error,
+  MySignInLogResponse
+>({
+  queryKey: ["mySignInLogs"],
   queryFn: () =>
-    getPastVisitors({
-      visitStartDate: new Date().toISOString().split("T")[0],
-      visitEndDate: new Date().toISOString().split("T")[0],
+    getMySignInLogs({
+      limit: 1,
+      offset: 0,
+      sort: "desc",
+      sortBy: "checkinTime",
     }),
+  select: (data) => {
+    const updatedResults = data.results.map((item) => ({
+      ...item,
+      currentActive:
+        item.checkinTime && !item.checkoutTime ? "Active" : "In-Active",
+    }));
+
+    return {
+      ...data,
+      results: updatedResults,
+    };
+  },
 });
 
 
-  const { data: deliveriesData = [] } = useQuery<any>({
-    queryKey: ["deliveries",],
-    queryFn: () => getMyDeliveryLogs({}),
+  const { data: sites } = useQuery({
+    queryKey: ["hostSites"],
+    queryFn: getHostSites,
   });
 
-      const updateStatusMutation = useMutation({
-        mutationFn: ({ id, status, pickupD }: { id: string; status: string; pickupD?: string }) =>
-            updateDeliveryStatus(id, { status, pickupD }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['deliveries'] });
-        }
-    });
-
-    const { data : mySignInLogsData } = useQuery<MySignInLogResponse>({
-            queryKey: ['mySignInLogs'],
-            queryFn: () =>
-                getMySignInLogs({
-                    limit: 1,
-                    offset: 0,
-                    sort: 'desc',
-                    sortBy: 'checkinTime',
-                }),
-        });
-
- const { data: sites } = useQuery({
-        queryKey: ['hostSites'],
-        queryFn: getHostSites,
-    });    
+console.log('mySignInLogsData',mySignInLogsData)
 
   const filterByHost = (v: VisitorVisit) => {
     if (viewAs === "all") return true;
@@ -89,10 +122,9 @@ export const useHostDashboard = () => {
     return [];
   };
 
-
   const expectedToday = useMemo(() => {
-    const list = ensureArray(upcomingVisitorsData).filter(
-      (v) =>  filterByHost(v),
+    const list = ensureArray(upcomingVisitorsData).filter((v) =>
+      filterByHost(v),
     );
     let filtered = list;
     if (upcomingLocation !== "all") {
@@ -151,7 +183,6 @@ export const useHostDashboard = () => {
     return ensureArray(deliveriesData).filter((d) => d.status === "Pending");
   }, [deliveriesData]);
 
-
   const metrics: MatrixData = useMemo(() => {
     const upcoming = ensureArray(upcomingVisitorsData);
     const past = ensureArray(pastVisitorsData);
@@ -164,13 +195,16 @@ export const useHostDashboard = () => {
     };
   }, [upcomingVisitorsData, pastVisitorsData, deliveriesData, todayDate]);
 
-  const delegates =  useMemo(() => {
+  const delegates = useMemo(() => {
     const raw = sessionStorage.getItem("userinfo");
     if (!raw) return [];
 
     try {
-      const user = JSON.parse(raw)?.delegateFor ?? []
-      const formatted = user.map((u: any) => ({ id: u.hostUserId, name: u.hostFirstName + " " + u.hostLastName }));
+      const user = JSON.parse(raw)?.delegateFor ?? [];
+      const formatted = user.map((u: any) => ({
+        id: u.hostUserId,
+        name: u.hostFirstName + " " + u.hostLastName,
+      }));
       return formatted;
     } catch (e) {
       console.error("Invalid userinfo in sessionStorage", e);
@@ -179,8 +213,6 @@ export const useHostDashboard = () => {
   }, []);
 
   console.log("Delegates:", delegates);
-    
- 
 
   return {
     viewAs,
@@ -198,9 +230,10 @@ export const useHostDashboard = () => {
     pendingPackages,
     metrics,
     currentUser,
-    updateDeliveryStatus : updateStatusMutation.mutate,
-    mySignInLogsData,
+    updateDeliveryStatus: updateStatusMutation.mutate,
+    mySignInLogsData: mySignInLogsData?.results[0],
     sites: sites?.results || [],
-    delegates
+    delegates,
+    isDeliveryManagerEntitled,
   };
 };

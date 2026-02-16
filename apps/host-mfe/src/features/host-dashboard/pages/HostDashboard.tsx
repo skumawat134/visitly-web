@@ -63,13 +63,11 @@ const formatRelativeTime = (dateStr?: string) => {
 export const formatDate = (date: string) =>
   format(new Date(date), "hh:mm a d MMMM yyyy");
 
-export const formatDuration = (seconds : number) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-
+export const formatDuration = (minutes: number) => {
+  const h = Math.floor(minutes / 60);
+  const m = Math.floor(minutes % 60);
   return `${h}h ${m}m`;
 };
-
 
 export const HostDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -93,7 +91,8 @@ export const HostDashboard: React.FC = () => {
     updateDeliveryStatus,
     mySignInLogsData,
     sites,
-    delegates
+    delegates,
+    isDeliveryManagerEntitled,
   } = useHostDashboard();
 
   const [hoveredVisitor, setHoveredVisitor] = useState<any>(null);
@@ -200,27 +199,25 @@ export const HostDashboard: React.FC = () => {
         field: "companyName",
         flex: 1.5,
         minWidth: 120,
-        valueFormatter: (params : any) => params.value || "—",
+        valueFormatter: (params: any) => params.value || "—",
       },
       { headerName: "Host", field: "hostName", flex: 1.5, minWidth: 120 },
       {
-  headerName: "Pre-Fill Status",
-  field: "prefill",
-  flex: 1.5,
-  minWidth: 120,
-  cellRenderer: (params: ICellRendererParams) => {
-    const hasPrefill = params.data?.visitInfoModel ? true : false;
+        headerName: "Pre-Fill Status",
+        field: "prefill",
+        flex: 1.5,
+        minWidth: 120,
+        cellRenderer: (params: ICellRendererParams) => {
+          const hasPrefill = params.data?.visitInfoModel ? true : false;
 
-    return (
-      <span className="tw:flex tw:items-center tw:gap-1.5">
-        {hasPrefill ? "Yes" : "No"}
-      </span>
-    );
-  },
-}
-,
+          return (
+            <span className="tw:flex tw:items-center tw:gap-1.5">
+              {hasPrefill ? "Yes" : "No"}
+            </span>
+          );
+        },
+      },
       { headerName: "Phone", field: "phoneNumber", flex: 1.5, minWidth: 120 },
-
 
       {
         headerName: "Location",
@@ -335,17 +332,19 @@ export const HostDashboard: React.FC = () => {
         field: "visitStatus",
         width: 120,
         cellRenderer: (params: ICellRendererParams) => {
-          if (params.value === "CHECKED_IN") {
+          if (!params.data.checkoutTime) {
             return (
-              <span className="tw:inline-flex tw:items-center tw:gap-1 tw:bg-emerald-100 tw:text-emerald-800 tw:text-[11px] tw:font-medium tw:px-2 tw:py-0.5 tw:rounded-md">
-                <span className="tw:w-1.5 tw:h-1.5 tw:rounded-full tw:bg-emerald-500" />{" "}
+              <span className="tw:inline-flex tw:items-center tw:gap-1.5 tw:px-2.5 tw:py-0.5 tw:rounded-full tw:text-[12px] tw:font-medium tw:bg-emerald-100 tw:text-emerald-800">
+                <span className="tw:w-1.5 tw:h-1.5 tw:rounded-full tw:bg-emerald-500" />
                 On-site
               </span>
             );
           }
+
           return (
-            <span className="tw:bg-gray-100 tw:text-gray-500 tw:text-[11px] tw:font-medium tw:px-2 tw:py-0.5 tw:rounded-md">
-              Left
+            <span className="tw:inline-flex tw:items-center tw:gap-1.5 tw:px-2.5 tw:py-0.5 tw:rounded-full tw:text-[12px] tw:font-medium tw:bg-slate-100 tw:text-slate-700">
+              <span className="tw:w-1.5 tw:h-1.5 tw:rounded-full tw:bg-slate-400" />
+              Checked out
             </span>
           );
         },
@@ -366,24 +365,27 @@ export const HostDashboard: React.FC = () => {
     [],
   );
 
-  const activeDelegateName = delegates.find((d : {id : string , name : string }) => d.id === viewAs)?.name;
+  const activeDelegateName = delegates.find(
+    (d: { id: string; name: string }) => d.id === viewAs,
+  )?.name;
 
-    const redirectToVisitorDetailPage = (data: VisitorDetail, source: string) => {   
-        console.log("Row clicked with data:", data, "from source:", source); // Debug log to check the data structure
+  const redirectToVisitorDetailPage = (data: VisitorDetail, source: string) => {
+    console.log("Row clicked with data:", data, "from source:", source); // Debug log to check the data structure
     if (!data?.id) return;
-      const isPrefill = !!data.visitInfoModel; 
-     const id = isPrefill ? data.visitInfoModel?.id : data.id;
-        const url = isPrefill  ? `/host/visitor-detail/${id}?isPrefill=true`
-        : `/host/visitor-detail/${id}?`;
+    const isPrefill = !!data.visitInfoModel;
+    const id = isPrefill ? data.visitInfoModel?.id : data.id;
+    const url = isPrefill
+      ? `/host/visitor-detail/${id}?isPrefill=true`
+      : `/host/visitor-detail/${id}?`;
 
-        if(source === 'pastVisitors') {
-         const url = `/host/visitor-detail/${id}?source=pastVisitors`;
-         navigate(url);
-         return;
-        }
+    if (source === "pastVisitors") {
+      const url = `/host/visitor-detail/${id}?source=pastVisitors`;
+      navigate(url);
+      return;
+    }
 
-        navigate(url);
-    }   
+    navigate(url);
+  };
 
   return (
     <div
@@ -488,20 +490,35 @@ export const HostDashboard: React.FC = () => {
             color="#10B981"
             bg="#D1FAE5"
           />
-          <MetricPill
-            icon={Package}
-            label="Pending Delivery"
-            value={metrics.pendingDeliveries}
-            color="#F59E0B"
-            bg="#FEF3C7"
-          />
+          {isDeliveryManagerEntitled && (
+            <MetricPill
+              icon={Package}
+              label="Pending Delivery"
+              value={metrics.pendingDeliveries}
+              color="#F59E0B"
+              bg="#FEF3C7"
+            />
+          )}
 
-          {mySignInLogsData?.results[0] && (
-            <div className="tw:flex tw:items-center tw:px-3.5 tw:py-2 tw:bg-emerald-100 tw:rounded-xl">
-              <span className="tw:w-1.5 tw:height-1.5 tw:rounded-full tw:bg-emerald-500 tw:flex-shrink-0" />
-              <span className="tw:text-[13px] tw:font-semibold tw:text-emerald-800 tw:flex tw:gap-2">
-                <Building2 size={14} />{" "}
-                    {mySignInLogsData.results[0].siteName}
+          {mySignInLogsData && (
+            <div
+              className={cn(
+                "tw:flex tw:items-center tw:px-3.5 tw:py-2 tw:rounded-xl",
+                mySignInLogsData.currentActive === "Active"
+                  ? "tw:bg-emerald-100"
+                  : "tw:bg-slate-100",
+              )}
+            >
+              <span
+                className={cn(
+                  "tw:text-[13px] tw:font-semibold tw:flex tw:gap-2",
+                  mySignInLogsData.currentActive === "Active"
+                    ? "tw:text-emerald-800"
+                    : "tw:text-slate-600",
+                )}
+              >
+                <Building2 size={14} />
+                {mySignInLogsData.siteName}
               </span>
             </div>
           )}
@@ -534,34 +551,38 @@ export const HostDashboard: React.FC = () => {
             </button>
           </div>
 
-          <div className="tw:relative">
-            <select
-              value={activeDelegateName ? viewAs : ""}
-              onChange={(e) => e.target.value && setViewAs(e.target.value)}
-              className={cn(
-                "tw:appearance-none tw:pl-3 tw:pr-8 tw:py-1.5 tw:rounded-xl tw:text-[13px] tw:font-medium tw:cursor-pointer tw:outline-none tw:min-w-[160px] tw:border tw:transition-all",
-                activeDelegateName
-                  ? "tw:border-indigo-600 tw:bg-indigo-50 tw:text-indigo-600"
-                  : "tw:border-gray-200 tw:bg-white tw:text-gray-500",
-              )}
-            >
-              <option value="" disabled>
-                View as delegate...
-              </option>
-              {delegates.map((d : {id : string , name : string }) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
+          {delegates.length > 0 && (
+            <div className="tw:relative">
+              <select
+                value={activeDelegateName ? viewAs : ""}
+                onChange={(e) => e.target.value && setViewAs(e.target.value)}
+                className={cn(
+                  "tw:appearance-none tw:pl-3 tw:pr-8 tw:py-1.5 tw:rounded-xl tw:text-[13px] tw:font-medium tw:cursor-pointer tw:outline-none tw:min-w-[160px] tw:border tw:transition-all",
+                  activeDelegateName
+                    ? "tw:border-indigo-600 tw:bg-indigo-50 tw:text-indigo-600"
+                    : "tw:border-gray-200 tw:bg-white tw:text-gray-500",
+                )}
+              >
+                <option value="" disabled>
+                  View as delegate...
                 </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              className={cn(
-                "tw:absolute tw:right-2.5 tw:top-1/2 tw:-translate-y-1/2 tw:pointer-events-none",
-                activeDelegateName ? "tw:text-indigo-600" : "tw:text-gray-400",
-              )}
-            />
-          </div>
+                {delegates.map((d: { id: string; name: string }) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                className={cn(
+                  "tw:absolute tw:right-2.5 tw:top-1/2 tw:-translate-y-1/2 tw:pointer-events-none",
+                  activeDelegateName
+                    ? "tw:text-indigo-600"
+                    : "tw:text-gray-400",
+                )}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -604,7 +625,9 @@ export const HostDashboard: React.FC = () => {
               domLayout="autoHeight" // ✅ IMPORTANT
               onCellMouseOver={(e) => handleRowEnter(e.data, e, true)}
               onCellMouseOut={handleRowLeave}
-              onRowClicked={(e) => redirectToVisitorDetailPage(e.data, 'upcomingVisitors')}
+              onRowClicked={(e) =>
+                redirectToVisitorDetailPage(e.data, "upcomingVisitors")
+              }
               className="tw:h-full"
               rowHeight={52}
               headerHeight={40}
@@ -656,7 +679,9 @@ export const HostDashboard: React.FC = () => {
               domLayout="autoHeight" // ✅ IMPORTANT
               onCellMouseOver={(e) => handleRowEnter(e.data, e, false)}
               onCellMouseOut={handleRowLeave}
-              onRowClicked={(e) => redirectToVisitorDetailPage(e.data,'pastVisitors')}
+              onRowClicked={(e) =>
+                redirectToVisitorDetailPage(e.data, "pastVisitors")
+              }
               className="tw:h-full"
               rowHeight={52}
               headerHeight={40}
@@ -674,57 +699,91 @@ export const HostDashboard: React.FC = () => {
         {/* Deliveries and Sign In Row */}
         <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-5">
           {/* My Deliveries Card */}
-          <section className="tw:bg-white tw:rounded-2xl tw:border tw:border-gray-100 tw:shadow-sm tw:p-6">
-                        <div className="tw:flex tw:items-center tw:gap-2.5 tw:mb-4">
-                            <div className="tw:w-8 tw:h-8 tw:rounded-lg tw:bg-amber-100 tw:text-amber-500 tw:flex tw:items-center tw:justify-center">
-                                <Package size={16} />
-                            </div>
-                            <h2 className="tw:text-[15px] tw:font-semibold tw:text-gray-900">My Deliveries</h2>
-                            <span className="tw:bg-amber-50 tw:text-amber-600 tw:text-[13px] tw:font-semibold tw:px-2 tw:py-0.5 tw:rounded-full">
-                                {pendingPackages.length}
-                            </span>
-                        </div>
+          {isDeliveryManagerEntitled && (
+            <section className="tw:bg-white tw:rounded-2xl tw:border tw:border-gray-100 tw:shadow-sm tw:p-6">
+              <div className="tw:flex tw:items-center tw:gap-2.5 tw:mb-4">
+                <div className="tw:w-8 tw:h-8 tw:rounded-lg tw:bg-amber-100 tw:text-amber-500 tw:flex tw:items-center tw:justify-center">
+                  <Package size={16} />
+                </div>
+                <h2 className="tw:text-[15px] tw:font-semibold tw:text-gray-900">
+                  My Deliveries
+                </h2>
+                <span className="tw:bg-amber-50 tw:text-amber-600 tw:text-[13px] tw:font-semibold tw:px-2 tw:py-0.5 tw:rounded-full">
+                  {pendingPackages.length}
+                </span>
+              </div>
 
-                        <div className="tw:flex tw:flex-col tw:gap-2.5">
-                            {pendingPackages.map((pkg) => (
-                                <div key={pkg.id} className="tw:bg-gray-50 tw:rounded-xl tw:p-4 tw:border tw:border-gray-100">
-                                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-1">
-                                        <span className="tw:text-sm tw:font-semibold tw:text-gray-800">{pkg.recipientFirstName} {pkg.recipientLastName}</span>
-                                        <span className="tw:text-[11px] tw:text-gray-400">
-                                            {new Date(pkg.receiveD).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                        </span>
-                                    </div>
-                                    <div className="tw:text-[13px] tw:text-gray-500">{pkg.carrier}</div>
-                                    <div className="tw:font-mono tw:text-[10px] tw:text-gray-400 tw:my-2 tw:truncate">{pkg.trackingId}</div>
-                                    <div className="tw:text-[11px] tw:text-gray-400 tw:flex tw:items-center tw:gap-1 tw:mb-3">
-                                        <MapPin size={10} /> {pkg.siteDeliveryAreaName} · {pkg.siteName}
-                                    </div>
-                                    <div className="tw:flex tw:gap-2">
-                                        <button className="tw:flex-1 tw:flex tw:items-center tw:justify-center tw:gap-1.5 tw:px-3 tw:py-1.5 tw:bg-emerald-500 tw:text-white tw:rounded-lg tw:text-xs tw:font-medium hover:tw:bg-emerald-600 tw:cursor-pointer"
-                                        onClick={()=> updateDeliveryStatus({
-                                                        id: pkg.id,
-                                                        status: 'Picked Up',
-                                                        pickupD: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
-                                                      })}>
-                                            <CheckCircle size={13} /> Mark as Pick Up
-                                        </button>
-                                        <button className="tw:px-3 tw:py-1.5 tw:text-gray-500 tw:border tw:border-gray-200 tw:rounded-lg tw:text-xs tw:font-medium hover:tw:bg-gray-100 tw:cursor-pointer"
-                                        onClick={()=> updateDeliveryStatus({
-                                                        id: pkg.id,
-                                                        status: 'Discard',
-                                                        pickupD: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
-                                                      })}>
-                                            Discard
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+              <div className="tw:flex tw:flex-col tw:gap-2.5">
+                {pendingPackages.map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    className="tw:bg-gray-50 tw:rounded-xl tw:p-4 tw:border tw:border-gray-100"
+                  >
+                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-1">
+                      <span className="tw:text-sm tw:font-semibold tw:text-gray-800">
+                        {pkg.recipientFirstName} {pkg.recipientLastName}
+                      </span>
+                      <span className="tw:text-[11px] tw:text-gray-400">
+                        {new Date(pkg.receiveD).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                    <div className="tw:text-[13px] tw:text-gray-500">
+                      {pkg.carrier}
+                    </div>
+                    <div className="tw:font-mono tw:text-[10px] tw:text-gray-400 tw:my-2 tw:truncate">
+                      {pkg.trackingId}
+                    </div>
+                    <div className="tw:text-[11px] tw:text-gray-400 tw:flex tw:items-center tw:gap-1 tw:mb-3">
+                      <MapPin size={10} /> {pkg.siteDeliveryAreaName} ·{" "}
+                      {pkg.siteName}
+                    </div>
+                    <div className="tw:flex tw:gap-2">
+                      <button
+                        className="tw:flex-1 tw:flex tw:items-center tw:justify-center tw:gap-1.5 tw:px-3 tw:py-1.5 tw:bg-emerald-500 tw:text-white tw:rounded-lg tw:text-xs tw:font-medium hover:tw:bg-emerald-600 tw:cursor-pointer"
+                        onClick={() =>
+                          updateDeliveryStatus({
+                            id: pkg.id,
+                            status: "Picked Up",
+                            pickupD: format(
+                              new Date(),
+                              "yyyy-MM-dd'T'HH:mm:ss",
+                            ),
+                          })
+                        }
+                      >
+                        <CheckCircle size={13} /> Mark as Pick Up
+                      </button>
+                      <button
+                        className="tw:px-3 tw:py-1.5 tw:text-gray-500 tw:border tw:border-gray-200 tw:rounded-lg tw:text-xs tw:font-medium hover:tw:bg-gray-100 tw:cursor-pointer"
+                        onClick={() =>
+                          updateDeliveryStatus({
+                            id: pkg.id,
+                            status: "Discard",
+                            pickupD: format(
+                              new Date(),
+                              "yyyy-MM-dd'T'HH:mm:ss",
+                            ),
+                          })
+                        }
+                      >
+                        Discard
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                        <button onClick={() => navigate('/host/delivery-logs')} className="tw:mt-4 tw:flex tw:items-center tw:gap-1 tw:text-[13px] tw:font-medium tw:text-indigo-600 hover:tw:opacity-75">
-                            View all packages <ArrowRight size={14} />
-                        </button>
-                    </section>
+              <button
+                onClick={() => navigate("/host/delivery-logs")}
+                className="tw:mt-4 tw:flex tw:items-center tw:gap-1 tw:text-[13px] tw:font-medium tw:text-indigo-600 hover:tw:opacity-75"
+              >
+                View all packages <ArrowRight size={14} />
+              </button>
+            </section>
+          )}
 
           {/* My Sign In Card */}
           <section className="tw:bg-white tw:rounded-2xl tw:border tw:border-gray-100 tw:shadow-sm tw:p-6">
@@ -732,9 +791,9 @@ export const HostDashboard: React.FC = () => {
               <div
                 className={cn(
                   "tw:w-8 tw:h-8 tw:rounded-lg tw:flex tw:items-center tw:justify-center",
-                  mySignInLogsData?.results[0]?.siteName
+                  mySignInLogsData?.currentActive === "Active"
                     ? "tw:bg-emerald-100 tw:text-emerald-500"
-                    : "tw:bg-gray-100 tw:text-gray-400",
+                    : "tw:bg-slate-100 tw:text-slate-500",
                 )}
               >
                 <LogIn size={16} />
@@ -744,40 +803,121 @@ export const HostDashboard: React.FC = () => {
               </h2>
             </div>
 
-            {mySignInLogsData?.results[0] ? (
-              <div className="tw:bg-emerald-50 tw:rounded-xl tw:p-4 tw:border tw:border-emerald-100">
+            {mySignInLogsData ? (
+              <div
+                className={cn(
+                  "tw:rounded-xl tw:p-4 tw:border",
+                  mySignInLogsData.currentActive === "Active"
+                    ? "tw:bg-emerald-50 tw:border-emerald-100"
+                    : "tw:bg-slate-50 tw:border-slate-200",
+                )}
+              >
                 <div className="tw:flex tw:items-center tw:gap-2 tw:mb-3">
-                  <span className="tw:w-2 tw:h-2 tw:rounded-full tw:bg-emerald-500 tw:shadow-[0_0_0_3px_rgba(16,185,129,0.2)]" />
-                  <span className="tw:text-sm tw:font-semibold tw:text-emerald-900">
-                    Currently Signed In
+                  <span
+                    className={cn(
+                      "tw:w-2 tw:h-2 tw:rounded-full",
+                      mySignInLogsData.currentActive === "Active"
+                        ? "tw:bg-emerald-500 tw:shadow-[0_0_0_3px_rgba(16,185,129,0.2)]"
+                        : "tw:bg-slate-400 tw:shadow-[0_0_0_3px_rgba(148,163,184,0.25)]",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "tw:text-sm tw:font-semibold",
+                      mySignInLogsData.currentActive === "Active"
+                        ? "tw:text-emerald-900"
+                        : "tw:text-slate-800",
+                    )}
+                  >
+                    {mySignInLogsData.currentActive === "Active"
+                      ? "Currently "
+                      : "Last "}
+                    Signed In
                   </span>
                 </div>
+
                 <div className="tw:flex tw:flex-col tw:gap-2 tw:mb-4">
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:text-sm tw:font-medium tw:text-emerald-800">
-                    <Building2 size={14} />{" "}
-                    {mySignInLogsData.results[0].siteName}
+                  <div
+                    className={cn(
+                      "tw:flex tw:items-center tw:gap-2 tw:text-sm tw:font-medium",
+                      mySignInLogsData.currentActive === "Active"
+                        ? "tw:text-emerald-800"
+                        : "tw:text-slate-700",
+                    )}
+                  >
+                    <Building2 size={14} />
+                    {mySignInLogsData.siteName}
                   </div>
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:text-[13px] tw:text-emerald-700">
-                    <Clock size={14} /> Checkin Time{" "}
-                    <span className="tw:bg-emerald-200 tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold">
-                      {formatDate(mySignInLogsData.results[0].checkinTime)}
+
+                  <div
+                    className={cn(
+                      "tw:flex tw:items-center tw:gap-2 tw:text-[13px]",
+                      mySignInLogsData.currentActive === "Active"
+                        ? "tw:text-emerald-700"
+                        : "tw:text-slate-600",
+                    )}
+                  >
+                    <Clock size={14} /> Checkin Time
+                    <span
+                      className={cn(
+                        "tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold",
+                        mySignInLogsData.currentActive === "Active"
+                          ? "tw:bg-emerald-200"
+                          : "tw:bg-slate-200",
+                      )}
+                    >
+                      {formatDate(mySignInLogsData.checkinTime)}
                     </span>
                   </div>
-                  {mySignInLogsData.results[0].checkoutTime &&  <div className="tw:flex tw:items-center tw:gap-2 tw:text-[13px] tw:text-emerald-700">
-                    <Clock size={14} /> Checkout Time{" "}
-                   
-                    <span className="tw:bg-emerald-200 tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold">
-                      {formatDate(mySignInLogsData.results[0].checkoutTime)}sndfb
-                    </span>
-                  </div>}
-                  {mySignInLogsData.results[0].duration &&  <div className="tw:flex tw:items-center tw:gap-2 tw:text-[13px] tw:text-emerald-700">
-                    <Clock size={14} /> Duration{" "}
-                   
-                    <span className="tw:bg-emerald-200 tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold">
-                      {formatDuration(+mySignInLogsData.results[0].duration)}shbfkae
-                    </span>
-                  </div>}
+
+                  {mySignInLogsData.checkoutTime && (
+                    <div
+                      className={cn(
+                        "tw:flex tw:items-center tw:gap-2 tw:text-[13px]",
+                        mySignInLogsData.currentActive === "Active"
+                          ? "tw:text-emerald-700"
+                          : "tw:text-slate-600",
+                      )}
+                    >
+                      <Clock size={14} /> Checkout Time
+                      <span
+                        className={cn(
+                          "tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold",
+                          mySignInLogsData.currentActive === "Active"
+                            ? "tw:bg-emerald-200"
+                            : "tw:bg-slate-200",
+                        )}
+                      >
+                        {formatDate(mySignInLogsData.checkoutTime)}
+                      </span>
+                    </div>
+                  )}
+
+                  {mySignInLogsData.duration !== null &&
+                    mySignInLogsData.duration !== undefined && (
+                      <div
+                        className={cn(
+                          "tw:flex tw:items-center tw:gap-2 tw:text-[13px]",
+                          mySignInLogsData.currentActive === "Active"
+                            ? "tw:text-emerald-700"
+                            : "tw:text-slate-600",
+                        )}
+                      >
+                        <Clock size={14} /> Duration
+                        <span
+                          className={cn(
+                            "tw:px-2 tw:py-0.5 tw:rounded-md tw:text-[11px] tw:font-bold",
+                            mySignInLogsData.currentActive === "Active"
+                              ? "tw:bg-emerald-200"
+                              : "tw:bg-slate-200",
+                          )}
+                        >
+                          {formatDuration(+mySignInLogsData.duration)}
+                        </span>
+                      </div>
+                    )}
                 </div>
+
                 <div className="tw:flex tw:gap-2 tw:items-center">
                   <button
                     onClick={() => navigate("/host/sign-in-log")}
@@ -788,7 +928,7 @@ export const HostDashboard: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="tw:bg-gray-50 tw:rounded-xl tw:p-4 tw:border tw:border-gray-100"></div>
+              <div className="tw:bg-gray-50 tw:rounded-xl tw:p-4 tw:border tw:border-gray-100" />
             )}
           </section>
         </div>

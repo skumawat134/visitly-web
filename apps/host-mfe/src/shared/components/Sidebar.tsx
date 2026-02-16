@@ -1,5 +1,5 @@
 import { useAuthStore } from '@visitly/app-store';
-import { AlertTriangle, ChevronRight, IdCard, LogIn, User, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, BookOpen, ChevronRight, ClipboardList, IdCard, LogIn, Package, User, UserCircle, type LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard,
   Users,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useSidebarPermissions } from './useSidebarPermissions';
 
 export interface SidebarChildItem {
   title: string;
@@ -23,7 +24,24 @@ export interface SidebarItemConfig {
   permission: string[];
   path?: string;
   children?: SidebarChildItem[];
+  testid?: string;
+  condition?: (context: SidebarContext) => boolean;
+
 }
+
+export interface SidebarContext {
+    // Entitlements
+    isDeliveryManagerEntitled: boolean;
+    isAdvanceAnalyticsEntitled: boolean;
+    isUserGroupEntitled: boolean;
+    isBackgroundCheckEntitled: boolean;
+    isAdvancedMegaLocationEntitled: boolean;
+
+    // App State
+    currentPlan: string;
+}
+
+
 
 interface UserAuth {
   permissions: string[];
@@ -31,18 +49,18 @@ interface UserAuth {
 
 
 
-export const SIDEBAR_CONFIG = [
+export const SIDEBAR_CONFIG :  SidebarItemConfig[] = [
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
     path: '/host/dashboard',
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+    permission: ['HOST'],
   },
   {
-    title: 'My Upcoming Visitors',
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+    title: 'Visitors',
+    permission: ['HOST'],
     "testid": "evac-my-upcoming-visitors-link",
-    icon: LayoutDashboard,
+    icon: Users,
     path: '/host/upcoming-visitors',
   },
   {
@@ -50,35 +68,37 @@ export const SIDEBAR_CONFIG = [
     icon: Users,
     testid: "evac-my-visitors-link",
     path: '/host/past-visitors',
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+    permission: ['HOST'],
   },
   {
-    title: 'My Sign In Log',
-    icon: LogIn,
+    title: 'Sign In Log',
+    icon: ClipboardList,
     testid: "evac-my-sign-in-log-link",
     path: '/host/my-sign-in-log',
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+    permission: ['HOST'],
   },
   {
-    title: 'My Deliveries',
-    icon: Truck,
+    title: 'Packages',
+    icon: Package,
     path: '/host/my-deliveries',
     testid: "evac-my-deliveries-link",
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+    permission: ['HOST'],
+    condition: (ctx) => ctx.isDeliveryManagerEntitled,
+
   },
   {
     title: 'Company Directory',
-    icon: IdCard,
+    icon: BookOpen,
     path: '/host/directory',
     testid: "evac-company-directory-link",
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+    permission: ['HOST'],
   },
    {
     title: 'Profile',
-    icon: User,
+    icon: UserCircle,
     path: '/host/profile',
     testid: "evac-profile-settings-link",
-    permission: ['GLOBAL_ORG_ADMIN', 'GLOBAL_INTERNAL_ADMIN', 'HOST', 'EVAC_MANAGER'],
+    permission: ['HOST'],
   },
   // {
   //   title: 'Evacuation & Emergency',
@@ -95,6 +115,7 @@ interface SidebarItemProps {
   item: SidebarItemConfig;
   isActive?: boolean;
   permissions: string[];
+  context : SidebarContext;
 }
 
 const hasAnyPermission = (
@@ -106,7 +127,7 @@ const hasAnyPermission = (
 };
 
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ item, permissions, isCollapsed }) => {
+const SidebarItem: React.FC<SidebarItemProps> = ({ item, context ,permissions, isCollapsed }) => {
   const [isOpen, setIsOpen] = useState(false);
   const Icon = item.icon;
 
@@ -118,7 +139,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, permissions, isCollapse
     e.stopPropagation();
     setIsOpen(!isOpen);
   };
-
+      // Condition check
+  if (item.condition && !item.condition(context)) return null;
   return (
     <div className="tw:relative tw:group">
       {/* 1. MAIN NAVIGATION ITEM
@@ -225,6 +247,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, permissions, isCollapse
 export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => {
   const user = useAuthStore((s) => s.user);
   const permissions = user?.roles?.map((r) => r.role) || [];
+      const context = useSidebarPermissions();
+      console.log('context',context)
   return (
     <aside className={`
       tw:bg-white tw:border-r tw:border-gray-200 
@@ -239,6 +263,7 @@ export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => 
               key={item.title}
               item={item}
               isCollapsed={isCollapsed}
+              context ={context}
               isActive={item.title === 'Visitor Log'} // Testing active state
             />
           ))}

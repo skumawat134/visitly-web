@@ -15,6 +15,7 @@ import { Input, cn } from "@visitly/ui";
 import { GridFooter } from "../components/GridFooter";
 import { CompanyDirectoryModal } from "../components/CompanyDirectoryModal";
 import DirectoryCard from "../components/DirectoryCard";
+import { PageDescription } from "@/shared/components/PageDescription";
 
 const CompanyDirectory: React.FC = () => {
   const {
@@ -45,35 +46,7 @@ const CompanyDirectory: React.FC = () => {
   return (
     <div className="tw:min-h-screen tw:bg-[#F8FAFC] tw:pb-4">
       {/* Page Header - Premium Style */}
-      <div className="tw:bg-transparent tw:mb-4">
-        <div className="tw:max-w-full tw:mx-auto tw:px-6 tw:py-8 tw:md:py-10">
-          <div className="tw:flex tw:items-center tw:justify-between tw:gap-6 tw:flex-wrap">
-            <div>
-              <div className="tw:flex tw:items-center tw:gap-3">
-                {/* <div className="tw:p-2.5 tw:bg-indigo-600 tw:rounded-2xl tw:shadow-lg tw:shadow-indigo-200">
-                  <Users size={24} className="tw:text-white" />
-                </div> */}
-                <h1 className="tw:text-3xl tw:font-bold tw:text-slate-900 tw:tracking-tight">
-                  Company Directory
-                </h1>
-                {/* <button
-                  onClick={() => refetch()}
-                  className="tw:p-2.5 tw:text-slate-400 tw:hover:text-indigo-600 tw:transition-all tw:rounded-xl tw:hover:bg-indigo-50 tw:active:scale-95"
-                  title="Refresh Directory"
-                >
-                  <RotateCw
-                    size={20}
-                    className={isLoading ? "tw:animate-spin" : ""}
-                  />
-                </button> */}
-              </div>
-              <p className="tw:text-slate-500 tw:mt-2 tw:text-[15px] tw:font-medium">
-                Find and connect with colleagues across the organization
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageDescription  title='Company Directory' description="Find and connect with colleagues across the organization" />
 
       <div className="tw:max-w-full tw:mx-auto tw:px-4">
         {/* Controls Section - Floating Style */}
@@ -153,7 +126,7 @@ const CompanyDirectory: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:lg:grid-cols-3 tw:xl:grid-cols-4 tw:gap-6">
+          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:lg:grid-cols-3 tw:xl:grid-cols-4 tw:gap-6 tw:min-h-[80vh]">
             {rowData.map((user) => (
               <DirectoryCard
                 key={user.id}

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
 import { format } from "date-fns";
+import { Calendar, Truck, Hash, MapPin, Package, Expand } from "lucide-react";
+import { Button, Image } from "@visitly/ui";
+import { RightSlide } from "@visitly/ui";
 import {
   DeliveryLogStatus,
   type DeliveryLogRecord,
 } from "../api/myDeliveryLogs.types";
-import { Button, Image } from "@visitly/ui";
-import { Expand } from "lucide-react";
 import { ScannedImageDialog } from "./ScannedImageDialog";
 
 interface MyDeliveryLogsModalProps {
@@ -31,9 +31,7 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
   const [pickupNote, setPickupNote] = useState(packageItem?.pickupNote || "");
   const [isImageOpen, setIsImageOpen] = useState(false);
 
-  if (!isOpen || !packageItem) return null;
-
-  console.log("packageItem", packageItem);
+  if (!packageItem) return null;
 
   const formatDate = (date: string | null, withTime = true) => {
     if (!date) return "-";
@@ -49,7 +47,6 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
 
   const handleSave = () => {
     onUpdate(packageItem.id, { pickupNote });
-    // onClose();
   };
 
   const getStatusBadgeClass = (status: DeliveryLogStatus) => {
@@ -69,195 +66,175 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
   };
 
   return (
-    <div className="tw:fixed tw:inset-0 tw:z-50 tw:flex tw:items-center tw:justify-center tw:bg-black/60 tw:p-4">
-      <div className="tw:bg-white tw:rounded-xl tw:shadow-2xl tw:w-full tw:max-w-5xl tw:max-h-[92vh] tw:flex tw:flex-col tw:overflow-hidden">
-        {/* Header */}
-        <div className="tw:flex tw:items-center tw:justify-between tw:px-6 tw:py-4 tw:border-b tw:border-gray-200 tw:bg-gray-50">
-          <h3 className="tw:text-lg tw:font-semibold tw:text-gray-900">
-            Package Details
-          </h3>
-          <button
-            onClick={onClose}
-            className="tw:p-1.5 tw:rounded-full hover:tw:bg-gray-200 tw:transition-colors"
-          >
-            <X size={20} className="tw:text-gray-600" />
-          </button>
-        </div>
-
-        {/* Main Content */}
-        <div className="tw:flex-1 tw:p-6 tw:overflow-y-auto tw:flex tw:flex-col tw:lg:flex-row tw:gap-8">
-          {/* Left - Info */}
-          <div className="tw:flex-1 tw:space-y-5 tw:min-w-0">
-            <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-4 tw:text-sm">
-              <div>
-                <div className="tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase">
-                  Received Date
-                </div>
-                <div className="tw:font-medium tw:text-gray-900">
-                  {formatDate(packageItem.receiveD)}
-                </div>
+    <>
+      <RightSlide
+        open={isOpen}
+        onClose={onClose}
+        title="Package Details"
+        width={520}
+      >
+        <div className="tw:flex tw:flex-col tw:gap-6">
+          {/* Hero Section */}
+          <div className="tw:flex tw:items-center tw:gap-4 tw:p-5 tw:rounded-xl tw:bg-gray-50 tw:border tw:border-gray-200">
+            <div className="tw:w-12 tw:h-12 tw:rounded-xl tw:bg-primary/10 tw:flex tw:items-center tw:justify-center">
+              <Package size={24} className="tw:text-primary" />
+            </div>
+            <div className="tw:flex-1 tw:min-w-0">
+              <div className="tw:text-base tw:font-semibold tw:text-gray-900">
+                {packageItem.carrier || "-"}
               </div>
-              <div>
-                <div className="tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase">
-                  Carrier Name
-                </div>
-                <div className="tw:font-medium tw:text-gray-900">
-                  {packageItem.carrier || "-"}
-                </div>
-              </div>
-
-              <div>
-                <div className="tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase">
-                  Pickup Date
-                </div>
-                <div className="tw:font-medium tw:text-gray-900">
-                  {formatDate(packageItem.pickupD)}
-                </div>
-              </div>
-              <div>
-                <div className="tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase">
-                  Tracking Number
-                </div>
-                <div className="tw:font-medium tw:text-gray-900 tw:break-all">
-                  {packageItem.trackingId || "-"}
-                </div>
-              </div>
-
-              <div>
-                <div className="tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase">
-                  Location *
-                </div>
-                <div className="tw:font-medium tw:text-gray-900">
-                  {packageItem.siteName || "-"}
-                </div>
-              </div>
-              <div>
-                <div className="tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase">
-                  Delivery Area *
-                </div>
-                <div className="tw:font-medium tw:text-gray-900">
-                  {packageItem.siteDeliveryAreaName || "-"}
-                </div>
+              <div className="tw:text-xs tw:text-gray-500 tw:break-all">
+                {packageItem.trackingId || "-"}
               </div>
             </div>
-
-            {/* Pickup Note */}
-            <div className="tw:pt-2">
-              <label className="tw:block tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase tw:mb-1.5">
-                Pickup Note
-              </label>
-              <textarea
-                disabled
-                className="tw:w-full tw:p-3 tw:border tw:border-gray-300 tw:rounded-lg tw:focus:outline-none tw:focus:ring-1 tw:bg-[#e9ecef] tw:min-h-[51px] tw:text-sm"
-                placeholder="Add Pick Up Note"
-                value={packageItem?.pickupNote || ""}
-                onChange={(e) => setPickupNote(e.target.value)}
-              />
+            <div
+              className={`tw:px-3 tw:py-1 tw:rounded-full tw:text-xs tw:font-medium tw:border ${getStatusBadgeClass(
+                packageItem.status,
+              )}`}
+            >
+              {packageItem.status}
             </div>
           </div>
 
-          {/* Right - Label Image */}
-          <div className="tw:flex-1 tw:flex tw:flex-col tw:gap-4 tw:min-w-0">
-            <div
-              className="tw:relative tw:rounded-lg tw:overflow-hidden tw:border tw:border-gray-300 tw:bg-white tw:shadow-sm 
-                tw:h-[220px] md:tw:h-[280px] lg:tw:h-[320px]"
-            >
-              {/* Expand Icon */}
-              <button
-                onClick={() => setIsImageOpen(true)}
-                className="tw:absolute tw:top-2 tw:right-2 tw:z-10 tw:bg-black/60 tw:text-white tw:p-2 tw:rounded-full hover:tw:bg-black/80"
-              >
-                <Expand size={18} />
-              </button>
-
-              <Image
-                src={
-                  packageItem.labelUri ||
-                  "/assets/images/default-label-placeholder.png"
-                }
-                alt="Package Label"
-                className="tw:w-full tw:h-full tw:object-contain"
-              />
-            </div>
-
-            {/* Recipient Name */}
-            <div className="tw:text-sm">
-              <span className="tw:font-medium tw:text-gray-700">
-                Recipient Name:
-              </span>{" "}
-              <span className="tw:font-semibold">
-                {packageItem.recipientFirstName}{" "}
-                {packageItem.recipientLastName || ""}
-              </span>
-            </div>
-
-            {/* FIXED HERE */}
-            <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-4">
+          {/* Detail Grid */}
+          <div className="tw:grid tw:grid-cols-2 tw:rounded-xl tw:border tw:border-gray-200 tw:overflow-hidden">
+            {[
+              {
+                label: "Received",
+                value: formatDate(packageItem.receiveD),
+                icon: Calendar,
+              },
+              {
+                label: "Carrier",
+                value: packageItem.carrier || "-",
+                icon: Truck,
+              },
+              {
+                label: "Pickup Date",
+                value: formatDate(packageItem.pickupD),
+                icon: Calendar,
+              },
+              {
+                label: "Tracking ID",
+                value: packageItem.trackingId || "-",
+                icon: Hash,
+              },
+              {
+                label: "Location",
+                value: packageItem.siteName || "-",
+                icon: MapPin,
+              },
+              {
+                label: "Delivery Area",
+                value: packageItem.siteDeliveryAreaName || "-",
+                icon: Package,
+              },
+            ].map((item, i) => (
               <div
-                className={`tw:px-4 tw:py-1.5 tw:rounded-full tw:text-sm tw:font-medium tw:border ${getStatusBadgeClass(packageItem.status)}`}
-                data-testid="modal-status"
+                key={i}
+                className="tw:p-4 tw:border-b tw:border-r tw:border-gray-200 even:tw:border-r-0 last:tw:border-b-0"
               >
-                {packageItem.status}
+                <div className="tw:flex tw:items-center tw:gap-2 tw:text-xs tw:text-gray-500 tw:uppercase tw:mb-1">
+                  <item.icon size={14} />
+                  {item.label}
+                </div>
+                <div className="tw:text-sm tw:font-medium tw:text-gray-900 tw:break-all">
+                  {item.value}
+                </div>
               </div>
+            ))}
+          </div>
 
-              {packageItem.status === DeliveryLogStatus.PENDING && (
+          {/* Label Image */}
+          <div className="tw:relative tw:rounded-xl tw:border tw:border-gray-200 tw:overflow-hidden tw:bg-gray-50">
+            <button
+              onClick={() => setIsImageOpen(true)}
+              className="tw:absolute tw:top-2 tw:right-2 tw:z-10 tw:bg-black/60 tw:text-white tw:p-2 tw:rounded-full"
+            >
+              <Expand size={16} />
+            </button>
+
+            <Image
+              src={
+                packageItem.labelUri ||
+                "/assets/images/default-label-placeholder.png"
+              }
+              alt="Package Label"
+              className="tw:w-full tw:max-h-[240px] tw:object-contain"
+            />
+          </div>
+
+          {/* Recipient */}
+          <div className="tw:text-sm">
+            <span className="tw:text-gray-500">Recipient:</span>{" "}
+            <span className="tw:font-semibold">
+              {packageItem.recipientFirstName}{" "}
+              {packageItem.recipientLastName || ""}
+            </span>
+          </div>
+
+          {/* Pickup Note */}
+          <div>
+            <div className="tw:text-xs tw:font-medium tw:text-gray-500 tw:uppercase tw:mb-1">
+              Pickup Note
+            </div>
+            <textarea
+              disabled
+              value={packageItem.pickupNote || ""}
+              onChange={(e) => setPickupNote(e.target.value)}
+              className="tw:w-full tw:p-3 tw:rounded-lg tw:border tw:border-gray-200 tw:bg-gray-50 tw:text-sm"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="tw:flex tw:flex-wrap tw:gap-3">
+            {packageItem.status === DeliveryLogStatus.PENDING && (
+              <Button
+                onClick={() =>
+                  onUpdateStatus(
+                    packageItem.id,
+                    DeliveryLogStatus.PICKEDUP,
+                    format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
+                  )
+                }
+                variant="primary"
+              >
+                Picked Up
+              </Button>
+            )}
+
+            {(packageItem.status === DeliveryLogStatus.UNIDENTIFIED ||
+              packageItem.status === DeliveryLogStatus.PENDING) && (
+              <>
                 <Button
                   onClick={() =>
                     onUpdateStatus(
                       packageItem.id,
-                      DeliveryLogStatus.PICKEDUP,
-                      format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
+                      DeliveryLogStatus.UNIDENTIFIED,
                     )
                   }
-                  data-testid="mark-pickedup-modal-button"
                   variant="outline"
-                  className="tw:text-[#5E2CED] tw:border tw:border-[#5E2CED]!"
                 >
-                  Picked Up
+                  Not My Delivery
                 </Button>
-              )}
 
-              {(packageItem.status === DeliveryLogStatus.UNIDENTIFIED ||
-                packageItem.status === DeliveryLogStatus.PENDING) && (
-                <>
-                  <Button
-                    onClick={() =>
-                      onUpdateStatus(
-                        packageItem.id,
-                        DeliveryLogStatus.UNIDENTIFIED,
-                      )
-                    }
-                    variant="outline"
-                    className="tw:text-[#5E2CED] tw:border tw:border-[#5E2CED]!"
-                    data-testid="not-my-delivery-button"
-                  >
-                    Not My Delivery
-                  </Button>
-
-                  <Button
-                    onClick={() =>
-                      onUpdateStatus(packageItem.id, DeliveryLogStatus.DISCARD)
-                    }
-                    variant="outline"
-                    className="tw:text-[#5E2CED] tw:border tw:border-[#5E2CED]!"
-                    data-testid="discard-button"
-                  >
-                    Discard
-                  </Button>
-                </>
-              )}
-            </div>
+                <Button
+                  onClick={() =>
+                    onUpdateStatus(
+                      packageItem.id,
+                      DeliveryLogStatus.DISCARD,
+                    )
+                  }
+                  variant="outline"
+                >
+                  Discard
+                </Button>
+              </>
+            )}
           </div>
-        </div>
-        <ScannedImageDialog
-          isOpen={isImageOpen}
-          onClose={() => setIsImageOpen(false)}
-          imageUrl={packageItem.labelUri}
-        />
 
-        {/* Bottom Actions */}
-        <div className="tw:px-6 tw:py-5 tw:border-t tw:border-gray-200 tw:bg-gray-50 tw:flex tw:flex-col sm:tw:flex-row tw:items-center tw:justify-between tw:gap-4">
-          <div className="tw:flex tw:gap-3 tw:ml-auto">
+          {/* Bottom Save / Cancel */}
+          <div className="tw:flex tw:justify-end tw:gap-3 tw:pt-4 tw:border-t tw:border-gray-200">
             <Button onClick={onClose} variant="outline">
               Cancel
             </Button>
@@ -266,7 +243,13 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </RightSlide>
+
+      <ScannedImageDialog
+        isOpen={isImageOpen}
+        onClose={() => setIsImageOpen(false)}
+        imageUrl={packageItem.labelUri}
+      />
+    </>
   );
 };

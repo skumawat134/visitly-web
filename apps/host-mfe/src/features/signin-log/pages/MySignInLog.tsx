@@ -19,7 +19,8 @@ import { useMySignInLog } from "../hooks/useMySignInLog";
 import type { SignInLogRecord } from "../api/mySignInLog.types";
 import { Input, Button, cn } from "@visitly/ui";
 import { GridFooter } from '../../../shared/components/GridFooter';
-import { LogDateRangePicker } from "../components/LogDateRangePicker";
+import  DateRangePicker  from  "@/shared/components/DateRangePicker";
+import { PageDescription } from "@/shared/components/PageDescription";
 
 // ---------------------------------------------------------------------------
 // Helpers for Grouping & Status
@@ -220,27 +221,12 @@ const MySignInLog: React.FC = () => {
   return (
     <div className="tw:min-h-screen tw:bg-[#F8FAFC] tw:pb-12">
       {/* Page Header */}
-      <div className="tw:bg-transparent tw:mb-4">
-        <div className="tw:max-w-full tw:mx-auto tw:px-4 tw:py-10 tw:md:py-8">
-          <div className="tw:flex tw:items-center tw:justify-between tw:gap-6">
-            <div>
-              <div className="tw:flex tw:items-center tw:gap-3">
-                {/* <div className="tw:p-2.5 tw:bg-indigo-600 tw:rounded-2xl tw:shadow-lg tw:shadow-indigo-200">
-                  <Calendar size={24} className="tw:text-white" />
-                </div> */}
-                <h1 className="tw:text-3xl tw:font-bold tw:text-slate-900 tw:tracking-tight">
-                  My Sign-In Log
-                </h1>
-              </div>
-              <p className="tw:text-slate-500 tw:mt-2.5 tw:text-[16px] tw:font-medium">
-                Track and manage your facility access history
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageDescription
+      title= 'My Sign-In Log'
+      description="Track and manage your facility access history" 
+       />
 
-      <div className="tw:max-w-7xl tw:mx-auto tw:px-6">
+      <div className="tw:max-w-full tw:mx-auto tw:px-6">
         {/* Active Session Hero */}
         {activeEntry ? (
           <div className="tw:bg-white tw:rounded-[24px] tw:p-4 tw:mb-4 tw:border tw:border-slate-200/60 tw:shadow-[0_20px_50px_rgba(79,70,229,0.06)] tw:flex tw:items-center tw:justify-between tw:gap-8 tw:relative tw:overflow-hidden">
@@ -345,7 +331,8 @@ const MySignInLog: React.FC = () => {
             {/* Bottom Row: Date Range & Search */}
             <div className="tw:flex tw:flex-col tw:lg:flex-row tw:justify-between tw:items-start tw:lg:items-center tw:gap-8">
               <div className="tw:flex-1">
-                <LogDateRangePicker value={dateRange} onChange={setDateRange} />
+                <DateRangePicker value={dateRange} onChange={setDateRange} />
+
               </div>
 
               <div className="tw:flex tw:items-center tw:gap-4 tw:w-full tw:lg:w-auto">

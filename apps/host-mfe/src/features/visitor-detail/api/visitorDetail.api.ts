@@ -12,6 +12,7 @@ import type {
 export async function getPreRegistrationDetail(id: string): Promise<VisitorDetail> {
   const endpoint = `/v1/host/preregistrations/${id}`;
   const { data } = await getApiClient().get<VisitorDetail>(endpoint);
+  return data
   return {
     ...data,
     visitCustomFields: buildCustomFields(data.preregisterVisitCustomFieldModels, data), // normalized field for UI
@@ -24,6 +25,7 @@ export async function getPreRegistrationDetail(id: string): Promise<VisitorDetai
 export async function getVisitDetail(id: string): Promise<VisitorDetail> {
   const endpoint = `/v1/visits/${id}`;
   const { data } = await getApiClient().get<VisitorDetail>(endpoint);
+  return data
   return {
     ...data,
     visitCustomFields: buildCustomFields(data.visitCustomFields, data), // normalized field for UI

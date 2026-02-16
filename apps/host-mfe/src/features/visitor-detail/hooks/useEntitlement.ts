@@ -10,6 +10,7 @@ export type EntitlementsState = {
   isAdvancedMegaLocationEntitled: boolean;
   advanceWatchListEntitled: boolean;
   isPreScreenCheckEntitled: boolean;
+  isDeliveryManagerEntitled: boolean;
 };
 
 export const useEntitlements = () => {
@@ -28,6 +29,7 @@ export const useEntitlements = () => {
       isAdvancedMegaLocationEntitled: false,
       advanceWatchListEntitled: false,
       isPreScreenCheckEntitled: false,
+      isDeliveryManagerEntitled : false
     };
 
     const entitlements = productInfo?.products?.[0]?.entitlements ?? [];
@@ -62,6 +64,9 @@ export const useEntitlements = () => {
           break;
         case "PRESCREEN":
           state.isPreScreenCheckEntitled = true;
+          break;
+        case "ADVANCED_DELIVERY_MANAGER":
+          state.isDeliveryManagerEntitled = true;
           break;
       }
     }
