@@ -4,7 +4,9 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useForgotPassword } from '../hooks/useForgotPassword';
 import appLogo from '@/assets/images/logo.png';
- export const ForgotPassword: React.FC = () => {
+import { useDebounce } from '@visitly/shared-core';
+
+export const ForgotPassword: React.FC = () => {
     const {
         isSSOLoginEnabled,
         checkIsSSOAvailable,
@@ -29,20 +31,31 @@ import appLogo from '@/assets/images/logo.png';
                 handleSSO();
             } else {
                 sendEvent('recover password button');
-                forgotPwdMutation.mutate({ email: values.email});
+                forgotPwdMutation.mutate({ email: values.email });
             }
         },
     });
+
+    // Use shared debounce hook
+    const debouncedEmail = useDebounce(formik.values.email, 500);
+
+    React.useEffect(() => {
+        if (!formik.errors.email && debouncedEmail) {
+            checkIsSSOAvailable(debouncedEmail);
+        }
+    }, [debouncedEmail, formik.errors.email, checkIsSSOAvailable]);
+
     const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         formik.handleBlur(e);
+        // Fallback check on blur
         if (!formik.errors.email && formik.values.email) {
             checkIsSSOAvailable(formik.values.email);
         }
     };
     return (
         <div className="tw:min-h-screen tw:bg-[#F8F9FB] tw:flex tw:flex-col tw:items-center tw:p-4" data-testid="forgot-password-page">
-           {/* <div className='tw:h-[100vh] tw:w-[100vw] tw:flex tw:flex-col tw:items-center tw:justify-center'> */}
-             <div className="tw:mt-12">
+            {/* <div className='tw:h-[100vh] tw:w-[100vw] tw:flex tw:flex-col tw:items-center tw:justify-center'> */}
+            <div className="tw:mt-12">
                 <img src={appLogo} alt="Visitly Logo" className="tw:h-12 tw:w-auto" data-testid="logo" />
             </div>
             <div className="tw:max-w-3xl tw:mt-12 tw:w-full tw:bg-[#fff] tw:p-8 tw:rounded-lg tw:shadow-xl" data-testid="forgot-password-form-container">
@@ -68,31 +81,27 @@ import appLogo from '@/assets/images/logo.png';
                                     value={formik.values.email}
                                     placeholder=""
                                     className={`tw:w-full tw:p-2 tw:border tw:rounded-md tw:outline-none tw:transition-all ${formik.touched.email && formik.errors.email
-                                            ? 'tw:border-red-500 tw:focus:tw:ring-1 tw:focus:tw:ring-red-500'
-                                            : 'tw:border-gray-300 tw:focus:tw:ring-1 tw:focus:tw:ring-[#4c32e9]'
+                                        ? 'tw:border-red-500 tw:focus:tw:ring-1 tw:focus:tw:ring-red-500'
+                                        : 'tw:border-gray-300 tw:focus:tw:ring-1 tw:focus:tw:ring-[#4c32e9]'
                                         }`}
                                     data-testid="email-input"
                                 />
                             </div>
-                            {!isSSOLoginEnabled ? (
-                                <button
-                                    type="submit"
-                                    disabled={!formik.isValid || !formik.values.email || forgotPwdMutation.isPending}
-                                    className="tw:bg-primary-100 tw:hover:tw:bg-[#3b27b8] tw:text-white tw:px-3 tw:py-2 tw:rounded-md tw:font-sm tw:transition-colors tw:disabled:tw:opacity-50 tw:disabled:tw:cursor-not-allowed"
-                                    data-testid="reset-password-button"
-                                >
-                                    {forgotPwdMutation.isPending ? 'Sending...' : 'Send'}
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={handleSSO}
-                                    className="tw:bg-[#4c32e9] tw:hover:tw:bg-[#3b27b8] tw:text-white tw:px-8 tw:py-3 tw:rounded-md tw:font-medium tw:transition-colors"
-                                    data-testid="sso-continue-button"
-                                >
-                                    Continue
-                                </button>
-                            )}
+                            <button
+                                type={isSSOLoginEnabled ? "button" : "submit"}
+                                onClick={isSSOLoginEnabled ? handleSSO : undefined}
+                                disabled={!formik.isValid || !formik.values.email || forgotPwdMutation.isPending}
+                                className={`
+                                    tw:flex tw:items-center tw:justify-center tw:transition-all tw:duration-200 tw:rounded-md tw:font-medium
+                                    ${isSSOLoginEnabled
+                                        ? 'tw:bg-[#4c32e9] tw:hover:tw:bg-[#3b27b8] tw:text-white tw:px-8 tw:py-3'
+                                        : 'tw:bg-primary-100 tw:hover:tw:bg-[#3b27b8] tw:text-white tw:px-6 tw:py-2'}
+                                    tw:disabled:tw:opacity-50 tw:disabled:tw:cursor-not-allowed
+                                `}
+                                data-testid={isSSOLoginEnabled ? "sso-continue-button" : "reset-password-button"}
+                            >
+                                {isSSOLoginEnabled ? 'Continue' : (forgotPwdMutation.isPending ? 'Sending...' : 'Send')}
+                            </button>
                         </div>
                         {formik.touched.email && formik.errors.email && (
                             <p className="tw:text-red-500 tw:text-xs tw:mt-1" data-testid="email-invalid-error">
@@ -125,9 +134,9 @@ import appLogo from '@/assets/images/logo.png';
                     </div>
                 </form>
             </div>
-           {/* </div> */}
+            {/* </div> */}
         </div>
     );
 };
 
-  ;
+;

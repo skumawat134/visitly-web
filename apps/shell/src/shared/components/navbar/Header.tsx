@@ -65,9 +65,9 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
 
     return (
         <header className="tw:top-0 tw:z-50 tw:w-full tw:bg-white tw:border-b tw:border-gray-200 tw:h-16 tw:flex! tw:items-center tw:justify-between tw:px-4" data-testid="topbar-header">
-            <div className="tw:flex tw:items-center tw:gap-4">
+            <div className="tw:flex tw:items-center tw:gap-1">
                 {/* Logo Section */}
-                <div className={`tw:flex tw:items-center tw:transition-all tw:duration-300 ${isCollapsed ? 'tw:w-12' : 'tw:w-52'}`}>
+                <div className={`tw:flex tw:items-center tw:transition-all tw:duration-300 ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}`}>
                     <div className="tw:flex tw:items-center tw:gap-2 tw:cursor-pointer">
                         {isCollapsed && (
                             <div className="tw:rounded-md tw:flex tw:items-center tw:justify-center">
@@ -107,6 +107,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                                 ...sites.map((site: any) => ({ value: site.id, label: site.name }))
                             ]}
                             data-testid="location-select-dropdown"
+                            className="tw:bg-white tw:border tw:border-gray-200 tw:rounded-md tw:px-2 tw:py-1! tw:text-sm tw:shadow-sm tw:min-h-0 tw:h-9 tw:leading-tight tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-indigo-100 tw:transition-all tw:text-[#5e5e5e]"
                         />
                     </div>
                 )}
@@ -162,11 +163,14 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="tw:w-9 tw:h-9 tw:bg-slate-200! tw:rounded-full! tw:flex! tw:items-center tw:justify-center tw:text-slate-600! hover:tw:ring-4! hover:tw:ring-indigo-50! tw:transition-all"
+                            className="tw:w-9 tw:h-9 tw:bg-slate-200! tw:rounded-full! tw:flex! tw:items-center tw:justify-center tw:text-slate-600! hover:tw:ring-4! hover:tw:ring-indigo-50! tw:transition-all tw:p-0!"
                             data-testid="user-profile-toggle"
                         >
                             {user?.avatarUri ? (
-                                <Image src={user.avatarUri} alt="user-avatar" className="tw:w-full tw:h-full tw:rounded-full! tw:object-cover" />
+                                <Image src={user.avatarUri} alt="user-avatar" className="tw:w-full tw:h-full tw:rounded-full! tw:object-cover"
+                                    wrapperClassName='tw:flex tw:h-full'
+
+                                />
                             ) : (
                                 <span className="tw:text-xs tw:font-bold">{user?.firstName?.charAt(0)}</span>
                             )}
@@ -195,10 +199,10 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
                 </div>
 
                 <div className="tw:flex tw:flex-col tw:overflow-hidden">
-                    <span className="tw:text-sm tw:font-bold tw:text-slate-700">
+                    <span className="tw:text-sm tw:font-bold tw:text-slate-700!">
                         {user?.firstName} {user?.lastName}
                     </span>
-                    <span className="tw:text-[11px] tw:text-slate-400 tw:truncate">
+                    <span className="tw:text-[11px] tw:text-slate-400! tw:truncate">
                         {user?.email}
                     </span>
                 </div>
@@ -207,7 +211,7 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
             {/* Actions */}
             <div className="tw:py-1">
                 <Link
-                    className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
+                    className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
                     to={"/admin/work_area/profile"}
                     data-testid="profile-link"
                 >
@@ -215,15 +219,12 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
                 </Link>
 
                 <Link
-                    className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
+                    className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:py-3! tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-600! tw:no-underline tw:border-b! tw:border-gray-300! border-b-2"
                     to={"/admin/work_area/change-password"}
                     data-testid="change-password-link"
                 >
                     <LockOpen size={16} /> Change Password
                 </Link>
-
-                <hr className="tw:my-1 tw:border-gray-100" />
-
                 <Button
                     onClick={logOut}
                     variant="ghost"

@@ -11,10 +11,21 @@
 @source "../*.{ts,tsx,js,jsx}";
 @source "../**/*.{ts,tsx,js,jsx}";
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
-
+@source "../../../../packages/shared-core/src/**/*.{ts,tsx}";
 
 /* 2. Apply to the whole page */
-html, body {
-    font-family: 'Inter', sans-serif;
-    color: #111111;
-  }
+html,
+body {
+  font-family: 'Inter', sans-serif;
+  color: #111111;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
