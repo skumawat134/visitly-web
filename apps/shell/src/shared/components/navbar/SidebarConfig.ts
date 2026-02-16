@@ -135,7 +135,7 @@ export const MAIN_MENU: SidebarItem[] = [
         title: 'Evacuation & Emergency',
         icon: AlertTriangle,
         path: '/admin/work_area/evacuation/main',
-        condition: (ctx) => ctx.isGlobalAdmin,
+        condition: (ctx) => ctx.isGlobalAdmin || ctx.isFrontDeskManager,
         testid: 'nav-evacuation'
     },
     // {

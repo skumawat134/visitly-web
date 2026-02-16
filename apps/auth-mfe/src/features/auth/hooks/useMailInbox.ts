@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { getApiClient } from '@visitly/api-client';
+import { forgotPassword } from '../services/auth.api';
+import { useToastStore } from '@visitly/app-store';
 // import { toast } from 'react-hot-toast';
 export const useMailInbox = () => {
     const [email, setEmail] = useState<string | null>(null);
+     const showToast = useToastStore((s)=>s.showToast)
     useEffect(() => {
         // Tracker for GA
         if ((window as any).ga) {
@@ -16,20 +20,12 @@ export const useMailInbox = () => {
         };
     }, []);
     const resendMutation = useMutation({
-        mutationFn: async (emailToResend: string) => {
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://api.visitly.io/v1'}/users/password/forgot`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailToResend }),
-            });
-            if (!response.ok) throw new Error('Resend failed');
-            return response.json();
-        },
+        mutationFn: async (emailToResend: string) => forgotPassword({ email: emailToResend }),
         onSuccess: () => {
-          //  toast.success('Confirmation link resent successfully!');
+            showToast({message : 'Confirmation link resent successfully!'})
         },
         onError: () => {
-          //  toast.error('Failed to resend confirmation link. Please try again.');
+            showToast({message : 'Failed to resend confirmation link. Please try again.'})
         }
     });
     const handleResend = () => {

@@ -19,6 +19,7 @@
   "dependencies": {
     "@visitly/api-client": "*",
     "@visitly/app-store": "*",
+    "@visitly/shared-core": "workspace:^",
     "@visitly/ui": "*",
     "@visitly/webpack-config": "*",
     "formik": "^2.4.9",

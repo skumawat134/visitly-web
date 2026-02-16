@@ -53,7 +53,6 @@ const useLogin = () => {
         switch (err?.status) {
           case 401:
           case 417: {
-            debugger;
             showToast({ message: "Email and password are invalid.", type: "error" });
             break;
           }

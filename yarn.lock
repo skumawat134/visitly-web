@@ -3192,6 +3192,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.0"
     "@visitly/api-client": "npm:*"
     "@visitly/app-store": "npm:*"
+    "@visitly/shared-core": "workspace:^"
     "@visitly/tailwind-config": "npm:*"
     "@visitly/typescript-config": "npm:*"
     "@visitly/ui": "npm:*"
@@ -3267,6 +3268,27 @@ __metadata:
     react-dom: 18.3.1
     react-router-dom: ^7.12.0
     zustand: ^5.0.10
+  languageName: unknown
+  linkType: soft
+
+"@visitly/shared-core@workspace:^, @visitly/shared-core@workspace:packages/shared-core":
+  version: 0.0.0-use.local
+  resolution: "@visitly/shared-core@workspace:packages/shared-core"
+  dependencies:
+    "@repo/eslint-config": "npm:*"
+    "@types/react": "npm:^18.3.1"
+    "@types/react-dom": "npm:^18.3.1"
+    "@visitly/api-client": "npm:*"
+    "@visitly/typescript-config": "npm:*"
+    "@visitly/ui": "npm:*"
+    clsx: "npm:^2.1.1"
+    tailwind-merge: "npm:^2.5.2"
+    typescript: "npm:5.9.2"
+  peerDependencies:
+    "@tanstack/react-query": ^5.0.0
+    lucide-react: ^0.468.0
+    react: ^18
+    react-dom: ^18
   languageName: unknown
   linkType: soft
 
@@ -9646,6 +9668,13 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 10c0/6c4032340701a9950865f7ae8ef38578d8d7053f5e10518076e6554a9381fa91bd9c6850193695c141f32b21f979c985db07265a758867bac95de05f7d8aeb39
+  languageName: node
+  linkType: hard
+
+"tailwind-merge@npm:^2.5.2":
+  version: 2.6.1
+  resolution: "tailwind-merge@npm:2.6.1"
+  checksum: 10c0/f9b5d7ba37f6c6dc7bb7a090f08252e8d827b5abfc1031bf468c5274ce104409e7952a0075a3e009aab53adda8c6d133bc1dd9d3427e2ae5bc00306f9ce1fbff
   languageName: node
   linkType: hard
 
