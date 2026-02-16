@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import { useSsoMutation } from "../services/useSsoMutation";
 import { useNavigate } from "react-router-dom";
 import { useToastStore } from "@visitly/app-store";
+import { useDebounce } from "@visitly/shared-core";
 const useLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<"email" | "password" | "sso">("email");
@@ -18,7 +19,7 @@ const useLogin = () => {
       .email("Invalid email address")
       .required("Username or Company Email is required"),
     password: Yup.string().when("email", {
-      is: () => step === "password", // Only require password if we are in password step
+      is: () => step !== "sso", // Require password if not in SSO step
       then: (schema) => schema.required("Password is required"),
       otherwise: (schema) => schema.notRequired(),
     }),
@@ -45,7 +46,7 @@ const useLogin = () => {
           await login(
             { email: values.email, password: values.password },
           );
-          showToast({message : "Log-in successful!"})
+          showToast({ message: "Log-in successful!" })
         }
       } catch (error: any) {
         console.log("resp", error.response, error.message)
@@ -77,37 +78,35 @@ const useLogin = () => {
 
   });
 
-  // Debounce email check for SSO
-  useEffect(() => {
-    const email = formik.values.email?.trim();
+  // Use shared debounce hook for SSO check
+  const debouncedEmail = useDebounce(formik.values.email?.trim(), 500);
 
-    // ✅ RESET when email is cleared
-    if (!email) {
+  useEffect(() => {
+    if (!debouncedEmail) {
       if (step === "sso") {
         setStep("email");
         setSsoUrl(null);
       }
       return;
     }
-    const handler = setTimeout(() => {
-      if (checkSSO.isPending) return;
-      checkSSO.mutate(
-        { email: formik.values.email }, // ✅ correct payload
-        {
-          onSuccess: (data) => {
-            if (data.ssoRequestUrl) {
-              setStep("sso");
-              setSsoUrl(data.ssoRequestUrl);
-            } else if (step === "sso") {
-              setStep("email");
-              setSsoUrl(null);
-            }
-          },
+
+    if (checkSSO.isPending) return;
+
+    checkSSO.mutate(
+      { email: debouncedEmail },
+      {
+        onSuccess: (data) => {
+          if (data.ssoRequestUrl) {
+            setStep("sso");
+            setSsoUrl(data.ssoRequestUrl);
+          } else if (step === "sso") {
+            setStep("email");
+            setSsoUrl(null);
+          }
         },
-      );
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [formik.values.email]);
+      },
+    );
+  }, [debouncedEmail]);
 
   const {
     handleSubmit,

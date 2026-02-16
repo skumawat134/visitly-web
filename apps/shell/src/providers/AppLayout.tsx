@@ -30,7 +30,7 @@ const AppLayout = () => {
                 {/* Sidebar */}
                 <AppSidebar />
                 {/* Routed content */}
-                <main className="tw:flex-1  tw:bg-[#f8fafc] tw:min-h-0">
+                <main className="tw:bg-[#f8fafc] tw:flex-1 tw:min-w-0 tw:min-h-0">
                     <Outlet />
                 </main>
             </div>
