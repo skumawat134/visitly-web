@@ -1,0 +1,34 @@
+{
+    "name": "@visitly/shared-core",
+    "version": "0.0.0",
+    "private": true,
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "license": "MIT",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "check-types": "tsc --noEmit",
+        "lint": "eslint src --max-warnings 0"
+    },
+    "peerDependencies": {
+        "@tanstack/react-query": "^5.0.0",
+        "lucide-react": "^0.468.0",
+        "react": "^18",
+        "react-dom": "^18"
+    },
+    "dependencies": {
+        "@visitly/api-client": "*",
+        "@visitly/ui": "*",
+        "clsx": "^2.1.1",
+        "tailwind-merge": "^2.5.2"
+    },
+    "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@types/react": "^18.3.1",
+        "@types/react-dom": "^18.3.1",
+        "@visitly/typescript-config": "*",
+        "typescript": "5.9.2"
+    }
+}

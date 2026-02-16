@@ -11,7 +11,7 @@
 @source "../*.{ts,tsx,js,jsx}";
 @source "../**/*.{ts,tsx,js,jsx}";
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
-
+@source "../../../../packages/shared-core/src/**/*.{ts,tsx}";
 
 /* 2. Apply to the whole page */
 html,
