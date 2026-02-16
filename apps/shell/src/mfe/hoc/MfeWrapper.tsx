@@ -1,4 +1,4 @@
-import React, { Suspense, LazyExoticComponent } from 'react';
+import React, { Suspense, type LazyExoticComponent } from 'react';
 import { MFEErrorBoundary } from './MFEErrorBoundary';
 import FullScreenLoader from '@/shared/components/FullScreenLoader';
 import MFEErrorFallback from './MFEErrorFallback';

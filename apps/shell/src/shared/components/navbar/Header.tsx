@@ -67,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
         <header className="tw:top-0 tw:z-50 tw:w-full tw:bg-white tw:border-b tw:border-gray-200 tw:h-16 tw:flex! tw:items-center tw:justify-between tw:px-4" data-testid="topbar-header">
             <div className="tw:flex tw:items-center tw:gap-4">
                 {/* Logo Section */}
-                <div className={`tw:flex tw:items-center tw:transition-all tw:duration-300 ${isCollapsed ? 'tw:w-12' : 'tw:w-52'}`}>
+                <div className={`tw:flex tw:items-center tw:transition-all tw:duration-300 ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}`}>
                     <div className="tw:flex tw:items-center tw:gap-2 tw:cursor-pointer">
                         {isCollapsed && (
                             <div className="tw:rounded-md tw:flex tw:items-center tw:justify-center">
@@ -162,11 +162,14 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="tw:w-9 tw:h-9 tw:bg-slate-200! tw:rounded-full! tw:flex! tw:items-center tw:justify-center tw:text-slate-600! hover:tw:ring-4! hover:tw:ring-indigo-50! tw:transition-all"
+                            className="tw:w-9 tw:h-9 tw:bg-slate-200! tw:rounded-full! tw:flex! tw:items-center tw:justify-center tw:text-slate-600! hover:tw:ring-4! hover:tw:ring-indigo-50! tw:transition-all tw:p-0!"
                             data-testid="user-profile-toggle"
                         >
                             {user?.avatarUri ? (
-                                <Image src={user.avatarUri} alt="user-avatar" className="tw:w-full tw:h-full tw:rounded-full! tw:object-cover" />
+                                <Image src={user.avatarUri} alt="user-avatar" className="tw:w-full tw:h-full tw:rounded-full! tw:object-cover"
+                                    wrapperClassName='tw:flex tw:h-full'
+
+                                />
                             ) : (
                                 <span className="tw:text-xs tw:font-bold">{user?.firstName?.charAt(0)}</span>
                             )}

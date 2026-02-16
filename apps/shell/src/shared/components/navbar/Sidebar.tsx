@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronRight, Menu } from 'lucide-react';
 import { useSidebarStore } from './useSidebarStore';
@@ -21,6 +22,9 @@ const SidebarItemComponent: React.FC<{
     onAction?: (action: string) => void;
 }> = ({ item, context, isCollapsed, onAction }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+    const itemRef = React.useRef<HTMLDivElement>(null);
     const Icon = item.icon;
     const location = useLocation();
     console.log('Rendering SidebarItem:', item.title, context);
@@ -37,6 +41,21 @@ const SidebarItemComponent: React.FC<{
             e.preventDefault();
             setIsOpen(!isOpen);
         }
+    };
+
+    const handleMouseEnter = () => {
+        if (isCollapsed && itemRef.current) {
+            const rect = itemRef.current.getBoundingClientRect();
+            setTooltipPosition({
+                top: rect.top,
+                left: rect.right + 4
+            });
+            setIsHovered(true);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovered(false);
     };
 
     // Custom active check
@@ -76,7 +95,7 @@ const SidebarItemComponent: React.FC<{
   `};
 
     return (
-        <div className="tw:relative tw:group">
+        <div ref={itemRef} className="tw:relative tw:group" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <NavLink
                 to={item.path || '#'}
                 onClick={handleClick}
@@ -140,18 +159,25 @@ const SidebarItemComponent: React.FC<{
                 </div>
             )}
 
-            {/* Collapsed Tooltip */}
-            {isCollapsed && (
-                <div className={`
-           tw:absolute tw:left-full tw:top-1 tw:ml-1
-           tw:border tw:border-gray-100 tw:shadow-xl tw:rounded-lg 
-           tw:opacity-0 tw:invisible tw:group-hover:opacity-100 tw:group-hover:visible
-           tw:transition-all tw:duration-200 tw:z-50
-           ${hasChildren ? 'tw:w-60  tw:bg-white' : 'tw:w-max tw:px-6 tw:py-3 tw:bg-[#E5E9FF]!'}
-         `}>
+            {/* Collapsed Tooltip - Using Portals to escape stacking context */}
+            {isCollapsed && isHovered && createPortal(
+                <div
+                    className={`
+                        tw:fixed tw:border tw:border-gray-100 tw:shadow-xl tw:rounded-lg 
+                        tw:z-[9999] tw:transition-opacity tw:duration-200
+                        ${hasChildren ? 'tw:w-60 tw:bg-white' : 'tw:w-max tw:px-6 tw:py-3 tw:bg-[#E5E9FF]!'}
+                    `}
+                    style={{
+                        top: `${tooltipPosition.top}px`,
+                        left: `${tooltipPosition.left}px`,
+                        pointerEvents: 'auto'
+                    }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                >
                     <div className="tw:py-1">
                         <div className={`tw:text-[11px] tw:font-bold tw:uppercase tw:tracking-widest  
-               ${hasChildren ? 'tw:text-indigo-600! tw:px-4 tw:py-3 tw:border-b tw:border-gray-50 tw:mb-1 tw:bg-[#E5E9FF]!' : 'tw:text-indigo-600!'}`}>
+                            ${hasChildren ? 'tw:text-indigo-600! tw:px-4 tw:py-3 tw:border-b tw:border-gray-50 tw:mb-1 tw:bg-[#E5E9FF]!' : 'tw:text-indigo-600!'}`}>
                             {item.title}
                         </div>
                         {hasChildren && item.children?.map((child) => (
@@ -165,17 +191,19 @@ const SidebarItemComponent: React.FC<{
                                             (child.path && child.path !== '#' && location.pathname.startsWith(child.path));
 
                                         return `
-                     tw:block tw:px-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
-                     ${active ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
-                   tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
-                     `}}
+                                            tw:block tw:px-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
+                                            ${active ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
+                                            tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
+                                        `
+                                    }}
                                 >
                                     {child.title}
                                 </NavLink>
                             )
                         ))}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
@@ -241,7 +269,7 @@ export const Sidebar: React.FC = () => {
         if (!context.isGlobalAdmin && context.isEvacManager) {
             return EVAC_HOST_MENU;
         }
-        
+
         if (context.isHost) {
             return EVAC_HOST_MENU;
         }
@@ -255,22 +283,16 @@ export const Sidebar: React.FC = () => {
     const menuItems = getMenuItems();
     console.log('menuItems:', menuItems);
     return (
-        //         <aside
-        //             className={`
-        //     tw:bg-white tw:border-r tw:border-gray-200
-        //     tw:transition-all tw:duration-300 tw:z-40
-        //     tw:flex tw:flex-col
-        //     tw:h-screen
-        //      custom-scrollbar
-        //     ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
-        //   `}
-        <aside className={`
-      tw:bg-white tw:border-r tw:border-gray-200 
-      tw:transition-all tw:duration-300 tw:z-40 tw:overflow-y-visible
-      ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
-    `}
-            data-testid="left-sidebar"  >
-            <nav className="tw:flex-1 tw:py-4 ">
+        <aside
+            className={`
+                tw:bg-white tw:border-r tw:border-gray-200
+                tw:transition-all tw:duration-300 tw:z-40
+                tw:flex tw:flex-col tw:h-full tw:min-h-0 tw:overflow-y-auto custom-scrollbar
+                ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
+            `}
+            data-testid="left-sidebar"
+        >
+            <nav className="tw:flex-1 tw:py-4  tw:overflow-x-hidden tw:min-h-0">
                 {menuItems.map((item, index) => (
                     <SidebarItemComponent
                         key={index}
@@ -281,18 +303,16 @@ export const Sidebar: React.FC = () => {
                     />
                 ))}
             </nav>
-            {!isCollapsed && context.isGlobalAdmin && context.currentPlan === 'Trial' && (
-                <div className="tw:p-4">
-                    <Button className="tw:w-full tw:bg-indigo-600 tw:text-white tw:py-2 tw:rounded-md tw:text-sm tw:font-medium hover:tw:bg-indigo-700 tw:transition-colors">
-                        Quick Setup
-                    </Button>
-                </div>
-            )}
-
-            {/* Version */}
             {!isCollapsed && (
-                <div className="tw:p-4 tw:text-[10px] tw:text-gray-400 tw:border-t tw:border-gray-50 tw:text-center">
-                    v 1.3.201
+                <div className="tw:p-4 tw:space-y-4 tw:border-t tw:border-gray-50">
+                    {context.isGlobalAdmin && context.currentPlan === 'Trial' && (
+                        <Button className="tw:w-full tw:bg-indigo-600 tw:text-white tw:py-2.5 tw:rounded-lg tw:text-sm tw:font-semibold hover:tw:bg-indigo-700 tw:transition-all tw:shadow-md tw:shadow-indigo-100">
+                            Quick Setup
+                        </Button>
+                    )}
+                    <div className="tw:text-[10px] tw:text-gray-400 tw:text-center tw:font-medium">
+                        v 1.3.201
+                    </div>
                 </div>
             )}
         </aside>
