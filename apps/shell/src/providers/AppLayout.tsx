@@ -21,7 +21,7 @@ const AppLayout = () => {
         );
     }
     return (
-        <div id="app-layout" className='tw:bg-[#E5E9FF] tw:flex tw:flex-col tw:h-screen'>
+        <div id="app-layout-full" className='tw:bg-[#E5E9FF] tw:flex tw:flex-col tw:h-screen'>
             {/* Header */}
             <AppHeader onToggle={() => setCollapsed(!isCollapsed)} isCollapsed={isCollapsed} />
 
