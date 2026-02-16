@@ -23,6 +23,7 @@ import {
   Users,
   StickyNote,
   Calendar,
+  Building2,
 } from "lucide-react";
 import { useVisitorDetail } from "./hooks/use-visitor-detail";
 import { Avatar } from "../host-dashboard/components/Avatar";
@@ -31,6 +32,7 @@ import { format } from "date-fns";
 import { useEntitlements } from "./hooks/useEntitlement";
 import { useCancelVisit } from "./hooks/use-cancel-visit";
 import { CancelVisitModal } from "./components/CancelVisitModal";
+import { formatDate } from "@/shared/services/host-service";
 
 const VisitorDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -92,19 +94,11 @@ const VisitorDetail = () => {
 
   const isAllOpen = Object.values(expandedAccordions).every((v) => v);
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "-";
-    try {
-      return format(new Date(dateStr), "dd MMM yy h:mm a");
-    } catch (e) {
-      return dateStr;
-    }
-  };
 
   if (isLoading) {
     return (
       <div className="tw:flex tw:items-center tw:justify-center tw:h-screen">
-        <div className="tw:animate-spin tw:rounded-full tw:h-12 tw:w-12 tw:border-b-2 tw:border-indigo-600"></div>
+        {/* <div className="tw:animate-spin tw:rounded-full tw:h-12 tw:w-12 tw:border-b-2 tw:border-indigo-600"></div> */}
       </div>
     );
   }
@@ -170,8 +164,8 @@ const VisitorDetail = () => {
                 {v.companyName && (
                   <>
                     <span className="tw:text-gray-200">|</span>
-                    <span className="tw:text-sm tw:text-gray-500">
-                      {v.companyName}
+                    <span className="tw:text-sm tw:text-gray-500 tw:flex">
+                     <Building2 size={16} /> <span className="tw:block tw:px-2">{v.companyName}</span>
                     </span>
                   </>
                 )}
@@ -251,29 +245,53 @@ const VisitorDetail = () => {
                 {
                   source === 'pastVisitors' && (
                     <>
-                      <DetailRow label="Signed In" value={v?.checkinTime} />
-                      <DetailRow label="Signed Out" value={v?.checkoutTime} />
+                      <DetailRow label="Signed-In" value={formatDate(v?.checkinTime)} />
+                      <DetailRow label="Signed-Out" value={formatDate(v?.checkoutTime)} />
                     </>
                   )
                 }
 
+                { entitlements.isAdvancedMegaLocationEntitled &&
+                  <>
+                 { v.parkingLotName && <DetailRow
+                      label="Parking Lot"
+                      value={
+                        v.parkingLotName
+                      }
+                    />}
+                   { v.poeName && <DetailRow
+                      label="Point of Entry"
+                      value={
+                        v.poeName
+                      }
+                    />}
+                    {  v.buildingName && <DetailRow
+                      label="Building"
+                      value={
+                        v.buildingName
+                      }
+                    />}
+                  </>
+                    
+                }
+
 
                 {/* Custom Fields as part of Visit Info */}
-                {source !== 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-100">
+                {source !== 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-10">
                   <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
                     Custom Fields
                   </div>
-                  <div className="tw-bg-white tw-rounded-xl tw-border tw-border-gray-100 tw-p-5 tw-shadow-sm">
+                  <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
                     {/* Header */}
-                    <div className="tw-flex tw-items-center tw-justify-between tw-mb-4">
-                      <h3 className="tw-text-sm tw-font-semibold tw-text-gray-900">
+                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
+                      <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
                         Sign In
                       </h3>
                     </div>
 
                     {/* Content */}
                     {v.visitCustomFields && v.visitCustomFields.length > 0 ? (
-                      <div className="tw-flex tw-flex-col tw-gap-2">
+                      <div className="tw:flex tw:flex-col tw:gap-2">
                         {v.visitCustomFields.map((cf, i) => (
                           <DetailRow
                             key={i}
@@ -284,15 +302,15 @@ const VisitorDetail = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="tw-text-sm tw-text-gray-400 tw-italic tw-py-2">
+                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
                         No custom Sign-In fields added.
                       </div>
                     )}
                   </div>
-                  <div className="tw-bg-white tw-rounded-xl tw-border tw-border-gray-100 tw-p-5 tw-shadow-sm">
+                  <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
                     {/* Header */}
-                    <div className="tw-flex tw-items-center tw-justify-between tw-mb-4">
-                      <h3 className="tw-text-sm tw-font-semibold tw-text-gray-900">
+                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
+                      <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
                         Sign Out
                       </h3>
                     </div>
@@ -300,7 +318,7 @@ const VisitorDetail = () => {
                     {/* Content */}
                     {v.visitSignoutCustomFields &&
                       v.visitSignoutCustomFields.length > 0 ? (
-                      <div className="tw-flex tw-flex-col tw-gap-2">
+                      <div className="tw:flex tw:flex-col tw:gap-2">
                         {v.visitSignoutCustomFields.map((cf, i) => (
                           <DetailRow
                             key={i}
@@ -313,28 +331,28 @@ const VisitorDetail = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="tw-text-sm tw-text-gray-400 tw-italic tw-py-2">
+                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
                         No custom Sign-Out fields added.
                       </div>
                     )}
                   </div>
-                  <div className="tw-bg-white tw-rounded-xl tw-border tw-border-gray-100 tw-p-5 tw-shadow-sm">
+                  <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
                     {/* Header */}
-                    <div className="tw-flex tw-items-center tw-justify-between tw-mb-4">
-                      <h3 className="tw-text-sm tw-font-semibold tw-text-gray-900">
+                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
+                      <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
                         Internal
                       </h3>
                     </div>
 
                     {/* Content */}
                     {false ? (
-                      <div className="tw-flex tw-flex-col tw-gap-2">
+                      <div className="tw:flex tw:flex-col tw:gap-2">
                         {(v?.visitCustomFields as any[])?.map((cf, i) => (
                           <DetailRow key={i} label={cf.name} value={cf.value} />
                         ))}
                       </div>
                     ) : (
-                      <div className="tw-text-sm tw-text-gray-400 tw-italic tw-py-2">
+                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
                         No custom Internal fields added.
                       </div>
                     )}
@@ -345,11 +363,11 @@ const VisitorDetail = () => {
                   <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
                     Custom Fields
                   </div>
-                  <div className="tw-bg-white tw-rounded-xl tw-border tw-border-gray-100 tw-p-5 tw-shadow-sm">
+                  <div className="tw:bg-white tw:rounded-xl tw:p-5">
                     {/* Header */}
                     {/* Content */}
                     {v.visitCustomFields && v.visitCustomFields.length > 0 ? (
-                      <div className="tw-flex tw-flex-col tw-gap-2">
+                      <div className="tw:flex tw:flex-col tw:gap-2">
                         {v.visitCustomFields.map((cf, i) => (
                           <DetailRow
                             key={i}
@@ -360,7 +378,7 @@ const VisitorDetail = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="tw-text-sm tw-text-gray-400 tw-italic tw-py-2">
+                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
                         No custom fields added.
                       </div>
                     )}
@@ -396,7 +414,7 @@ const VisitorDetail = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="tw-text-sm tw-text-gray-400 tw-italic tw-py-2">
+                    <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
                       No documents
                     </div>
                   )}

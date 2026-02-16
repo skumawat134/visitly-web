@@ -20,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
   'FRONTDESK_ADMIN',
   'DELIVERY_MANAGER',
   'EVAC_MANAGER',
+  'SITE_ADMIN'
 ];
 
 const isAdmin = roles.some(role => ADMIN_ROLES.includes(role));

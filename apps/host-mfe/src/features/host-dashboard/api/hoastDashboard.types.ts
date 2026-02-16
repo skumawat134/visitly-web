@@ -121,6 +121,7 @@ export interface SignInLogRecord {
     checkinTime: string;
     checkoutTime: string | null;
     duration?: string; // We'll calculate this or use the one from API if provided
+    currentActive?:string
 }
 
 // API Response Wrapper

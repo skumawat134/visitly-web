@@ -5,15 +5,7 @@ import {
   type ColDef,
   type ICellRendererParams,
 } from "ag-grid-community";
-import {
-  RotateCw,
-  Filter,
-  MapPin,
-  ChevronDown,
-  Box,
-  CheckCircle,
-  Trash2,
-} from "lucide-react";
+import { Filter, MapPin, ChevronDown } from "lucide-react";
 import { cn } from "@visitly/ui";
 import { format } from "date-fns";
 import { useMyDeliveryLogs } from "../hooks/useMyDeliveryLogs";
@@ -31,6 +23,7 @@ import DateRangePicker from "../../../shared/components/DateRangePicker";
 import { GridFooter } from "../../past-visitors/components/GridFooter";
 import { MyDeliveryLogsModal } from "../components/MyDeliveryLogsModal";
 import { PageDescription } from "@/shared/components/PageDescription";
+import { FilterSelect } from "../components/FilterSelect";
 
 const MyDeliveryLogs: React.FC = () => {
   const {
@@ -374,9 +367,8 @@ const MyDeliveryLogs: React.FC = () => {
   };
 
   // ── Pending count (always unfiltered) ──
-  const pendingCount = rowData?.filter(
-    (d) => d.status === DeliveryLogStatus.PENDING,
-  ).length || 0;
+  const pendingCount =
+    rowData?.filter((d) => d.status === DeliveryLogStatus.PENDING).length || 0;
 
   return (
     <div className="tw:min-h-screen tw:bg-[#F8FAFC] tw:pb-12 tw:font-sans">
@@ -419,99 +411,96 @@ const MyDeliveryLogs: React.FC = () => {
             </button>
           </div>
 
-          <div className="tw:relative">
-            <select
-              value={activeDelegateName ? viewAs : ""}
-              onChange={(e) => e.target.value && setViewAs(e.target.value)}
-              className={cn(
-                "tw:appearance-none tw:pl-3 tw:pr-8 tw:py-1.5 tw:rounded-xl tw:text-[13px] tw:font-medium tw:cursor-pointer tw:outline-none tw:min-w-[160px] tw:border tw:transition-all",
-                activeDelegateName
-                  ? "tw:border-indigo-600 tw:bg-indigo-50 tw:text-indigo-600"
-                  : "tw:border-gray-200 tw:bg-white tw:text-gray-500",
-              )}
-            >
-              <option value="" disabled>
-                View as delegate...
-              </option>
-              {delegates.map((d: { id: string; name: string }) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
+          {delegates.length > 0 && (
+            <div className="tw:relative">
+              <select
+                value={activeDelegateName ? viewAs : ""}
+                onChange={(e) => e.target.value && setViewAs(e.target.value)}
+                className={cn(
+                  "tw:appearance-none tw:pl-3 tw:pr-8 tw:py-1.5 tw:rounded-xl tw:text-[13px] tw:font-medium tw:cursor-pointer tw:outline-none tw:min-w-[160px] tw:border tw:transition-all",
+                  activeDelegateName
+                    ? "tw:border-indigo-600 tw:bg-indigo-50 tw:text-indigo-600"
+                    : "tw:border-gray-200 tw:bg-white tw:text-gray-500",
+                )}
+              >
+                <option value="" disabled>
+                  View as delegate...
                 </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              className={cn(
-                "tw:absolute tw:right-2.5 tw:top-1/2 tw:-translate-y-1/2 tw:pointer-events-none",
-                activeDelegateName ? "tw:text-indigo-600" : "tw:text-gray-400",
-              )}
-            />
-          </div>
+                {delegates.map((d: { id: string; name: string }) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                className={cn(
+                  "tw:absolute tw:right-2.5 tw:top-1/2 tw:-translate-y-1/2 tw:pointer-events-none",
+                  activeDelegateName
+                    ? "tw:text-indigo-600"
+                    : "tw:text-gray-400",
+                )}
+              />
+            </div>
+          )}
         </div>
 
         {/* ── Filter Bar Card ───────────────────────────────────────────── */}
         <div className="tw:bg-transparent tw:rounded-[12px] tw:p-6 tw:mb-8">
           <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-6 tw:mb-4 ">
-            <div className="tw:relative tw:flex-1 tw:min-w-[200px] tw:border tw:border-slate-200/60 tw:rounded-lg">
-              <div className="tw:absolute tw:left-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-slate-400 ">
-                <Filter size={18} />
-              </div>
+            {/* <FilterBar> */}
+
+            {/* Status Filter */}
+            <FilterSelect
+              value={selectedStatus}
+              onChange={(val) => setSelectedStatus(val)}
+              icon={Filter}
+              placeholder="All Statuses"
+              options={[
+                { value: DeliveryLogStatus.PENDING, label: "Pending" },
+                { value: DeliveryLogStatus.PICKEDUP, label: "Picked Up" },
+                { value: DeliveryLogStatus.DISCARD, label: "Discarded" },
+              ]}
+            />
+
+            {/* Site Filter */}
+            <FilterSelect
+              value={filterSiteId}
+              onChange={(val) => setFilterSiteId(val)}
+              icon={MapPin}
+              placeholder="All Sites"
+              options={siteOptions}
+            />
+
+            {/* Delivery Area Filter */}
+            <FilterSelect
+              value={siteAreaId}
+              onChange={(val) => setSiteAreaId(val)}
+              icon={MapPin}
+              placeholder="Select Areas"
+              options={deliveryAreaOptions}
+            />
+
+            {/* <FilterDivider /> */}
+
+            {/* Rows Per Page */}
+            <div className="tw:flex tw:items-center tw:gap-3 tw:text-sm tw:text-gray-500 tw:font-medium">
+              <span>Rows Per Page</span>
               <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="tw:w-full tw:pl-12 tw:pr-10 tw:py-3.5 tw:rounded-2xl tw:bg-slate-50 tw:border-none tw:text-slate-700 tw:text-[14px] tw:font-bold tw:appearance-none focus:tw:ring-2 focus:tw:ring-indigo-500/20 tw:transition-all tw:cursor-pointer"
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="tw:border tw:border-gray-200 tw:rounded-lg tw:px-3 tw:py-1.5 tw:focus:outline-none tw:bg-white tw:text-gray-900 tw:appearance-none"
+                data-testid="rows-per-page-selector"
               >
-                <option value="">All Statuses</option>
-                <option value={DeliveryLogStatus.PENDING}>Pending</option>
-                <option value={DeliveryLogStatus.PICKEDUP}>Picked Up</option>
-                <option value={DeliveryLogStatus.DISCARD}>Discarded</option>
+                {[15, 50, 100, 250].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
               </select>
-              <ChevronDown
-                size={16}
-                className="tw:absolute tw:right-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-slate-400 tw:pointer-events-none"
-              />
             </div>
 
-            <div className="tw:relative tw:flex-1 tw:min-w-[220px] tw:border tw:border-slate-200/60 tw:rounded-lg">
-              <div className="tw:absolute tw:left-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-slate-400">
-                <MapPin size={18} />
-              </div>
-              <select
-                value={filterSiteId}
-                onChange={(e) => setFilterSiteId(e.target.value)}
-                className="tw:w-full tw:pl-12 tw:pr-10 tw:py-3.5 tw:rounded-2xl tw:bg-slate-50 tw:border-none tw:text-slate-700 tw:text-[14px] tw:font-bold tw:appearance-none focus:tw:ring-2 focus:tw:ring-indigo-500/20 tw:transition-all tw:cursor-pointer"
-              >
-                {siteOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={16}
-                className="tw:absolute tw:right-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-slate-400 tw:pointer-events-none"
-              />
-            </div>
-            <div className="tw:relative tw:flex-1 tw:min-w-[220px] tw:border tw:border-slate-200/60 tw:rounded-lg">
-              <div className="tw:absolute tw:left-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-slate-400">
-                <MapPin size={18} />
-              </div>
-              <select
-                value={siteAreaId}
-                onChange={(e) => setSiteAreaId(e.target.value)}
-                className="tw:w-full tw:pl-12 tw:pr-10 tw:py-3.5 tw:rounded-2xl tw:bg-slate-50 tw:border-none tw:text-slate-700 tw:text-[14px] tw:font-bold tw:appearance-none focus:tw:ring-2 focus:tw:ring-indigo-500/20 tw:transition-all tw:cursor-pointer"
-              >
-                {deliveryAreaOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={16}
-                className="tw:absolute tw:right-4 tw:top-1/2 tw:-translate-y-1/2 tw:text-slate-400 tw:pointer-events-none"
-              />
-            </div>
+            {/* </FilterBar> */}
           </div>
           <div className="tw:flex-[1.5] tw:min-w-[320px]">
             <DateRangePicker

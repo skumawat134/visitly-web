@@ -17,7 +17,7 @@ import type {
 import { useEntitlements } from "./useEntitlement";
 
 export const useVisitorDetail = (id: string, isPrefill: boolean , source: string) => {
-    const entitlements = useEntitlements();
+    const { offenderCheckEntitled } = useEntitlements();
 
 
     const visitorQuery = useQuery<VisitorDetail>({
@@ -31,7 +31,7 @@ export const useVisitorDetail = (id: string, isPrefill: boolean , source: string
     const offendersQuery = useQuery<OffenderDetail | null>({
         queryKey: ["offenders", id],
         queryFn: () => getOffenderDetails(id),
-        enabled: !!id && isPrefill && entitlements.offenderCheckEntitled,
+        enabled: !!id && isPrefill && offenderCheckEntitled,
     });
 
     const idValidationQuery = useQuery<IdValidationDetail | null>({
