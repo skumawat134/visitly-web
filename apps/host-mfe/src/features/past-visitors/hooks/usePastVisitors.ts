@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getPastVisitors , getVisitorDetail} from '../api/pastVisitors.api';
+import { getPastVisitors, getVisitorDetail } from '../api/pastVisitors.api';
+import { useAuthStore } from '@visitly/app-store';
+import type { PastVisitorsResponse } from '../api/pastVisitors.types';
 
-// Types based on the Angular models
 export interface VisitRecord {
   id: string;
   fullName: string;
@@ -12,47 +13,80 @@ export interface VisitRecord {
   checkoutTime: string | null;
   avatarUri: string | null;
   email: string;
+  hostUserId : string
   phoneNumber: string;
+  groupName?: string;
   visitCustomFields?: Array<{ name: string; value: string }>;
 }
 
-export interface PastVisitorsResponse {
-  results: VisitRecord[];
-  totalRecords: number;
+
+interface UsePastVisitorsProps {
+  searchTerm?: string;
+  dateRange?: { startDate: string | null; endDate: string | null };
+  siteId?: string;
+  visitorTypeId?: string;
+  hostId?: string;
+  groupName?: string;
+  pageSize?: number; // ✅ Only this comes from parent
+  viewAs? : string
 }
 
-export const usePastVisitors = () => {
-  const [pageSize, setPageSize] = useState(15);
+export const usePastVisitors = ({
+  searchTerm = '',
+  dateRange,
+  siteId,
+  visitorTypeId,
+  groupName,
+  pageSize = 15,
+  viewAs
+}: UsePastVisitorsProps = {}) => {
+  // ✅ Internal pagination state
   const [pageIndex, setPageIndex] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
+
   const [selectedVisitor, setSelectedVisitor] = useState<VisitRecord | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const currentUser = useAuthStore((state) => state.user)
 
-  // Fetch past visitors using React Query
-  const { data, isLoading, refetch, isFetching } = useQuery<PastVisitorsResponse>({
-    queryKey: ['pastVisitors', pageIndex, pageSize],
-    queryFn: () =>
-    getPastVisitors({
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-    }),
-    
-  });
-
-  const { data: selectedVisitorDetail } = useQuery({
-      queryKey: ["visitorDetails", selectedVisitor?.id],
-      queryFn: () => getVisitorDetail(selectedVisitor?.id || ''),
-      enabled: !!selectedVisitor?.id, // 🔥 only call when visitorId exists
+  const { data, isLoading, refetch, isFetching } =
+    useQuery<PastVisitorsResponse>({
+      queryKey: [
+        'pastVisitors',
+        pageIndex,
+        pageSize,
+        searchTerm,
+        dateRange,
+        siteId,
+        visitorTypeId,
+        groupName,
+      ],
+      queryFn: () =>
+        getPastVisitors({
+          limit: pageSize,
+          offset: pageIndex * pageSize,
+          q: searchTerm,
+          siteId,
+          visitorTypeId,
+          groupName,
+          visitStartDate: dateRange?.startDate || '',
+          visitEndDate: dateRange?.endDate || '',
+        }),
     });
 
+  // Visitor detail query
+  const { data: selectedVisitorDetail } = useQuery({
+    queryKey: ['visitorDetails', selectedVisitor?.id],
+    queryFn: () => getVisitorDetail(selectedVisitor?.id || ''),
+    enabled: !!selectedVisitor?.id,
+  });
 
+  // ✅ Page change handler
   const handlePageChange = (newPageIndex: number) => {
     setPageIndex(newPageIndex);
   };
 
-  const handlePageSizeChange = (newPageSize: number) => {
-    setPageSize(newPageSize);
-    setPageIndex(0); // Reset to first page
+  // ✅ If page size changes from parent → reset page
+  const resetToFirstPage = () => {
+    setPageIndex(0);
   };
 
   const openVisitorDetails = (visitor: VisitRecord) => {
@@ -65,35 +99,32 @@ export const usePastVisitors = () => {
     setSelectedVisitor(null);
   };
 
-  const rowData = useMemo(() => {
-    if (!data?.results) return [];
-    // If you want to apply local search filtering as well
-    if (searchTerm) {
-      return data.results.filter(row => 
-        row.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        row.companyName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    return data.results;
-  }, [data, searchTerm]);
 
-  
+  const rowData = useMemo(() => {
+    console.log("viewAs",viewAs)
+
+    if (!viewAs) return data?.results || []
+
+    if(viewAs == 'all'){
+      return data?.results;
+    }
+    if(viewAs == 'myself'){
+      return data?.results.filter((item) =>  item?.hostUserId === currentUser?.id)
+    }
+    
+    return data?.results.filter((item) => item?.hostUserId == viewAs) || []
+  }
+, [data , viewAs]);
 
   return {
     rowData,
-    totalRecords: data?.totalRecords || 0,
+    totalRecords: data?.totalRecords ?? 0,
     isLoading: isLoading || isFetching,
-    pageSize,
     pageIndex,
-    searchTerm,
-    setSearchTerm,
+    pageSize,
     handlePageChange,
-    handlePageSizeChange,
-    refetch,
-    selectedVisitor,
-    isModalOpen,
-    openVisitorDetails,
+    resetToFirstPage,
     closeVisitorDetails,
-    selectedVisitorDetail
+    selectedVisitorDetail,
   };
 };

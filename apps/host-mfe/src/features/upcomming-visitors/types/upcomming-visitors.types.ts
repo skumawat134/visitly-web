@@ -51,7 +51,7 @@ export interface Cohost {
     sort: 'ASC' | 'DESC' | string;
     sortBy: string;
     q: string;
-    userId: string;
+    // userId: string;
     siteId: string;
     groupName: string;
     visitorTypeId: string;
@@ -284,3 +284,50 @@ export interface Site {
 export interface SitesResponse {
   results: Site[];
 }
+
+export interface VisitorField {
+  id?: string;
+  name?: string;
+  type?: 'TEXT' | 'NUMBER' | 'REFERENCE';
+  displayText?: string;
+  setting?: 'MANDATORY' | 'OPTIONAL';
+  editableFlag?: boolean;
+  isSigninField?: boolean;
+  status?: 'ACTIVE' | 'INACTIVE';
+  index?: number;
+  isPreregistrationOnly?: boolean;
+  isMandatoryForPreregistration?: boolean;
+  isEditableForVisit?: boolean;
+}
+
+export interface VisitorType {
+  id: string; // required
+  visitorType: string; // required
+  description?: string;
+  photoFlag?: boolean;
+  printBadgeFlag?: boolean;
+  orgTemplateId?: string;
+  orgTemplateName?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+  siteId?: string;
+  fields?: VisitorField[];
+  signOutFields?: VisitorField[];
+  adminFields?: VisitorField[];
+  docExpiryInDays?: number;
+  issueGuestWifiCredentialsFlag?: boolean;
+  isIdCapturingEnabled?: boolean;
+  isDeleted?: boolean;
+  idValidationPattern?: string;
+}
+
+export interface VisitorTypeResponse{
+  results : VisitorType[],
+  totalRecords : number
+}
+
+export interface VisitorTypeParams {
+  siteId: string;
+  status: string;
+}
+
+

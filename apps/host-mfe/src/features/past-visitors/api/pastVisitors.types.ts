@@ -9,6 +9,7 @@ export interface VisitRecord {
   avatarUri: string | null;
   email: string;
   phoneNumber: string;
+  hostUserId : string;
   visitCustomFields?: Array<{ name: string; value: string }>;
 }
 
@@ -22,4 +23,13 @@ export interface PastVisitorsResponse {
 export interface PastVisitorsQueryParams {
   limit: number;
   offset: number;
+  q?: string;
+  siteId?: string;
+  visitorTypeId?: string;
+  userId?: string;
+  groupName?: string;
+  visitStartDate?: string;
+  visitEndDate?: string;
+  sort?: string;
+  sortBy?: string;
 }

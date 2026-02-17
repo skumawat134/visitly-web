@@ -353,7 +353,7 @@ const MySignInLog: React.FC = () => {
                     onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                     className="tw:bg-slate-50 tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-sm tw:font-bold tw:text-slate-700 tw:cursor-pointer"
                   >
-                    {[10, 25, 50, 100].map(s => <option key={s} value={s}>{s}</option>)}
+                    {[15, 25, 50, 100].map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
               </div>

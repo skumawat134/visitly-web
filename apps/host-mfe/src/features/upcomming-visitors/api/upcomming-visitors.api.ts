@@ -1,26 +1,43 @@
 import { getApiClient } from "@visitly/api-client";
-import type { CustomFieldsApiResponse, VisitorListParams, VisitorVisitResponse } from "../types/upcomming-visitors.types";
+import type {
+  CustomFieldsApiResponse,
+  VisitorListParams,
+  VisitorVisitResponse,
+  SitesResponse,
+  VisitorTypeResponse,
+  VisitorTypeParams
+} from "../types/upcomming-visitors.types";
 
-export async function getUpCommingVisitors(params : VisitorListParams) : Promise<VisitorVisitResponse>{
-    const { data } = await  getApiClient().get<VisitorVisitResponse>("/v1/host/preregistrations", { params }); 
-    return data;
- }
+export async function getUpCommingVisitors(params: VisitorListParams): Promise<VisitorVisitResponse> {
+  const { data } = await getApiClient().get<VisitorVisitResponse>("/v1/host/preregistrations", { params });
+  return data;
+}
 
-export async function getCustomFields () : Promise<CustomFieldsApiResponse>{
-    const { data } = await getApiClient().get<CustomFieldsApiResponse>("/v1/orgcustomFields?includeDeleted=false",{
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    
-    }); 
-    return data;
+export async function getAllSites(): Promise<SitesResponse> {
+  const { data } = await getApiClient().get<SitesResponse>("/v1/host/sites");
+  return data;
+}
+
+export async function getAllVisitorType(params : VisitorTypeParams ): Promise<VisitorTypeResponse> {
+  const { data } = await getApiClient().get<VisitorTypeResponse>("/v1/visitortypes", {params});
+  return data;
+}
+
+export async function getCustomFields(): Promise<CustomFieldsApiResponse> {
+  const { data } = await getApiClient().get<CustomFieldsApiResponse>("/v1/orgcustomFields?includeDeleted=false", {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+
+  });
+  return data;
 }
 
 export async function exportVisitorsCSV(params: VisitorListParams): Promise<Blob> {
-    // We override the responseType to 'blob' to handle the CSV file stream
-    const { data } = await getApiClient().get("/v1/visit/preregister/export", { 
-        params: { ...params, limit: 10000 }, // Matching your 10k limit
-        responseType: 'blob' 
-    }); 
-    return data;
+  // We override the responseType to 'blob' to handle the CSV file stream
+  const { data } = await getApiClient().get("/v1/visit/preregister/export", {
+    params: { ...params, limit: 10000 }, // Matching your 10k limit
+    responseType: 'blob'
+  });
+  return data;
 }

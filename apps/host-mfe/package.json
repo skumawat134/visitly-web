@@ -19,6 +19,7 @@
   "dependencies": {
     "@visitly/api-client": "*",
     "@visitly/app-store": "*",
+    "@visitly/shared-core": "workspace:^",
     "@visitly/ui": "*",
     "@visitly/webpack-config": "*",
     "ag-grid-community": "^35.0.1",

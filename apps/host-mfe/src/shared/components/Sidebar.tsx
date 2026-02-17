@@ -63,13 +63,13 @@ export const SIDEBAR_CONFIG :  SidebarItemConfig[] = [
     icon: Users,
     path: '/host/upcoming-visitors',
   },
-  {
-    title: 'My Visitors',
-    icon: Users,
-    testid: "evac-my-visitors-link",
-    path: '/host/past-visitors',
-    permission: ['HOST'],
-  },
+  // {
+  //   title: 'My Visitors',
+  //   icon: Users,
+  //   testid: "evac-my-visitors-link",
+  //   path: '/host/past-visitors',
+  //   permission: ['HOST'],
+  // },
   {
     title: 'Sign In Log',
     icon: ClipboardList,

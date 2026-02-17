@@ -3236,6 +3236,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.0"
     "@visitly/api-client": "npm:*"
     "@visitly/app-store": "npm:*"
+    "@visitly/shared-core": "workspace:^"
     "@visitly/tailwind-config": "npm:*"
     "@visitly/typescript-config": "npm:*"
     "@visitly/ui": "npm:*"

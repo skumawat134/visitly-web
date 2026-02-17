@@ -1,24 +1,28 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { format, startOfDay, addDays } from 'date-fns';
+import { format, subDays, startOfToday, startOfDay, addDays } from 'date-fns';
 import type {
   VisitorVisitResponse,
   VisitorListParams,
-  VisitorFilters,
-  VisitorsRowsType
+  VisitorsRowsType,
+  Site
 } from '../types/upcomming-visitors.types';
-import { exportVisitorsCSV, getUpCommingVisitors } from '../api/upcomming-visitors.api';
+import { exportVisitorsCSV, getUpCommingVisitors, getAllSites, getAllVisitorType } from '../api/upcomming-visitors.api';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { STORAGE_KEY } from '../components/CustomSettings';
 import { Edit2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@visitly/ui';
+import type { DateRangeValue } from '../../../shared/components/DateRangePicker';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { useAuthStore } from '@visitly/app-store';
 
 export const useUpcomingVisitors = () => {
   const navigate = useNavigate();
+  const userinfo = JSON.parse(sessionStorage.getItem('userinfo') || '{}');
   // 1. Pagination & Search States
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(15);
   const [searchTerm, setSearchTerm] = useState('');
   const [sort, setSort] = useState<'asc' | 'desc'>('asc');
   const [sortBy, setSortBy] = useState('scheduledCheckinDate');
@@ -26,17 +30,79 @@ export const useUpcomingVisitors = () => {
   const [showPreRegistrationModal, setshowPreRegistrationModal] = useState(false);
   const [selectedVisitId, setSelectedVisitId] = useState<string | undefined>(undefined);
   const [modalStatus, setModalStatus] = useState<'Create' | 'Update'>('Create');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'checkedin'>('upcoming');
+  const debounceSearchTerm = useDebounce(searchTerm, 500)
+  const currentUser =  useAuthStore((state)=> state.user)
+
 
   const [showBulkPreRegistrationModal, setShowBulkPreRegistrationModal] = useState(false);
-  // 3. Filter States using native Dates
-  const [filters, setFilters] = useState<VisitorFilters>({
-    siteId: '',
-    groupName: '',
-    visitorTypeId: '',
-    dateRange: {
-      startDate: startOfDay(new Date()),
-      endDate: addDays(new Date(), 30),
+  const [showInviteMenu, setShowInviteMenu] = useState(false);
+
+  // 2. Filter States
+  const [viewAs, setViewAs] = useState<string>('all'); // 'all' | 'myself' | delegateId
+  const [locationFilter, setLocationFilter] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [groupFilter, setGroupFilter] = useState<string>('');
+  const debounceGroupSearch = useDebounce(groupFilter, 500)
+
+
+  // Default to All Time (null) so filtering is optional
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    startDate: null,
+    endDate: null
+  });
+
+  // Fetch all sites for the filter
+  const { data: sitesData } = useQuery({
+    queryKey: ['allSites'],
+    queryFn: getAllSites,
+  });
+
+    // Fetch all visitor types for the filter
+const { data: allVisitorTypeOption } = useQuery({
+  queryKey: ['visitorType', locationFilter],
+  queryFn: () =>
+    getAllVisitorType({
+      siteId: locationFilter,
+      status: 'ACTIVE',
+    }),
+  select: (data) =>
+    data.results.map((visitorType) => ({
+      id: visitorType.id,
+      name: visitorType.visitorType,
+    })),
+  enabled: !!locationFilter,
+});
+
+
+
+  const buildParams = (): VisitorListParams => {
+    // Determine effective user ID for "View As"
+    let effectiveUserId = userinfo.id || '';
+    if (viewAs === 'myself') {
+      effectiveUserId = userinfo.id;
+    } else if (viewAs !== 'all') {
+      effectiveUserId = viewAs;
     }
+
+    return {
+      limit: pageSize,
+      offset: pageIndex * pageSize,
+      sort: sort.toUpperCase() as any,
+      sortBy: sortBy,
+      q: debounceSearchTerm,
+      siteId: locationFilter,
+      groupName: debounceGroupSearch,
+      visitorTypeId: typeFilter,
+      scheduleCheckinStartDate: dateRange.startDate || '',
+      scheduleCheckinEndDate: dateRange.endDate || '',
+    };
+  };
+
+  const { data, isLoading, refetch, isFetching } = useQuery<VisitorVisitResponse>({
+    queryKey: ['upcomingVisitors', pageIndex, pageSize, debounceSearchTerm, sort, sortBy, locationFilter, typeFilter, debounceGroupSearch, dateRange],
+    queryFn: () => getUpCommingVisitors(buildParams()),
+    enabled: activeTab === 'upcoming',
   });
 
   const { mutate: triggerExport } = useMutation({
@@ -55,36 +121,28 @@ export const useUpcomingVisitors = () => {
     }
   });
 
-  const buildParams = (): VisitorListParams => {
-    const userinfo = JSON.parse(sessionStorage.getItem('userinfo') || '{}');
-    return {
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: sort,
-      sortBy: sortBy,
-      q: searchTerm,
-      userId: userinfo.id || '',
-      siteId: filters.siteId ?? '',
-      groupName: filters.groupName ?? '',
-      visitorTypeId: filters.visitorTypeId ?? '',
-      scheduleCheckinStartDate: filters.dateRange?.startDate ? format(filters.dateRange.startDate, 'yyyy-MM-dd') : '',
-      scheduleCheckinEndDate: filters.dateRange?.endDate ? format(filters.dateRange.endDate, 'yyyy-MM-dd') : '',
-    };
-  };
-
-  const query = useQuery<VisitorVisitResponse>({
-    queryKey: ['upcomingVisitors', pageIndex, pageSize, searchTerm, sort, sortBy, filters],
-    queryFn: () => getUpCommingVisitors(buildParams()),
-    placeholderData: (previousData) => previousData,
-  });
-
   const handlePageChange = (newPageIndex: number) => setPageIndex(newPageIndex);
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
     setPageIndex(0);
   };
 
-  const rowData = useMemo(() => query?.data?.results || [], [query?.data]);
+  const rowData = useMemo(() => {
+
+    if (!viewAs) return data?.results || []
+
+    if(viewAs == 'all'){
+      return data?.results;
+    }
+    if(viewAs == 'myself'){
+      return data?.results.filter((item) => item.hostUserId === currentUser?.id)
+    }
+    
+    return data?.results.filter((item) => item.hostUserId == viewAs) || []
+  }
+, [data , viewAs]);
+
+  
 
   const colDefs = useMemo<ColDef<VisitorsRowsType>[]>(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -92,33 +150,23 @@ export const useUpcomingVisitors = () => {
     const isVisible = (title: string) => savedColumns.some(col => col.columnTitle === title);
 
     const allPossibleCols: ColDef<VisitorsRowsType>[] = [
-     {
-  headerName: "Name",
-  field: "fullName",
-  hide: false,
-  cellRenderer: (params: ICellRendererParams) => {
-    const id = !!params.data?.visitInfoModel ?  params.data?.visitInfoModel?.id : params.data?.id;
-    const isPrefill = !!params.data?.visitInfoModel; // true if key exists
-
-    const handleClick = () => {
-      const url = isPrefill
-        ? `/host/visitor-detail/${id}?isPrefill=true`
-        : `/host/visitor-detail/${id}`;
-
-      navigate(url);
-    };
-
-    return (
-      <button
-        onClick={handleClick}
-        className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline"
-      >
-        {params.data?.fullName}
-      </button>
-    );
-  },
-},
-
+      {
+        headerName: "Name",
+        field: "fullName",
+        minWidth: 200,
+        cellRenderer: (params: ICellRendererParams) => {
+          if (!params.data) return null;
+          const id = params.data.id;
+          return (
+            <button
+              onClick={() => navigate(`/host/visitor-detail/${id}`)}
+              className="tw:text-blue-600 tw:hover:text-blue-800 tw:font-medium tw:hover:underline"
+            >
+              {params.data.fullName}
+            </button>
+          );
+        },
+      },
       { headerName: "Type", field: "visitorType", hide: !isVisible("Type") },
       { headerName: "Host", field: "hostName", hide: !isVisible("Host") },
       { headerName: "Location", field: "siteName", hide: !isVisible("Location") },
@@ -127,10 +175,7 @@ export const useUpcomingVisitors = () => {
       { headerName: "Phone", field: "phoneNumber", hide: !isVisible("Phone") },
       { headerName: "Internal Note", field: "internalNote", hide: !isVisible("Internal Note") },
       { headerName: "Email", field: "email", hide: !isVisible("Email") },
-      { headerName: "Parking Lot", field: "parkingLotName", hide: !isVisible("Parking Lot") },
-      { headerName: "Point of Entry", field: "poeName", hide: !isVisible("Point of Entry") },
-      { headerName: "Building", field: "buildingName", hide: !isVisible("Building") },
-      { headerName: "Scheduled Check-In Date", field: "scheduleCheckinDate" },
+      { headerName: "Scheduled Check-In", field: "scheduleCheckinDate", valueFormatter: (params) => params.value ? format(new Date(params.value), 'MMM dd, yyyy h:mm a') : '-' },
       {
         headerName: "Action",
         field: "id",
@@ -194,18 +239,25 @@ export const useUpcomingVisitors = () => {
     setshowPreRegistrationModal(false);
     setSelectedVisitId(undefined);
   }
+
   const openBulkPreRegistrationModalHandler = () => {
     setShowBulkPreRegistrationModal(true);
   }
-  const closeBulkPreRegistrationModalHandler = () => {
-    setShowBulkPreRegistrationModal(false);
-  }
+
   return {
-    ...query,
+    data,
+    isLoading: isLoading || isFetching,
     pagination: { pageIndex, setPageIndex, pageSize, setPageSize },
     search: { searchTerm, setSearchTerm },
     sorting: { sort, setSort, sortBy, setSortBy },
-    filters: { filters, setFilters },
+    filters: {
+      viewAs, setViewAs,
+      locationFilter, setLocationFilter,
+      typeFilter, setTypeFilter,
+      groupFilter, setGroupFilter,
+      dateRange, setDateRange
+    },
+    sites: sitesData?.results || [],
     handlePageChange,
     handlePageSizeChange,
     rowData,
@@ -220,8 +272,14 @@ export const useUpcomingVisitors = () => {
     showPreRegistrationModal,
     selectedVisitId,
     modalStatus,
+    allVisitorTypeOption,
     showBulkPreRegistrationModal,
     openBulkPreRegistrationModalHandler,
-    closeBulkPreRegistrationModalHandler,
+    showInviteMenu,
+    setShowInviteMenu,
+    closeBulkPreRegistrationModalHandler: () => setShowBulkPreRegistrationModal(false),
+    activeTab,
+    setActiveTab,
+    navigate
   };
 };

@@ -47,7 +47,7 @@ export async function getVistorTypeFields(visitorTypeId: string): Promise<Prereg
 }
 
 export async function bulkPreRegistration(payload: any): Promise<any> {
-    const { data } = await getApiClient().post("/v1/preregistrations/bulk", payload);
+    const { data } = await getApiClient().post("/v1/host/preregistrations", payload);
     return data;
 }
 

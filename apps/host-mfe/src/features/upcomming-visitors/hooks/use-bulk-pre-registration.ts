@@ -98,7 +98,7 @@ export const useBulkPreRegistration = () => {
             hostEmail: '',
             companyName: '',
             phoneNumber: '',
-            scheduleCheckinDate: "2026-02-14T19:23:00",
+            scheduleCheckinDate: '',
             scheduleCheckoutDate: '',
             groupName: '',
             internalNote: '',
