@@ -18,6 +18,11 @@ const AuthInitializer = () => {
   useEffect(() => {
     if (!isChecking) return;
     if (!hasToken) {
+      const tempToken = localStorage.getItem('tempToken');
+      if (tempToken) {
+        useAuthStore.getState().setTokens({ accessToken: tempToken, refreshToken: null });
+        return;
+      }
       failAuth();
       return;
     }

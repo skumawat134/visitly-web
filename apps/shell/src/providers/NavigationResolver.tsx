@@ -105,6 +105,7 @@ export function NavigationResolver() {
     // 2. Unauthenticated Logic
     if (status === 'unauthenticated') {
       // If we are on a public "skip" path or login path, stay there
+      
       const isPublicPath = SKIP_AUTH_PATHS.some(path => location.pathname.startsWith(path));
       if (isPublicPath || isLoginPath || isAuthPath) {
         return;

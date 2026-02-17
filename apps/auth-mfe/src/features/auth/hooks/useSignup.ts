@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SignupFormValues } from '../components/SignupForm';
+import type { SignupFormValues } from '../components/SignupForm';
 import { useMutation } from '@tanstack/react-query';
 import { createUserApi, createHubSpotApi } from '../services/auth.api';
 import * as Yup from 'yup';
@@ -226,6 +226,7 @@ export const useSignup = () => {
       .matches(validationPatterns.PATTERN_FOR_ALPHABATES_AND_SPACE, 'Last name can only contain letters and spaces'),
 
     companyName: Yup.string()
+      .trim()
       .required('Organization name is required'),
 
     email: Yup.string()
@@ -249,7 +250,7 @@ export const useSignup = () => {
         'Please enter a valid phone number'
       ),
 
-    terms: Yup.boolean().oneOf([true], ''),
+    terms: Yup.boolean().oneOf([true], 'You must accept the terms and conditions'),
   });
 
   return {
