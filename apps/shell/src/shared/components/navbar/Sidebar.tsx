@@ -305,11 +305,11 @@ export const Sidebar: React.FC = () => {
             </nav>
             {!isCollapsed && (
                 <div className="tw:p-4 tw:space-y-4 tw:border-t tw:border-gray-50">
-                    {context.isGlobalAdmin && context.currentPlan === 'Trial' && (
+                    {/* {context.isGlobalAdmin && context.currentPlan === 'Trial' && (
                         <Button className="tw:w-full tw:bg-indigo-600 tw:text-white tw:py-2.5 tw:rounded-lg tw:text-sm tw:font-semibold hover:tw:bg-indigo-700 tw:transition-all tw:shadow-md tw:shadow-indigo-100">
                             Quick Setup
                         </Button>
-                    )}
+                    )}*/}
                     <div className="tw:text-[10px] tw:text-gray-400 tw:text-center tw:font-medium">
                         v 1.3.201
                     </div>
