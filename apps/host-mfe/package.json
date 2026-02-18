@@ -27,6 +27,7 @@
     "ag-grid-react": "^35.0.1",
     "date-fns": "^4.1.0",
     "formik": "^2.4.9",
+    "framer-motion": "^12.34.2",
     "lucide-react": "^0.468.0",
     "yup": "^1.7.1"
   },

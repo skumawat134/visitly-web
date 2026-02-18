@@ -3,7 +3,6 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useCoHosts, useHosts, useSites, useVisitorTypes, useVisitorTypesFields, usePreregistration, usePointOfEntry, useParkingLot, useDestination } from './use-preregistration.queries';
-import type { UserOption } from '@visitly/ui';
 import { createPreregistration, updatePreregistration, preScreenSingle } from '../api/pre-registration.api';
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -12,8 +11,8 @@ export interface PreRegistrationForm {
   id?: string;
   siteId: string;
   visitorTypeId: string;
-  scheduleCheckinDate: string | null;
-  scheduleCheckoutDate: string | null;
+  scheduleCheckinDate: string | Date | null;
+  scheduleCheckoutDate: string | Date | null;
   scheduleCheckinTimeOnly: string | null;
   scheduleCheckoutTimeOnly: string | null;
   recurrenceType: string;
@@ -32,6 +31,10 @@ export interface PreRegistrationForm {
     orgCustomFieldId: string;
     visitTypeFieldId: string;
     value: any;
+    isMandatoryForPreregistration?: boolean;
+    type?: string;
+    options?: any;
+    displayText?: string;
   }>;
   shouldPrefill: boolean;
   poeId?: string;
@@ -41,21 +44,24 @@ export interface PreRegistrationForm {
 
 export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, status?: 'Create' | 'Update') => {
   const { data: sites } = useSites();
-  const siteOptions = sites?.results?.map((site) => ({
-    label: site.name,
-    value: site.id,
-  })) || [];
+  const siteOptions = [
+    { label: 'Select Location', value: '' },
+    ...(sites?.results?.map((site) => ({
+      label: site.name,
+      value: site.id,
+    })) || [])
+  ];
 
   const { data: existingVisit } = usePreregistration(visitId || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
 
-  // Stable initial values to prevent re-initialization loops
   const initialValues = React.useMemo(() => ({
     siteId: '',
     visitorTypeId: '',
     scheduleCheckinDate: new Date(),
     scheduleCheckoutDate: null,
-    scheduleCheckinTimeOnly: '00:00',
+    scheduleCheckinTimeOnly: '',
     scheduleCheckoutTimeOnly: null,
     recurrenceType: 'NONE',
     recurrenceEndDateOnly: null,
@@ -79,62 +85,89 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
   const queryClient = useQueryClient();
   const [matchedRule, setMatchedRule] = useState('');
 
+  // ─── Validation Schemas ───
+
+  // Step 1: Where & When
+  const step1Schema = Yup.object({
+    siteId: Yup.string().required('Location is required'),
+    visitorTypeId: Yup.string().required('Visitor Type is required'),
+    scheduleCheckinDate: Yup.date().required('Check-in Date is required'),
+    scheduleCheckinTimeOnly: Yup.string().required('Check-in Time is required'),
+  });
+
+  // Step 2: Who is visiting? (Identity + Dynamic Fields)
+  const step2Schema = Yup.object({
+    preregisterVisitCustomFieldModels: Yup.array().of(
+      Yup.object().shape({
+        name: Yup.string(),
+        value: Yup.mixed().test('required', function (value) {
+          const { isMandatoryForPreregistration, name } = this.parent as any;
+          // Identity fields are mandatory in Step 2
+          if (name === 'Full Name' || name === 'Email') {
+            if (value === null || value === undefined || value === '') {
+              return this.createError({ message: `${name} is required` });
+            }
+          }
+          // Dynamic fields mandatory check
+          if (isMandatoryForPreregistration && (value === null || value === undefined || value === '')) {
+            return this.createError({ message: `${name || 'Field'} is required` });
+          }
+          return true;
+        }),
+      })
+    )
+  });
+
+  // Step 3: Review & Confirm (Extra Details)
+  const step3Schema = Yup.object({
+    hostUserId: Yup.string().nullable(), // Host selection might be optional depending on org settings, but we'll leave it as is
+    groupName: Yup.string().nullable(),
+    internalNote: Yup.string().nullable(),
+  });
+
   const formik = useFormik<PreRegistrationForm>({
     initialValues,
-    validationSchema: Yup.object({
-      siteId: Yup.string().required('Location is required'),
-      visitorTypeId: Yup.string().required('Visitor Type is required'),
-      scheduleCheckinDate: Yup.date().required('Check-in Date is required'),
-      poeId: Yup.string().nullable(),
-      buildingId: Yup.string().nullable(),
-      parkingLotId: Yup.string().nullable(),
-      preregisterVisitCustomFieldModels: Yup.array().of(
-        Yup.object().shape({
-          name: Yup.string(),
-          value: Yup.mixed().test('required', function (value) {
-            const { isMandatoryForPreregistration, name } = this.parent as any;
-            if (isMandatoryForPreregistration && (value === null || value === undefined || value === '')) {
-              return this.createError({ message: `${name || 'Field'} is required` });
-            }
-            return true;
-          }),
-        })
-      )
-    }),
+    validationSchema: step1Schema.concat(step2Schema).concat(step3Schema),
+    enableReinitialize: true,
     onSubmit: async (values) => {
       try {
+        setIsSaving(true);
         const payload = preparePayload();
-        console.log('payload prepared',payload)
         if (status === 'Create') {
           await createPreregistration(payload);
         } else if (visitId) {
           await updatePreregistration(visitId, 'SELECTED_VISIT', payload);
         }
         queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
-        resetForm();
+        formik.resetForm();
         onClose && onClose();
-
       } catch (err) {
         console.error(err);
       } finally {
         setIsSaving(false);
       }
     },
-    enableReinitialize: true,
   });
 
   const form = formik.values;
   const { data: visitorTypeFields } = useVisitorTypesFields(form.visitorTypeId);
 
-  // Data Fetching for Auto-Select fields
   const { data: poeData } = usePointOfEntry(form.siteId);
   const { data: parkingData } = useParkingLot(form.siteId);
   const { data: destData } = useDestination(form.siteId);
 
-  const poeOptions = (poeData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [];
-  const parkingOptions = (parkingData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [];
-  const destOptions = (destData as any)?.results?.map((d: any) => ({ label: d.name, value: d.id })) || [];
-
+  const poeOptions = [
+    { label: 'Select Point of Entry', value: '' },
+    ...((poeData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [])
+  ];
+  const parkingOptions = [
+    { label: 'Select Parking Lot', value: '' },
+    ...((parkingData as any)?.results?.map((p: any) => ({ label: p.name, value: p.id })) || [])
+  ];
+  const destOptions = [
+    { label: 'Select Building', value: '' },
+    ...((destData as any)?.results?.map((d: any) => ({ label: d.name, value: d.id })) || [])
+  ];
 
   const preparePayload = () => {
     const checkin = new Date(form.scheduleCheckinDate || new Date());
@@ -150,7 +183,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       checkout.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
     }
 
-    // Exclude fields sent as top-level from customFields
     const TOP_LEVEL_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number', 'Host', 'Point of Entry', 'Building', 'Parking Lot'];
     const customFields = form.preregisterVisitCustomFieldModels
       .filter((f: any) => !TOP_LEVEL_FIELDS.includes(f.name))
@@ -176,7 +208,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       companyName: getValueByFieldName('Company Name'),
       phoneNumber: String(getValueByFieldName('Phone Number') || ''),
       scheduleCheckinDate: format(checkin, "yyyy-MM-dd'T'HH:mm:ss"),
-      // recurrenceEndDateOnly : format(recurrenceEndDateOnly, "yyyy-MM-dd"),
       scheduleCheckoutDate: checkout ? format(checkout, "yyyy-MM-dd'T'HH:mm:ss") : null,
       preregisterVisitCustomFieldModels: customFields,
       checkinMethod: 'WEB',
@@ -202,12 +233,9 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     }
   };
 
-  // Sync visitorTypeFields to Formik Values
   useEffect(() => {
-    // Only proceed if we have field definitions
     if (visitorTypeFields?.fields) {
       if (!formik.values.visitorTypeId) {
-        // If no visitor type selected, clear fields
         if (formik.values.preregisterVisitCustomFieldModels.length > 0) {
           formik.setFieldValue('preregisterVisitCustomFieldModels', []);
         }
@@ -215,11 +243,9 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       }
 
       const currentFields = formik.values.preregisterVisitCustomFieldModels;
-
       const newFields = visitorTypeFields.fields
         .filter((f: any) => f.isPreregistrationOnly)
         .map((f: any) => {
-          // Try to map existing value by ID
           const existing = currentFields.find(
             (curr) => (curr.orgCustomFieldId && curr.orgCustomFieldId === (f.orgCustomFieldId || f.id)) || curr.name === f.name
           );
@@ -228,7 +254,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
             name: f.name,
             orgCustomFieldId: f.orgCustomFieldId || f.id,
             visitTypeFieldId: f.id,
-            // If existing value matches structure, keep it. Else default.
             value: existing ? existing.value : (f.defaultValue || ''),
             isMandatoryForPreregistration: f.isMandatoryForPreregistration,
             type: f.type,
@@ -236,8 +261,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
             displayText: f.displayText
           };
         });
-
-      // Deep compare structure to prevent infinite loop.
 
       const isStructureDifferent =
         newFields.length !== currentFields.length ||
@@ -247,11 +270,9 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         formik.setFieldValue('preregisterVisitCustomFieldModels', newFields);
       }
     }
-  }, [visitorTypeFields, formik.values.visitorTypeId]); // Dependencies: Data (stable usually) and visitorTypeId (stable across keystrokes)
-
+  }, [visitorTypeFields, formik.values.visitorTypeId]);
 
   const lastLoadedId = React.useRef<string | undefined>(undefined);
-  // Pre-fill on update
   useEffect(() => {
     if (existingVisit && lastLoadedId.current !== visitId) {
       const mappedCustomFields = existingVisit.preregisterVisitCustomFieldModels?.map((cf: any) => ({
@@ -261,7 +282,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         value: cf.value,
         isMandatoryForPreregistration: false
       })) || [];
-      // Inject top-level fields back into custom fields array
+
       const TOP_LEVEL_FIELDS_MAP: Record<string, any> = {
         'Full Name': existingVisit.fullName,
         'Email': existingVisit.email,
@@ -284,7 +305,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       });
 
       formik.setValues({
-        ...formik.initialValues, // Use the memoized initialValues as base
+        ...initialValues,
         ...existingVisit,
         id: visitId,
         scheduleCheckinDate: existingVisit.scheduleCheckinDate ? new Date(existingVisit.scheduleCheckinDate) : new Date(),
@@ -296,21 +317,16 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       });
       lastLoadedId.current = visitId;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingVisit, visitId]);
+  }, [existingVisit, visitId, initialValues]);
 
   const { data: visitorTypes } = useVisitorTypes(form.siteId);
-  const visitorTypeOptions = visitorTypes?.results?.map((vt) => ({
-    label: vt.visitorType,
-    value: vt.id,
-  })) || [];
-
-  // Auto-select logic removed as per user request
-
-
-
-  // Auto-select logic for POE, Building, Parking Lot removed as per user request
-
+  const visitorTypeOptions = [
+    { label: 'Select Visitor Type', value: '' },
+    ...(visitorTypes?.results?.map((vt) => ({
+      label: vt.visitorType,
+      value: vt.id,
+    })) || [])
+  ];
 
   const [hostSearch, setHostSearch] = React.useState('');
   const { data: hostsData } = useHosts(hostSearch, form.siteId);
@@ -318,7 +334,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     value: user.id,
     label: `${user.firstName} ${user.lastName} - ${user.email}`,
     email: user.email,
-    emailValue: user.email // Store email for setting helper field
+    emailValue: user.email
   })) ?? [];
 
   const [coHostSearch, setCoHostSearch] = React.useState('');
@@ -329,18 +345,35 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     email: user.email,
   })) ?? [];
 
-
   const setFormField = useCallback(
     <K extends keyof PreRegistrationForm>(field: K, value: PreRegistrationForm[K]) => {
       formik.setFieldValue(field, value);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [formik]
   );
 
   const resetForm = useCallback(() => {
     formik.resetForm();
   }, [formik]);
+
+  const validateStep = async (step: 1 | 2 | 3) => {
+    const schemas = [step1Schema, step2Schema, step3Schema];
+    const schema = schemas[step - 1];
+    if (!schema) return { isValid: true, errors: {} };
+
+    try {
+      await schema.validate(formik.values, { abortEarly: false });
+      return { isValid: true, errors: {} };
+    } catch (err: any) {
+      const errors: Record<string, string> = {};
+      if (err.inner) {
+        err.inner.forEach((error: any) => {
+          if (error.path) errors[error.path] = error.message;
+        });
+      }
+      return { isValid: false, errors };
+    }
+  };
 
   return {
     form,
@@ -359,13 +392,14 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     handlePreScreen,
     matchedRule,
     isSaving,
-    // Return options for consumption
+    validateStep,
     poeOptions,
     parkingOptions,
     destOptions,
-    // Return data for consumption if needed
     poeData,
     parkingData,
-    destData
+    destData,
+    wizardStep,
+    setWizardStep
   };
 };
