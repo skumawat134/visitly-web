@@ -3335,6 +3335,11 @@ __metadata:
     webpack-cli: "npm:^6.0.1"
     webpack-dev-server: "npm:^5.2.2"
     webpack-merge: "npm:^6.0.1"
+    workbox-cacheable-response: "npm:^7.4.0"
+    workbox-expiration: "npm:^7.4.0"
+    workbox-precaching: "npm:^7.4.0"
+    workbox-routing: "npm:^7.4.0"
+    workbox-strategies: "npm:^7.4.0"
     workbox-webpack-plugin: "npm:^7.4.0"
     zustand: "npm:^5.0.10"
   languageName: unknown
@@ -10687,7 +10692,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-cacheable-response@npm:7.4.0":
+"workbox-cacheable-response@npm:7.4.0, workbox-cacheable-response@npm:^7.4.0":
   version: 7.4.0
   resolution: "workbox-cacheable-response@npm:7.4.0"
   dependencies:
@@ -10703,7 +10708,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-expiration@npm:7.4.0":
+"workbox-expiration@npm:7.4.0, workbox-expiration@npm:^7.4.0":
   version: 7.4.0
   resolution: "workbox-expiration@npm:7.4.0"
   dependencies:
@@ -10734,7 +10739,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-precaching@npm:7.4.0":
+"workbox-precaching@npm:7.4.0, workbox-precaching@npm:^7.4.0":
   version: 7.4.0
   resolution: "workbox-precaching@npm:7.4.0"
   dependencies:
@@ -10768,7 +10773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-routing@npm:7.4.0":
+"workbox-routing@npm:7.4.0, workbox-routing@npm:^7.4.0":
   version: 7.4.0
   resolution: "workbox-routing@npm:7.4.0"
   dependencies:
@@ -10777,7 +10782,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-strategies@npm:7.4.0":
+"workbox-strategies@npm:7.4.0, workbox-strategies@npm:^7.4.0":
   version: 7.4.0
   resolution: "workbox-strategies@npm:7.4.0"
   dependencies:

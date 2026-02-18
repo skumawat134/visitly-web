@@ -11,9 +11,13 @@ import "./styles/global.css";
 import "@visitly/ui/styles.css";
 import App from '@/App';
 import { middlewareService } from './shared/services/middleware.service';
+import { registerServiceWorker } from './serviceWorkerRegistration';
 
 // Initialize Middleware RUM for tracing
 middlewareService.initialize();
 
 const root = createRoot(document.getElementById('root')!);
 root.render(<App />)
+
+// Register service worker (production only, mirrors Angular's registerWhenStable:30000)
+registerServiceWorker();
