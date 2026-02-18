@@ -14,7 +14,8 @@ export function resolveLanding(user: any): string {
     if (permissions.isGlobalInternalAdmin) return '/admin/internalAdmin/org-list';
     if (permissions.isGlobalAdmin || permissions.isSiteAdmin || permissions.isFrontDeskManager) return '/admin/work_area/dashboard';
     if (permissions.isDeliveryManager) return '/admin/work_area/delivery-manager/dashboard';
-    if (permissions.isHost || permissions.isEvacManager) return '/admin/work_area/evacuation/past-visitors';
+    if (permissions.isEvacManager) return '/admin/work_area/evacuation/main';
+    if (permissions.isHost) return '/host/dashboard';
 
     return '/admin/work_area/dashboard';
 }
