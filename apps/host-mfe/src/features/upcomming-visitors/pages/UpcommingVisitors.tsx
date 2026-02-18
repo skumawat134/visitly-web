@@ -21,6 +21,12 @@ import { PreRegistrationModal } from "../components/pre-registration/PreRegistra
 import { BulkPreRegistrationModal } from "../components/BulkPreRegistrationModal";
 import { PastVisitors } from "@/features/past-visitors";
 import DateRangePicker from "../../../shared/components/DateRangePicker";
+// import { BulkCancelModal, BulkUpdateModal } from "../components/BulkActionModals";
+import { BulkCancelModal } from "../components/BulkCancelModal";
+import { BulkUpdateModal } from "../components/BulkUpdateModal";
+
+
+
 import type { Site } from "../types/upcomming-visitors.types";
 import type { DateRangeValue } from "../../../shared/components/DateRangePicker";
 import { useDebounce } from "@/shared/hooks/useDebounce";
@@ -65,6 +71,12 @@ const UpcommingVisitors: React.FC = () => {
     navigate // Ensure navigate is returned from hook or use useNavigate here if hook doesn't return it
   } = useUpcomingVisitors();
 
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
+  const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
+  const [showMoreActionsMenu, setShowMoreActionsMenu] = useState(false);
+
+
   const { searchTerm, setSearchTerm } = search;
   const { pageSize, pageIndex } = pagination;
   const {
@@ -75,11 +87,11 @@ const UpcommingVisitors: React.FC = () => {
     dateRange, setDateRange
   } = filters;
 
-const delegates = useDelegateOption();
+  const delegates = useDelegateOption();
 
 
-const debouncedSearchTerm = useDebounce(searchTerm,500);
-const debouncedGroupName = useDebounce(groupFilter, 500);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const debouncedGroupName = useDebounce(groupFilter, 500);
 
 
   // Customizing the Theme for AG Grid
@@ -114,63 +126,112 @@ const debouncedGroupName = useDebounce(groupFilter, 500);
     [],
   );
 
+  const onSelectionChanged = (event: any) => {
+    const selectedNodes = event.api.getSelectedNodes();
+    const ids = selectedNodes.map((node: any) => node.data.id);
+    setSelectedRowIds(ids);
+  };
+
+
   return (
     <div className="tw:p-4 tw:md:p-6 tw:bg-gray-50 tw:min-h-screen tw:font-sans">
       <div className="tw:w-full tw:mx-auto">
 
-       <div className="tw:w-full tw:flex tw:flex-col tw:md:flex-row tw:justify-between tw:items-center">
-         {/* Page Header */}
-        <PageDescription title='Visitors' description="Manage your upcoming and past visitors" />
+        <div className="tw:w-full tw:flex tw:flex-col tw:md:flex-row tw:justify-between tw:items-center">
+          {/* Page Header */}
+          <PageDescription title='Visitors' description="Manage your upcoming and past visitors" />
 
-        {/* Invite Dropdown */}
-        <div className="tw:flex tw:justify-end tw:mb-2">
-          <div className="tw:relative">
-            <button
-              className="tw:inline-flex tw:items-center tw:gap-2 tw:px-5 tw:py-2.5 tw:bg-blue-600 tw:text-white tw:border-none tw:rounded-xl tw:text-sm tw:font-medium tw:cursor-pointer tw:transition-colors tw:hover:bg-blue-700"
-              onClick={() => setShowInviteMenu(!showInviteMenu)}
-            >
-              <UserPlus size={16} />
-              Invite Visitor
-              <ChevronDown size={14} className="tw:ml-0.5 tw:opacity-70" />
-            </button>
+          {/* Invite Dropdown */}
+          <div className="tw:flex tw:justify-end tw:mb-2">
+            <div className="tw:relative">
+              <button
+                className="tw:inline-flex tw:items-center tw:gap-2 tw:px-5 tw:py-2.5 tw:bg-blue-600 tw:text-white tw:border-none tw:rounded-xl tw:text-sm tw:font-medium tw:cursor-pointer tw:transition-colors tw:hover:bg-blue-700"
+                onClick={() => setShowInviteMenu(!showInviteMenu)}
+              >
+                <UserPlus size={16} />
+                Invite Visitor
+                <ChevronDown size={14} className="tw:ml-0.5 tw:opacity-70" />
+              </button>
 
-            {showInviteMenu && (
-              <>
-                <div className="tw:fixed tw:inset-0 tw:z-30" onClick={() => setShowInviteMenu(false)} />
-                <div className="tw:absolute tw:top-full tw:right-0 tw:mt-1.5 tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:shadow-lg tw:p-1.5 tw:z-40 tw:min-w-[220px]">
-                  <button
-                    className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
-                    onClick={() => {
-                      setShowInviteMenu(false);
-                      openPreRegistrationModalHandler();
-                    }}
-                  >
-                    <UserPlus size={15} className="tw:text-blue-600 tw:shrink-0" />
-                    <div>
-                      <div className="tw:text-sm tw:font-medium tw:text-gray-800">Single Invite</div>
-                      <div className="tw:text-xs tw:text-gray-400">Pre-register one visitor</div>
+              {showInviteMenu && (
+                <>
+                  <div className="tw:fixed tw:inset-0 tw:z-30" onClick={() => setShowInviteMenu(false)} />
+                  <div className="tw:absolute tw:top-full tw:right-0 tw:mt-1.5 tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:shadow-lg tw:p-1.5 tw:z-40 tw:min-w-[220px]">
+                    <button
+                      className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
+                      onClick={() => {
+                        setShowInviteMenu(false);
+                        openPreRegistrationModalHandler();
+                      }}
+                    >
+                      <UserPlus size={15} className="tw:text-blue-600 tw:shrink-0" />
+                      <div>
+                        <div className="tw:text-sm tw:font-medium tw:text-gray-800">Single Invite</div>
+                        <div className="tw:text-xs tw:text-gray-400">Pre-register one visitor</div>
+                      </div>
+                    </button>
+                    <button
+                      className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
+                      onClick={() => {
+                        // setShowInviteMenu(false);
+                        // navigate('/host/bulk-pre-register');
+                      }}
+                    >
+                      <Upload size={15} className="tw:text-blue-600 tw:shrink-0" />
+                      <div>
+                        <div className="tw:text-sm tw:font-medium tw:text-gray-800">Bulk Invite</div>
+                        <div className="tw:text-xs tw:text-gray-400">Pre-register multiple visitors</div>
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* More Actions Dropdown (Visible only when rows selected) */}
+            {selectedRowIds.length > 0 && (
+              <div className="tw:relative">
+                <button
+                  className="tw:inline-flex tw:items-center tw:gap-2 tw:px-5 tw:py-2.5 tw:bg-white tw:text-gray-700 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:cursor-pointer tw:transition-colors tw:hover:bg-gray-50"
+                  onClick={() => setShowMoreActionsMenu(!showMoreActionsMenu)}
+                >
+                  More Actions
+                  <ChevronDown size={14} className="tw:ml-0.5 tw:opacity-70" />
+                </button>
+
+                {showMoreActionsMenu && (
+                  <>
+                    <div className="tw:fixed tw:inset-0 tw:z-30" onClick={() => setShowMoreActionsMenu(false)} />
+                    <div className="tw:absolute tw:top-full tw:right-0 tw:mt-1.5 tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:shadow-lg tw:p-1.5 tw:z-40 tw:min-w-[160px]">
+                      <button
+                        className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
+                        onClick={() => {
+                          setShowMoreActionsMenu(false);
+                          setShowBulkUpdateModal(true);
+                        }}
+                      >
+                        <Pencil size={15} className="tw:text-gray-600 tw:shrink-0" />
+                        <span className="tw:text-sm tw:font-medium tw:text-gray-800">Update</span>
+                      </button>
+                      <button
+                        className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50 tw:text-red-600"
+                        onClick={() => {
+                          setShowMoreActionsMenu(false);
+                          setShowBulkCancelModal(true);
+                        }}
+                      >
+                        <X size={15} className="tw:text-red-600 tw:shrink-0" />
+                        <span className="tw:text-sm tw:font-medium">Cancel</span>
+                      </button>
                     </div>
-                  </button>
-                  <button
-                    className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
-                    onClick={() => {
-                      setShowInviteMenu(false);
-                      // navigate('/host/bulk-pre-register');
-                    }}
-                  >
-                    <Upload size={15} className="tw:text-blue-600 tw:shrink-0" />
-                    <div>
-                      <div className="tw:text-sm tw:font-medium tw:text-gray-800">Bulk Invite</div>
-                      <div className="tw:text-xs tw:text-gray-400">Pre-register multiple visitors</div>
-                    </div>
-                  </button>
-                </div>
-              </>
+                  </>
+                )}
+              </div>
             )}
           </div>
-        </div>
 
-       </div>
+
+        </div>
 
         {/* View-As Switcher */}
         <div className="tw:flex tw:items-center tw:gap-3 tw:mb-2 tw:px-4">
@@ -202,7 +263,7 @@ const debouncedGroupName = useDebounce(groupFilter, 500);
               <option value="" disabled>View as delegate...</option>
               {/* Delegates list could be passed in, currently placeholder */}
               {
-                delegates.map((item)=>{
+                delegates.map((item) => {
                   return <option key={item.id} value={item.id}>{item.name}</option>
                 })
               }
@@ -217,90 +278,90 @@ const debouncedGroupName = useDebounce(groupFilter, 500);
         {/* Filter Bar Card */}
         <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-12 tw:gap-2 tw:items-center tw:bg-transparent tw:p-4 tw:rounded-2xl tw:mb-2">
 
-  {/* Search by Name */}
-  <div className="tw:md:col-span-3 tw:relative">
-    <SearchIcon className="tw:absolute tw:left-3.5 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400" size={18} />
-    <Input
-      type="text"
-      leftIcon={<SearchIcon size={18} />}
-      placeholder="Search by name, email..."
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      className="tw:w-full tw:pl-10 tw:pr-4 tw:py-2.5 tw:bg-white tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:focus:ring-2 tw:focus:ring-blue-500/10 tw:transition-all"
-    />
-  </div>
+          {/* Search by Name */}
+          <div className="tw:md:col-span-3 tw:relative">
+            <SearchIcon className="tw:absolute tw:left-3.5 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400" size={18} />
+            <Input
+              type="text"
+              leftIcon={<SearchIcon size={18} />}
+              placeholder="Search by name, email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="tw:w-full tw:pl-10 tw:pr-4 tw:py-2.5 tw:bg-white tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:focus:ring-2 tw:focus:ring-blue-500/10 tw:transition-all"
+            />
+          </div>
 
-  {/* Search by Group */}
-  <div className="tw:md:col-span-3 tw:relative">
-    <Input
-      type="text"
-      leftIcon={<SearchIcon size={18} />}
-      placeholder="Search by group name..."
-      value={groupFilter}
-      onChange={(e) => setGroupFilter(e.target.value)}
-      className="tw:w-full tw:pl-10 tw:pr-4 tw:py-2.5 tw:bg-white tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:focus:ring-2 tw:focus:ring-blue-500/10 tw:transition-all"
-    />
-  </div>
+          {/* Search by Group */}
+          <div className="tw:md:col-span-3 tw:relative">
+            <Input
+              type="text"
+              leftIcon={<SearchIcon size={18} />}
+              placeholder="Search by group name..."
+              value={groupFilter}
+              onChange={(e) => setGroupFilter(e.target.value)}
+              className="tw:w-full tw:pl-10 tw:pr-4 tw:py-2.5 tw:bg-white tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:focus:ring-2 tw:focus:ring-blue-500/10 tw:transition-all"
+            />
+          </div>
 
-  {/* Location Select */}
-  <div className="tw:md:col-span-2 tw:relative">
-    <MapPin className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400" size={16} />
-    <select
-      value={locationFilter}
-      onChange={(e) => setLocationFilter(e.target.value)}
-      className="tw:appearance-none tw:w-full tw:pl-9 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:text-gray-600 tw:bg-white tw:cursor-pointer tw:outline-none"
-    >
-      <option value="">All Locations</option>
-      {sites.map((s: Site) => (
-        <option key={s.id} value={s.id}>{s.name}</option>
-      ))}
-    </select>
-    <ChevronDown className="tw:absolute tw:right-2 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 tw:pointer-events-none" size={14} />
-  </div>
+          {/* Location Select */}
+          <div className="tw:md:col-span-2 tw:relative">
+            <MapPin className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400" size={16} />
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="tw:appearance-none tw:w-full tw:pl-9 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:text-gray-600 tw:bg-white tw:cursor-pointer tw:outline-none"
+            >
+              <option value="">All Locations</option>
+              {sites.map((s: Site) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="tw:absolute tw:right-2 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 tw:pointer-events-none" size={14} />
+          </div>
 
-  {/* Type Select */}
-  {allVisitorTypeOption && allVisitorTypeOption?.length  > 0 && <div className="tw:md:col-span-2 tw:relative">
-    <Filter className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400" size={16} />
-    <select
-      value={typeFilter}
-      onChange={(e) => setTypeFilter(e.target.value)}
-      className="tw:appearance-none tw:w-full tw:pl-9 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:text-gray-600 tw:bg-white tw:cursor-pointer tw:outline-none"
-    >
-      <option value="">All Types</option>
-      {allVisitorTypeOption?.map((item)=>{
-        return <option key={item.id} value={item.id}>{item.name}</option>
-      })}
-    </select>
-    <ChevronDown className="tw:absolute tw:right-2 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 tw:pointer-events-none" size={14} />
-  </div>}
+          {/* Type Select */}
+          {allVisitorTypeOption && allVisitorTypeOption?.length > 0 && <div className="tw:md:col-span-2 tw:relative">
+            <Filter className="tw:absolute tw:left-3 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400" size={16} />
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="tw:appearance-none tw:w-full tw:pl-9 tw:pr-10 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:text-gray-600 tw:bg-white tw:cursor-pointer tw:outline-none"
+            >
+              <option value="">All Types</option>
+              {allVisitorTypeOption?.map((item) => {
+                return <option key={item.id} value={item.id}>{item.name}</option>
+              })}
+            </select>
+            <ChevronDown className="tw:absolute tw:right-2 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 tw:pointer-events-none" size={14} />
+          </div>}
 
-  {/* Rows Per Page */}
-<div className="tw:md:col-span-2 tw:relative tw:flex tw:items-center tw:gap-2">
-  <span className="tw:text-sm tw:font-medium tw:text-gray-700">Rows</span>
-  <select
-    value={pageSize}
-    onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-    className="tw:w-20 tw:pl-3 tw:pr-2 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:text-gray-600 tw:bg-white tw:cursor-pointer tw:outline-none"
-  >
-    {[15, 20, 50, 100].map((size) => (
-      <option key={size} value={size}>{size}</option>
-    ))}
-  </select>
-</div>
-
-
+          {/* Rows Per Page */}
+          <div className="tw:md:col-span-2 tw:relative tw:flex tw:items-center tw:gap-2">
+            <span className="tw:text-sm tw:font-medium tw:text-gray-700">Rows</span>
+            <select
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="tw:w-20 tw:pl-3 tw:pr-2 tw:py-2.5 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:text-gray-600 tw:bg-white tw:cursor-pointer tw:outline-none"
+            >
+              {[15, 20, 50, 100].map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </div>
 
 
 
-  {/* Date Range Picker Section */}
-  <div className="tw:md:col-span-12 tw:flex tw:items-center tw:gap-3 tw:flex-wrap tw:mt-4 md:tw:mt-0">
-    <DateRangePicker
-      value={dateRange}
-      onChange={(val: DateRangeValue | string) => setDateRange(val as any)}
-    />
-  </div>
 
-</div>
+
+          {/* Date Range Picker Section */}
+          <div className="tw:md:col-span-12 tw:flex tw:items-center tw:gap-3 tw:flex-wrap tw:mt-4 md:tw:mt-0">
+            <DateRangePicker
+              value={dateRange}
+              onChange={(val: DateRangeValue | string) => setDateRange(val as any)}
+            />
+          </div>
+
+        </div>
 
 
 
@@ -328,7 +389,7 @@ const debouncedGroupName = useDebounce(groupFilter, 500);
               {activeTab === 'checkedin' && <div className="tw:absolute tw:bottom-0 tw:left-0 tw:right-0 tw:h-0.5 tw:bg-blue-600 tw:rounded-t-full" />}
             </button>
 
-            { activeTab === 'upcoming' && <div className="tw:ml-auto tw:flex tw:items-center tw:gap-3 tw:pb-4">
+            {activeTab === 'upcoming' && <div className="tw:ml-auto tw:flex tw:items-center tw:gap-3 tw:pb-4">
               <Button
                 variant="ghost"
                 className="tw:text-gray-400 tw:hover:text-gray-600"
@@ -357,9 +418,13 @@ const debouncedGroupName = useDebounce(groupFilter, 500);
                     defaultColDef={defaultColDef}
                     loading={isLoading}
                     onSortChanged={onSortChanged}
+                    onSelectionChanged={onSelectionChanged}
+                    rowSelection="multiple"
                     className="tw:h-full"
                   />
                 </div>
+
+
                 <div className="tw:px-4 tw:py-3 tw:border-t tw:border-gray-50">
                   <GridFooter
                     pageIndex={pageIndex}
@@ -404,7 +469,20 @@ const debouncedGroupName = useDebounce(groupFilter, 500);
           onClose={closeBulkPreRegistrationModalHandler}
         />
       )}
+      <BulkCancelModal
+        isOpen={showBulkCancelModal}
+        onClose={() => setShowBulkCancelModal(false)}
+        selectedIds={selectedRowIds}
+        onSuccess={() => setSelectedRowIds([])}
+      />
+      <BulkUpdateModal
+        isOpen={showBulkUpdateModal}
+        onClose={() => setShowBulkUpdateModal(false)}
+        selectedIds={selectedRowIds}
+        onSuccess={() => setSelectedRowIds([])}
+      />
     </div>
+
   );
 };
 

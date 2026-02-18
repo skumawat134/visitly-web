@@ -12,12 +12,12 @@ export interface PreRegistrationForm {
   id?: string;
   siteId: string;
   visitorTypeId: string;
-  scheduleCheckinDate: Date | null;
-  scheduleCheckoutDate: Date | null;
+  scheduleCheckinDate: string | null;
+  scheduleCheckoutDate: string | null;
   scheduleCheckinTimeOnly: string | null;
   scheduleCheckoutTimeOnly: string | null;
   recurrenceType: string;
-  recurrenceEndDateOnly: Date | null;
+  recurrenceEndDateOnly: string | null;
   checkoutTimeOnly: string | null;
   hostUserId: string | null;
   hostEmail?: string;
@@ -104,6 +104,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     onSubmit: async (values) => {
       try {
         const payload = preparePayload();
+        console.log('payload prepared',payload)
         if (status === 'Create') {
           await createPreregistration(payload);
         } else if (visitId) {
@@ -150,7 +151,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     }
 
     // Exclude fields sent as top-level from customFields
-    const TOP_LEVEL_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number'];
+    const TOP_LEVEL_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number', 'Host', 'Point of Entry', 'Building', 'Parking Lot'];
     const customFields = form.preregisterVisitCustomFieldModels
       .filter((f: any) => !TOP_LEVEL_FIELDS.includes(f.name))
       .map((f: any) => ({
@@ -173,8 +174,9 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       fullName: getValueByFieldName('Full Name'),
       email: getValueByFieldName('Email'),
       companyName: getValueByFieldName('Company Name'),
-      phoneNumber: getValueByFieldName('Phone Number'),
+      phoneNumber: String(getValueByFieldName('Phone Number') || ''),
       scheduleCheckinDate: format(checkin, "yyyy-MM-dd'T'HH:mm:ss"),
+      // recurrenceEndDateOnly : format(recurrenceEndDateOnly, "yyyy-MM-dd"),
       scheduleCheckoutDate: checkout ? format(checkout, "yyyy-MM-dd'T'HH:mm:ss") : null,
       preregisterVisitCustomFieldModels: customFields,
       checkinMethod: 'WEB',
@@ -303,86 +305,12 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     value: vt.id,
   })) || [];
 
-  // Auto-select first visitor type if none selected
-  useEffect(() => {
-    if (visitorTypes?.results?.length && !form.visitorTypeId) {
-      // Only set if we really have options and current value is empty
-      // Also ensure we are not in an 'loading existing visit' state which might set it momentarily
-      formik.setFieldValue('visitorTypeId', visitorTypes.results[0]?.id);
-    }
-  }, [visitorTypes, form.visitorTypeId, formik.setFieldValue]);
-
-  // Auto-select first site if none selected (e.g. initial load)
-  useEffect(() => {
-    if (sites?.results && sites.results.length && !form.siteId) {
-      formik.setFieldValue('siteId', sites.results[0]?.id);
-    }
-  }, [sites, form.siteId, formik.setFieldValue]);
+  // Auto-select logic removed as per user request
 
 
-  // Auto-select Point of Entry
-  useEffect(() => {
-    if (poeData && (poeData as any).results && (poeData as any).results.length > 0) {
-      const firstId = (poeData as any).results[0].id;
-      if (!form.poeId) {
-        formik.setFieldValue('poeId', firstId);
-        // Also update custom field array if it exists there
-        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Point of Entry');
-        if (existingIdx >= 0) {
-          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, firstId);
-        }
-      } else {
-        // Always sync the custom field value to match the form field id
-        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Point of Entry');
-        if (existingIdx >= 0) {
-          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, form.poeId);
-        }
-      }
-    }
-  }, [poeData, form.poeId, form.preregisterVisitCustomFieldModels]);
 
-  // Auto-select Building
-  useEffect(() => {
+  // Auto-select logic for POE, Building, Parking Lot removed as per user request
 
-    if (destData && (destData as any).results && (destData as any).results.length > 0) {
-      const firstId = (destData as any).results[0].id;
-      if (!form.buildingId) {
-        formik.setFieldValue('buildingId', firstId);
-        // Also update custom field array if it exists there
-        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Building');
-        if (existingIdx >= 0) {
-          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, firstId);
-        }
-      } else {
-        // Always sync the custom field value to match the form field id
-        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Building');
-        if (existingIdx >= 0) {
-          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, form.buildingId);
-        }
-      }
-    }
-  }, [destData, form.buildingId, form.preregisterVisitCustomFieldModels]);
-
-  // Auto-select Parking Lot
-  useEffect(() => {
-    if (parkingData && (parkingData as any).results && (parkingData as any).results.length > 0) {
-      const firstId = (parkingData as any).results[0].id;
-      if (!form.parkingLotId) {
-        formik.setFieldValue('parkingLotId', firstId);
-        // Also update custom field array if it exists there
-        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Parking Lot');
-        if (existingIdx >= 0) {
-          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, firstId);
-        }
-      } else {
-        // Always sync the custom field value to match the form field id
-        const existingIdx = form.preregisterVisitCustomFieldModels.findIndex((f: any) => f.name === 'Parking Lot');
-        if (existingIdx >= 0) {
-          formik.setFieldValue(`preregisterVisitCustomFieldModels[${existingIdx}].value`, form.parkingLotId);
-        }
-      }
-    }
-  }, [parkingData, form.parkingLotId, form.preregisterVisitCustomFieldModels]);
 
   const [hostSearch, setHostSearch] = React.useState('');
   const { data: hostsData } = useHosts(hostSearch, form.siteId);

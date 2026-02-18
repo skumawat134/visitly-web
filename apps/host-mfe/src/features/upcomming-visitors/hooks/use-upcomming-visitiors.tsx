@@ -10,12 +10,13 @@ import type {
 import { exportVisitorsCSV, getUpCommingVisitors, getAllSites, getAllVisitorType } from '../api/upcomming-visitors.api';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { STORAGE_KEY } from '../components/CustomSettings';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Repeat, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@visitly/ui';
 import type { DateRangeValue } from '../../../shared/components/DateRangePicker';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAuthStore } from '@visitly/app-store';
+import { Avatar } from '@/features/host-dashboard/components/Avatar';
 
 export const useUpcomingVisitors = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export const useUpcomingVisitors = () => {
   const [modalStatus, setModalStatus] = useState<'Create' | 'Update'>('Create');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'checkedin'>('upcoming');
   const debounceSearchTerm = useDebounce(searchTerm, 500)
-  const currentUser =  useAuthStore((state)=> state.user)
+  const currentUser = useAuthStore((state) => state.user)
 
 
   const [showBulkPreRegistrationModal, setShowBulkPreRegistrationModal] = useState(false);
@@ -58,21 +59,21 @@ export const useUpcomingVisitors = () => {
     queryFn: getAllSites,
   });
 
-    // Fetch all visitor types for the filter
-const { data: allVisitorTypeOption } = useQuery({
-  queryKey: ['visitorType', locationFilter],
-  queryFn: () =>
-    getAllVisitorType({
-      siteId: locationFilter,
-      status: 'ACTIVE',
-    }),
-  select: (data) =>
-    data.results.map((visitorType) => ({
-      id: visitorType.id,
-      name: visitorType.visitorType,
-    })),
-  enabled: !!locationFilter,
-});
+  // Fetch all visitor types for the filter
+  const { data: allVisitorTypeOption } = useQuery({
+    queryKey: ['visitorType', locationFilter],
+    queryFn: () =>
+      getAllVisitorType({
+        siteId: locationFilter,
+        status: 'ACTIVE',
+      }),
+    select: (data) =>
+      data.results.map((visitorType) => ({
+        id: visitorType.id,
+        name: visitorType.visitorType,
+      })),
+    enabled: !!locationFilter,
+  });
 
 
 
@@ -131,18 +132,30 @@ const { data: allVisitorTypeOption } = useQuery({
 
     if (!viewAs) return data?.results || []
 
-    if(viewAs == 'all'){
+    if (viewAs == 'all') {
       return data?.results;
     }
-    if(viewAs == 'myself'){
+    if (viewAs == 'myself') {
       return data?.results.filter((item) => item.hostUserId === currentUser?.id)
     }
-    
+
     return data?.results.filter((item) => item.hostUserId == viewAs) || []
   }
-, [data , viewAs]);
+    , [data, viewAs]);
 
-  
+const redirectToVisitorDetailPage = (data : any) => {
+  if (!data?.id) return;
+
+  const isPrefill = !!data.visitInfoModel;
+  const id = isPrefill ? data.visitInfoModel?.id : data.id;
+
+  const url = isPrefill
+    ? `/host/visitor-detail/${id}?isPrefill=true`
+    : `/host/visitor-detail/${id}`;
+
+  navigate(url);
+};
+
 
   const colDefs = useMemo<ColDef<VisitorsRowsType>[]>(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -150,23 +163,39 @@ const { data: allVisitorTypeOption } = useQuery({
     const isVisible = (title: string) => savedColumns.some(col => col.columnTitle === title);
 
     const allPossibleCols: ColDef<VisitorsRowsType>[] = [
+      // {
+      //   headerName: "",
+      //   checkboxSelection: true,
+      //   headerCheckboxSelection: true,
+      //   width: 50,
+      //   pinned: 'left',
+      //   lockPosition: 'left',
+      //   suppressMovable: true,
+      // },
       {
-        headerName: "Name",
-        field: "fullName",
-        minWidth: 200,
-        cellRenderer: (params: ICellRendererParams) => {
-          if (!params.data) return null;
-          const id = params.data.id;
-          return (
-            <button
-              onClick={() => navigate(`/host/visitor-detail/${id}`)}
-              className="tw:text-blue-600 tw:hover:text-blue-800 tw:font-medium tw:hover:underline"
-            >
-              {params.data.fullName}
-            </button>
-          );
-        },
-      },
+              headerName: "Name",
+              field: "fullName",
+              flex: 2,
+              minWidth: 200,
+              cellRenderer: (params: ICellRendererParams) => {
+                const data = params.data;
+                if (!data) return null;
+                return (
+                  <div  onClick={() => redirectToVisitorDetailPage(data)} className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
+                    { (data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={16} />}
+                    <Avatar name={data.fullName} size={30} />
+                    <div className="tw:min-w-0 tw:leading-tight">
+                      <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
+                        {data.fullName}
+                      </div>
+                      {/* <div className="tw:text-xs tw:text-gray-400 tw:truncate">
+                        {data.email}
+                      </div> */}
+                    </div>
+                  </div>
+                );
+              },
+            },
       { headerName: "Type", field: "visitorType", hide: !isVisible("Type") },
       { headerName: "Host", field: "hostName", hide: !isVisible("Host") },
       { headerName: "Location", field: "siteName", hide: !isVisible("Location") },

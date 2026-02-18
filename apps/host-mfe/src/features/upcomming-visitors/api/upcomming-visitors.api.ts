@@ -18,8 +18,8 @@ export async function getAllSites(): Promise<SitesResponse> {
   return data;
 }
 
-export async function getAllVisitorType(params : VisitorTypeParams ): Promise<VisitorTypeResponse> {
-  const { data } = await getApiClient().get<VisitorTypeResponse>("/v1/visitortypes", {params});
+export async function getAllVisitorType(params: VisitorTypeParams): Promise<VisitorTypeResponse> {
+  const { data } = await getApiClient().get<VisitorTypeResponse>("/v1/visitortypes", { params });
   return data;
 }
 
@@ -34,10 +34,23 @@ export async function getCustomFields(): Promise<CustomFieldsApiResponse> {
 }
 
 export async function exportVisitorsCSV(params: VisitorListParams): Promise<Blob> {
-  // We override the responseType to 'blob' to handle the CSV file stream
+  // ... existing implementation
   const { data } = await getApiClient().get("/v1/visit/preregister/export", {
     params: { ...params, limit: 10000 }, // Matching your 10k limit
     responseType: 'blob'
+  });
+  return data;
+}
+
+export async function bulkUpdatePreRegistrations(payload: any): Promise<any> {
+  const { data } = await getApiClient().patch("/v1/host/bulk", payload);
+  return data;
+}
+
+export async function bulkCancelPreRegistrations(payload: any): Promise<any> {
+  const { data } = await getApiClient().patch("/v1/host/bulk", {
+    ...payload,
+    status: 'CANCELLED'
   });
   return data;
 }
