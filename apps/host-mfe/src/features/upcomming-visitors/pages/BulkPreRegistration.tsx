@@ -625,7 +625,7 @@ export const BulkPreRegistration: React.FC = () => {
             <div className="tw:flex tw:items-center tw:justify-between tw:px-6 tw:py-4 tw:border-b tw:border-gray-200 tw:flex-shrink-0">
                 <div className="tw:flex tw:items-center tw:gap-3">
                     <button
-                        onClick={() => navigate('/upcoming-visitors')}
+                        onClick={() => navigate('/host/upcoming-visitors')}
                         className="tw:bg-transparent tw:border-none tw:p-1.5 tw:rounded-lg tw:text-gray-500 tw:cursor-pointer tw:flex tw:items-center tw:transition-colors hover:tw:bg-gray-100"
                     >
                         <ArrowLeft size={20} />

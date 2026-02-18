@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { format, subDays, startOfToday, startOfDay, addDays } from 'date-fns';
 import type {
@@ -17,10 +17,12 @@ import type { DateRangeValue } from '../../../shared/components/DateRangePicker'
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAuthStore } from '@visitly/app-store';
 import { Avatar } from '@/features/host-dashboard/components/Avatar';
+import { useToastStore } from '@visitly/app-store';
 
 export const useUpcomingVisitors = () => {
   const navigate = useNavigate();
   const userinfo = JSON.parse(sessionStorage.getItem('userinfo') || '{}');
+  const toast = useToastStore((s)=>s.showToast)
   // 1. Pagination & Search States
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(15);
@@ -34,6 +36,10 @@ export const useUpcomingVisitors = () => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'checkedin'>('upcoming');
   const debounceSearchTerm = useDebounce(searchTerm, 500)
   const currentUser = useAuthStore((state) => state.user)
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
+  const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
+  const [showMoreActionsMenu, setShowMoreActionsMenu] = useState(false);
+  const [selectedRows , setSelectedRows] = useState([])
 
 
   const [showBulkPreRegistrationModal, setShowBulkPreRegistrationModal] = useState(false);
@@ -163,15 +169,15 @@ const redirectToVisitorDetailPage = (data : any) => {
     const isVisible = (title: string) => savedColumns.some(col => col.columnTitle === title);
 
     const allPossibleCols: ColDef<VisitorsRowsType>[] = [
-      // {
-      //   headerName: "",
-      //   checkboxSelection: true,
-      //   headerCheckboxSelection: true,
-      //   width: 50,
-      //   pinned: 'left',
-      //   lockPosition: 'left',
-      //   suppressMovable: true,
-      // },
+      {
+        headerName: "",
+        checkboxSelection: true,
+        headerCheckboxSelection: true,
+        width: 50,
+        pinned: 'left',
+        lockPosition: 'left',
+        suppressMovable: true,
+      },
       {
               headerName: "Name",
               field: "fullName",
@@ -273,6 +279,36 @@ const redirectToVisitorDetailPage = (data : any) => {
     setShowBulkPreRegistrationModal(true);
   }
 
+
+  const checkIsRecurringVisit = useCallback((datas : any)=>{
+       const temp = datas.some((data : any) => data.recurrenceType && (data.recurrenceType !== 'NONE' || data.parentVisitId)  )
+       console.log('checkIsRecurringVisit',temp)
+       return temp;
+    },[selectedRows.length])
+  
+      const checkIsPreRegisterVisit = useCallback((datas : any)=>{
+       const isAnyPrefill = datas.some((data : any) => data?.visitInfoModel && data?.visitInfoModel?.id  )
+       console.log('checkIsRecurringVisit',isAnyPrefill)
+       return isAnyPrefill;
+    },[selectedRows.length])
+
+
+   const openBulkUpdateModal = () =>{
+    const isRecurring =  checkIsRecurringVisit(selectedRows)
+     if(isRecurring){
+       toast({message : 'Some selected entries are recurring visits and cannot be updated. Please deselect recurring visits to proceed with bulk updates.'})
+       return;
+     }
+     const isPrefill = checkIsPreRegisterVisit(selectedRows)
+     if(isPrefill){
+       toast({message : 'Some selected entries are already prefilled and cannot be updated. Please deselect prefilled rows to proceed with bulk updates.'})
+       return;
+     }
+     setShowMoreActionsMenu(false);
+     setShowBulkUpdateModal(true);
+    }
+
+
   return {
     data,
     isLoading: isLoading || isFetching,
@@ -309,6 +345,14 @@ const redirectToVisitorDetailPage = (data : any) => {
     closeBulkPreRegistrationModalHandler: () => setShowBulkPreRegistrationModal(false),
     activeTab,
     setActiveTab,
+    showBulkUpdateModal,
+    setShowBulkUpdateModal,
+    showBulkCancelModal,
+    setShowBulkCancelModal,
+    showMoreActionsMenu,
+    setShowMoreActionsMenu,
+    setSelectedRows,
+    openBulkUpdateModal,
     navigate
   };
 };

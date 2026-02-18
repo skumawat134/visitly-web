@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from "react";
 import {
   Button,
   Dialog,
@@ -7,9 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
   Checkbox,
-} from '@visitly/ui';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { bulkCancelPreRegistrations } from '../api/upcomming-visitors.api';
+} from "@visitly/ui";
+import { useBulkCancelPreRegistrations } from "../hooks/useBulkCancelPreRegistrations";
 
 interface BulkCancelModalProps {
   isOpen: boolean;
@@ -24,134 +23,119 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
   selectedIds,
   onSuccess,
 }) => {
-  const queryClient = useQueryClient();
-  const [notifyVisitFlag, setNotifyVisitFlag] = useState(true);
-  const [notifyHostFlag, setNotifyHostFlag] = useState(true);
-
-  const mutation = useMutation({
-    mutationFn: bulkCancelPreRegistrations,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
-      onSuccess();
-      onClose();
-    },
+  const {
+    notifyVisitFlag,
+    notifyHostFlag,
+    setNotifyVisitFlag,
+    setNotifyHostFlag,
+    handleCancel,
+    isLoading,
+  } = useBulkCancelPreRegistrations({
+    selectedIds,
+    onClose,
+    onSuccess,
   });
 
-  const handleCancel = () => {
-    mutation.mutate({
-      ids: selectedIds,
-      notifyVisitFlag,
-      notifyHostFlag,
-    });
-  };
+  const visitCount = selectedIds.length;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent 
-        className="
-          tw:max-w-md 
-          tw:rounded-2xl 
-          tw:p-0 
-          tw:overflow-hidden 
-          tw:shadow-xl 
-          tw:border 
-          tw:border-gray-200/70 
-          tw:bg-white
-        "
-      >
+      <DialogContent className="tw:max-w-lg tw:rounded-2xl tw:p-0 tw:overflow-hidden tw:shadow-2xl tw:border tw:border-gray-200 tw:bg-white">
+
         {/* Header */}
-        <DialogHeader className="tw:px-6 tw:pt-6 tw:pb-4 tw:border-b tw:border-gray-100">
-          <DialogTitle className="tw:text-xl tw:font-semibold tw:text-gray-900 tw:tracking-tight">
-            Cancel Visits
-          </DialogTitle>
+        <DialogHeader className="tw:px-8 tw:pt-8 tw:pb-4">
+          <div className="tw:flex tw:flex-col tw:gap-2">
+            <DialogTitle className="tw:text-2xl tw:font-semibold tw:text-gray-900">
+              Cancel Visits
+            </DialogTitle>
+
+            <p className="tw:text-sm tw:text-gray-500">
+              This action will permanently cancel the selected visit
+              {visitCount !== 1 ? "s" : ""}.
+            </p>
+          </div>
         </DialogHeader>
 
         {/* Body */}
-        <div className="tw:px-6 tw:py-6 tw:space-y-6">
+        <div className="tw:px-8 tw:pb-8 tw:space-y-8">
 
-          {/* Warning */}
-          <div className="
-            tw:bg-red-50/80 
-            tw:border 
-            tw:border-red-200 
-            tw:rounded-xl 
-            tw:p-4 
-            tw:shadow-sm
-          ">
-            <p className="tw:text-sm tw:text-red-800 tw:leading-relaxed">
-              You are about to <span className="tw:font-semibold">cancel {selectedIds.length} visit{selectedIds.length !== 1 ? 's' : ''}</span>.
-              <br className="tw:hidden sm:tw:inline" />
-              <span className="tw:text-red-700 tw:font-medium">This action cannot be undone.</span>
-            </p>
+          {/* Highlighted Danger Section */}
+          <div className="tw:flex tw:items-start tw:gap-4 tw:p-5 tw:rounded-xl tw:bg-red-50 tw:border tw:border-red-100">
+            
+            <div className="tw:flex tw:flex-col">
+              <span className="tw:text-sm tw:text-gray-700">
+                You are cancelling
+              </span>
+
+              <span className="tw:text-lg tw:font-semibold tw:text-red-600">
+                {visitCount} visit{visitCount !== 1 ? "s" : ""}
+              </span>
+
+              <span className="tw:text-xs tw:text-red-500 tw:mt-1">
+                This action cannot be undone.
+              </span>
+            </div>
           </div>
 
-          {/* Notification settings */}
-          <div className="
-            tw:bg-gray-50 
-            tw:rounded-xl 
-            tw:p-5 
-            tw:shadow-sm 
-            tw:border 
-            tw:border-gray-100
-          ">
-            <p className="tw:text-sm tw:font-medium tw:text-gray-700 tw:pb-3">
+          {/* Notification Preferences */}
+          <div className="tw:space-y-4">
+            <h4 className="tw:text-sm tw:font-medium tw:text-gray-800">
               Notification Preferences
-            </p>
+            </h4>
 
-            <div className="tw:flex tw:flex-col tw:gap-4">
-              <label className="
-                tw:flex tw:items-center tw:gap-3 
-                tw:text-sm tw:text-gray-700 
-                hover:tw:text-gray-900 
-                tw:cursor-pointer tw:transition-colors
-              ">
+            <div className="tw:flex tw:flex-col tw:gap-4 tw:bg-gray-50 tw:p-5 tw:rounded-xl tw:border tw:border-gray-100">
+
+              <label className="tw:flex tw:items-center tw:justify-between tw:cursor-pointer tw:text-sm tw:text-gray-700">
+                <span>Notify the visitor</span>
                 <Checkbox
                   checked={notifyVisitFlag}
-                  onChange={(e: any) => setNotifyVisitFlag(e.target.checked)}
+                  onChange={(checked: boolean) =>
+                    setNotifyVisitFlag(checked)
+                  }
                 />
-                Notify the visitor
               </label>
 
-              <label className="
-                tw:flex tw:items-center tw:gap-3 
-                tw:text-sm tw:text-gray-700 
-                hover:tw:text-gray-900 
-                tw:cursor-pointer tw:transition-colors
-              ">
+              <div className="tw:border-t tw:border-gray-200" />
+
+              <label className="tw:flex tw:items-center tw:justify-between tw:cursor-pointer tw:text-sm tw:text-gray-700">
+                <span>Notify the host</span>
                 <Checkbox
                   checked={notifyHostFlag}
-                  onChange={(e: any) => setNotifyHostFlag(e.target.checked)}
+                  onChange={(checked: boolean) =>
+                    setNotifyHostFlag(checked)
+                  }
                 />
-                Notify the host
               </label>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <DialogFooter className="
-          tw:px-6 tw:py-5 
-          tw:border-t tw:border-gray-100 
-          tw:bg-gray-50/70 
-          tw:flex tw:justify-end tw:gap-3
-        ">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={mutation.isPending}
-            className="tw:min-w-[118px] tw:h-10"
-          >
-            Keep Visits
-          </Button>
+        <DialogFooter className="tw:px-8 tw:py-6 tw:border-t tw:border-gray-100 tw:bg-gray-50 tw:flex tw:justify-between tw:items-center">
 
-          <Button
-            variant="danger"
-            onClick={handleCancel}
-            isLoading={mutation.isPending}
-            className="tw:min-w-[138px] tw:h-10"
-          >
-            Cancel Visits
-          </Button>
+          <span className="tw:text-xs tw:text-gray-500">
+            {visitCount} selected
+          </span>
+
+          <div className="tw:flex tw:gap-3">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+              className="tw:min-w-[110px] tw:h-10"
+            >
+              Keep Visits
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={handleCancel}
+              isLoading={isLoading}
+              className="tw:min-w-[150px] tw:h-10"
+            >
+              Cancel {visitCount !== 1 ? "Visits" : "Visit"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
