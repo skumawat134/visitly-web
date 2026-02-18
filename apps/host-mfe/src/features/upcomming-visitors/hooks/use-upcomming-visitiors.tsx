@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { format, subDays, startOfToday, startOfDay, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import type {
   VisitorVisitResponse,
   VisitorListParams,
@@ -9,20 +9,20 @@ import type {
 } from '../types/upcomming-visitors.types';
 import { exportVisitorsCSV, getUpCommingVisitors, getAllSites, getAllVisitorType } from '../api/upcomming-visitors.api';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
-import { STORAGE_KEY } from '../components/CustomSettings';
+import { STORAGE_KEY, standardFields, MEGA_LOCATION_FIELDS } from '../types/upcomming-visitors.types';
 import { Edit2, Repeat, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button, NamedAvatar } from '@visitly/ui';
 import type { DateRangeValue } from '../../../shared/components/DateRangePicker';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAuthStore } from '@visitly/app-store';
-import { Avatar } from '@/features/host-dashboard/components/Avatar';
 import { useToastStore } from '@visitly/app-store';
+import { useEntitlements } from '@/features/visitor-detail/hooks/useEntitlement';
 
 export const useUpcomingVisitors = () => {
   const navigate = useNavigate();
   const userinfo = JSON.parse(sessionStorage.getItem('userinfo') || '{}');
-  const toast = useToastStore((s)=>s.showToast)
+  const toast = useToastStore((s) => s.showToast)
   // 1. Pagination & Search States
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(15);
@@ -39,9 +39,7 @@ export const useUpcomingVisitors = () => {
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
   const [showMoreActionsMenu, setShowMoreActionsMenu] = useState(false);
-  const [selectedRows , setSelectedRows] = useState([])
-
-
+  const [selectedRows, setSelectedRows] = useState([])
   const [showBulkPreRegistrationModal, setShowBulkPreRegistrationModal] = useState(false);
   const [showInviteMenu, setShowInviteMenu] = useState(false);
 
@@ -56,6 +54,7 @@ export const useUpcomingVisitors = () => {
   const [typeFilter, setTypeFilter] = useState<string>('');
   const [groupFilter, setGroupFilter] = useState<string>('');
   const debounceGroupSearch = useDebounce(groupFilter, 500)
+  const { isAdvancedMegaLocationEntitled } = useEntitlements()
 
 
   // Default to All Time (null) so filtering is optional
@@ -182,8 +181,20 @@ export const useUpcomingVisitors = () => {
 
   const colDefs = useMemo<ColDef<VisitorsRowsType>[]>(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
-    const savedColumns: any[] = savedData ? JSON.parse(savedData) : [];
-    const isVisible = (title: string) => savedColumns.some(col => col.columnTitle === title);
+    const savedColumns: any[] = savedData ? JSON.parse(savedData) : standardFields.filter((f: any) => f.isSelected);
+
+    const isVisible = (title: string) => {
+      // Action and Name and Scheduled Check-in are always visible if it's in standard fields and is selected
+      const field = standardFields.find((f: any) => f.columnTitle === title);
+      console.log('field',field)
+      const isMandatory = field?.isDisabled;
+      if (isMandatory) return true;
+
+      // Handle mega location fields
+      if (MEGA_LOCATION_FIELDS.includes(title) && !isAdvancedMegaLocationEntitled) return false;
+
+      return savedColumns.some(col => col.columnTitle === title);
+    };
 
     const allPossibleCols: ColDef<VisitorsRowsType>[] = [
       {
@@ -225,9 +236,18 @@ export const useUpcomingVisitors = () => {
       { headerName: "Company", field: "companyName", hide: !isVisible("Company") },
       { headerName: "Group Name", field: "groupName", hide: !isVisible("Group Name") },
       { headerName: "Phone", field: "phoneNumber", hide: !isVisible("Phone") },
+      { headerName: "Point of Entry", field: "poeName", hide: !isVisible("Point of Entry"), width: 125 },
+      { headerName: "Parking Lot", field: "parkingLotName", hide: !isVisible("Parking Lot"), width: 125 },
+      { headerName: "Building", field: "buildingName", hide: !isVisible("Building"), width: 125 },
+      {
+        headerName: "Pre-fill Status", field: "id", hide: !isVisible("Pre-fill Status"), valueFormatter: (params) => {
+          const data = params.data as VisitorsRowsType;
+          return (data?.visitInfoModel && data?.visitInfoModel?.id) ? 'Yes' : 'No';
+        }, width: 125
+      },
       { headerName: "Internal Note", field: "internalNote", hide: !isVisible("Internal Note") },
       { headerName: "Email", field: "email", hide: !isVisible("Email") },
-      { headerName: "Scheduled Check-In", field: "scheduleCheckinDate", valueFormatter: (params) => params.value ? format(new Date(params.value), 'MMM dd, yyyy h:mm a') : '-' },
+      { headerName: "Scheduled Check-In", field: "scheduleCheckinDate", hide: !isVisible("Scheduled Check-In Date"), valueFormatter: (params) => params.value ? format(new Date(params.value), 'MMM dd, yyyy h:mm a') : '-' },
       {
         headerName: "Action",
         field: "id",
@@ -239,7 +259,8 @@ export const useUpcomingVisitors = () => {
               variant="ghost"
               size="sm"
               onClick={() => {
-                setSelectedVisitId(params.data?.id);
+                const id = (params.data as VisitorsRowsType)?.id;
+                setSelectedVisitId(id);
                 setModalStatus('Update');
                 setshowPreRegistrationModal(true);
               }}
@@ -298,33 +319,33 @@ export const useUpcomingVisitors = () => {
   }
 
 
-  const checkIsRecurringVisit = useCallback((datas : any)=>{
-       const temp = datas.some((data : any) => data.recurrenceType && (data.recurrenceType !== 'NONE' || data.parentVisitId)  )
-       console.log('checkIsRecurringVisit',temp)
-       return temp;
-    },[selectedRows.length])
-  
-      const checkIsPreRegisterVisit = useCallback((datas : any)=>{
-       const isAnyPrefill = datas.some((data : any) => data?.visitInfoModel && data?.visitInfoModel?.id  )
-       console.log('checkIsRecurringVisit',isAnyPrefill)
-       return isAnyPrefill;
-    },[selectedRows.length])
+  const checkIsRecurringVisit = useCallback((datas: any) => {
+    const temp = datas.some((data: any) => data.recurrenceType && (data.recurrenceType !== 'NONE' || data.parentVisitId))
+    console.log('checkIsRecurringVisit', temp)
+    return temp;
+  }, [selectedRows.length])
+
+  const checkIsPreRegisterVisit = useCallback((datas: any) => {
+    const isAnyPrefill = datas.some((data: any) => data?.visitInfoModel && data?.visitInfoModel?.id)
+    console.log('checkIsRecurringVisit', isAnyPrefill)
+    return isAnyPrefill;
+  }, [selectedRows.length])
 
 
-   const openBulkUpdateModal = () =>{
-    const isRecurring =  checkIsRecurringVisit(selectedRows)
-     if(isRecurring){
-       toast({message : 'Some selected entries are recurring visits and cannot be updated. Please deselect recurring visits to proceed with bulk updates.'})
-       return;
-     }
-     const isPrefill = checkIsPreRegisterVisit(selectedRows)
-     if(isPrefill){
-       toast({message : 'Some selected entries are already prefilled and cannot be updated. Please deselect prefilled rows to proceed with bulk updates.'})
-       return;
-     }
-     setShowMoreActionsMenu(false);
-     setShowBulkUpdateModal(true);
+  const openBulkUpdateModal = () => {
+    const isRecurring = checkIsRecurringVisit(selectedRows)
+    if (isRecurring) {
+      toast({ message: 'Some selected entries are recurring visits and cannot be updated. Please deselect recurring visits to proceed with bulk updates.' })
+      return;
     }
+    const isPrefill = checkIsPreRegisterVisit(selectedRows)
+    if (isPrefill) {
+      toast({ message: 'Some selected entries are already prefilled and cannot be updated. Please deselect prefilled rows to proceed with bulk updates.' })
+      return;
+    }
+    setShowMoreActionsMenu(false);
+    setShowBulkUpdateModal(true);
+  }
 
 
   return {
