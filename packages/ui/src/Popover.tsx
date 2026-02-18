@@ -3,10 +3,12 @@ import { cn } from "./utils";
 
 export interface PopoverProps {
   trigger: ReactNode;
-  content: ReactNode;
+  content: ReactNode | ((props: { close: () => void }) => ReactNode);
   placement?: "top" | "bottom" | "left" | "right";
   className?: string;
   contentClassName?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const Popover: React.FC<PopoverProps> = ({
@@ -15,9 +17,25 @@ export const Popover: React.FC<PopoverProps> = ({
   placement = "bottom",
   className,
   contentClassName,
+  open: controlledOpen,
+  onOpenChange,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const isOpen = isControlled ? controlledOpen : internalOpen;
+
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  const setIsOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    }
+    if (!isControlled) {
+      setInternalOpen(value);
+    }
+  };
+
+  const close = () => setIsOpen(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,7 +64,7 @@ export const Popover: React.FC<PopoverProps> = ({
 
   return (
     <div ref={popoverRef} className={cn("tw:relative tw:inline-block", className)}>
-      <div onClick={() => setIsOpen(!isOpen)}>{trigger}</div>
+      <div onClick={() => setIsOpen(!isOpen)} className="tw:cursor-pointer">{trigger}</div>
       {isOpen && (
         <div
           className={cn(
@@ -55,7 +73,7 @@ export const Popover: React.FC<PopoverProps> = ({
             contentClassName
           )}
         >
-          {content}
+          {typeof content === "function" ? content({ close }) : content}
         </div>
       )}
     </div>

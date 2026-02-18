@@ -20,9 +20,11 @@ const IdleConfirmation : React.FC<{}> = () => {
                         </div>
                         <p className="tw:text-gray-600 tw:mb-6 tw:text-sm">
                             <span className="tw:font-bold tw:text-gray-900">Need help getting started?</span> <span className="tw:px-1">Visit our </span>
-                            <span  className="tw:text-[#5E2CED] tw:hover:tw:underline">Help Center</span> for setup guides and support.
+                            <Link  className="tw:text-primary-100 tw:hover:tw:underline"
+                             to={'https://help.visitly.io/support/solutions'}
+                            >Help Center</Link> for setup guides and support.
                         </p>
-                        <Link to="/visitly/login" className="tw:block tw:w-full tw:bg-[#5E2CED] tw:text-[14px] tw:text-white tw:text-center tw:font-medium tw:py-2 tw:rounded-md tw:transition-colors">
+                        <Link to="/visitly/login" className="tw:block tw:w-full tw:bg-primary-100 tw:text-[14px] tw:text-white tw:text-center tw:font-medium tw:py-2 tw:rounded-md tw:transition-colors">
                             Back to login
                         </Link>
                     </div>

@@ -204,14 +204,14 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                             )}
                         </Button>
                     }
-                    content={<UserProfileMenu user={user} />}
+                    content={({ close }) => <UserProfileMenu user={user} close={close} />}
                 />
             </div>
         </header>
     );
 };
 
-const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
+const UserProfileMenu: React.FC<Pick<AuthState, "user"> & { close: () => void }> = ({ user, close }) => {
     const { logOut } = useLogout();
 
     return (
@@ -220,7 +220,7 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
             <div className="tw:p-4 tw:flex tw:items-center tw:gap-3 tw:border-b tw:border-gray-100">
                 <div className="tw:w-12 tw:h-12 tw:bg-slate-200 tw:rounded-lg tw:flex tw:items-center tw:justify-center">
                     {user?.avatarUri ? (
-                        <Image src={user?.avatarUri} alt="user-avtar" className="tw:rounded-lg" />
+                        <Image src={user?.avatarUri} alt="user-avtar" className="tw:rounded-lg tw:h-full tw:w-full" wrapperClassName=" tw:h-full tw:w-full" />
                     ) : (
                         <User size={24} className="tw:text-slate-500" />
                     )}
@@ -242,6 +242,7 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
                     to={"/admin/work_area/profile"}
                     data-testid="profile-link"
+                    onClick={close}
                 >
                     <User size={16} /> Profile
                 </Link>
@@ -250,6 +251,7 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:py-3! tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-600! tw:no-underline tw:border-b! tw:border-gray-300! border-b-2"
                     to={"/admin/work_area/change-password"}
                     data-testid="change-password-link"
+                    onClick={close}
                 >
                     <LockOpen size={16} /> Change Password
                 </Link>

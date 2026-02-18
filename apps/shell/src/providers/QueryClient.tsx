@@ -4,18 +4,18 @@ import {
   initApiClient,
   initQueryClient,
 } from "@visitly/api-client";
-import {type AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
+import { type AuthState, useAuthStore, useToastStore } from "@visitly/app-store";
 import { GlobalLoader } from "@/shared/components/GlobalLoader";
 import FullScreenLoader from "@/shared/components/FullScreenLoader";
 
 interface ZustandState<T> {
   state: T
 }
-const queryClient = initQueryClient();
+export const queryClient = initQueryClient();
 const API_URL = process.env.VITE_API_BASE_URL || "https://3vza0x99ll.execute-api.us-west-2.amazonaws.com/development/";
 initApiClient({
-  baseURL: API_URL,
-  refreshTokenUrl: API_URL + "/v1/users/token",
+  baseURL: API_URL,
+  refreshTokenUrl: API_URL + "/v1/users/token",
   getToken: () => {
     const session = sessionStorage.getItem("auth-session");
     if (!session) return undefined;

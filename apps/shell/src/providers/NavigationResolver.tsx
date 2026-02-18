@@ -17,6 +17,9 @@ const SKIP_AUTH_PATHS = [
 ];
 const APP_ROOTS = ['/', '/visitly'];
 
+/**
+ * @unused this logic has been move to loaders in router.
+ */
 export function NavigationResolver() {
   const status = useAuthStore(s => s.status);
   const permissions = useSidebarPermissions();
@@ -116,6 +119,7 @@ export function NavigationResolver() {
     // 2. Unauthenticated Logic
     if (status === 'unauthenticated') {
       // If we are on a public "skip" path or login path, stay there
+      
       const isPublicPath = SKIP_AUTH_PATHS.some(path => location.pathname.startsWith(path));
       if (isPublicPath || isLoginPath || isAuthPath) {
         return;
