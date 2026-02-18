@@ -8,13 +8,13 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare const self: ServiceWorkerGlobalScope;
 
-// ─── Precache (equivalent to Angular ngsw "app" assetGroup with installMode: prefetch) ───
-// Workbox injects the manifest here at build time via InjectManifest plugin
+// ─── Precache App Shell ───
+// Workbox injects the manifest at build time via InjectManifest plugin
+// This caches index.html, JS bundles, CSS — equivalent to Angular ngsw "app" assetGroup
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// ─── Runtime Caching: Assets (equivalent to Angular ngsw "assets" assetGroup) ───
-// installMode: lazy, updateMode: prefetch → StaleWhileRevalidate is the closest match
+// ─── Runtime Caching: Assets (images, fonts) ───
 registerRoute(
     ({ request }) =>
         request.destination === 'image' ||
@@ -44,13 +44,17 @@ registerRoute(
     })
 );
 
-// ─── Skip waiting & claim clients immediately on update ───
+// ─── Force Refresh on Deploy ───
+// When the Shell posts SKIP_WAITING, activate immediately so the new
+// precache manifest takes effect. The registration code then reloads the page.
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
 });
 
-self.addEventListener('activate', () => {
-    self.clients.claim();
+// Claim all open tabs immediately after activation so cached resources
+// from the new version are served right away
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
 });
