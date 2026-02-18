@@ -23,7 +23,7 @@ module.exports = (env) => {
       new InjectManifest({
         swSrc: path.resolve(__dirname, "src/service-worker.ts"),
         swDest: "service-worker.js",
-        exclude: [/\.map$/, /remoteEntry\.js$/, /^manifest.*\.js$/],
+        exclude: [/\.map$/, /remoteEntry\.js$/, /^manifest.*\.js$/, /\.gitkeep$/],
       }),
     ],
   }))
