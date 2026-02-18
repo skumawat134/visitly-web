@@ -56,8 +56,8 @@ export function NavigationResolver() {
       const explicitRedirect = queryRedirect;
 
       // Wait for onboarding status to be known before making navigation decisions
-      if (onboardingQuery.isLoading) {
-        return;
+      if (onboardingQuery.isLoading && !onboardingQuery.data) {
+        return; // Only wait on initial load, not refetches
       }
 
       // Onboarding Check (Only if we have the data)
@@ -74,6 +74,15 @@ export function NavigationResolver() {
           console.log('[NavResolver] Already onboarded. Redirecting to landing');
           const target = resolveLanding(permissions);
           navigate(target, { replace: true });
+          return;
+        }
+      }
+
+      if (onboardingQuery.isError) {
+        const isOnboardingRoute = location.pathname.startsWith('/admin/onboarding');
+        if (!isOnboardingRoute) {
+          console.log('[NavResolver] Onboarding query failed (new user). Redirecting to onboarding');
+          navigate('/admin/onboarding', { replace: true });
           return;
         }
       }
@@ -121,7 +130,7 @@ export function NavigationResolver() {
       console.log('[NavResolver] Redirecting unauthenticated user to login');
       navigate('/visitly/login', { replace: true });
     }
-  }, [status, permissions, location.pathname, location.search, navigate, onboardingQuery.isLoading]);
+  }, [status, permissions, location.pathname, location.search, navigate, onboardingQuery.isLoading, onboardingQuery.data, onboardingQuery.isError]);
 
   return null;
 }
