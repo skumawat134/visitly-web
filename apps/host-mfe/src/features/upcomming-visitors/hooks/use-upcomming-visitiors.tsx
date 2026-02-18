@@ -12,7 +12,7 @@ import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { STORAGE_KEY } from '../components/CustomSettings';
 import { Edit2, Repeat, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@visitly/ui';
+import { Button, NamedAvatar } from '@visitly/ui';
 import type { DateRangeValue } from '../../../shared/components/DateRangePicker';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAuthStore } from '@visitly/app-store';
@@ -44,6 +44,11 @@ export const useUpcomingVisitors = () => {
 
   const [showBulkPreRegistrationModal, setShowBulkPreRegistrationModal] = useState(false);
   const [showInviteMenu, setShowInviteMenu] = useState(false);
+
+  const [visitorToCancel, setVisitorToCancel] = useState<VisitorsRowsType | null>(null);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+  const [showCancelRecurrence, setShowCancelRecurrence] = useState(false);
+  const [cancelUpdateType, setCancelUpdateType] = useState<"SELECTED_VISIT" | "FUTURE_VISITS_ONLY" | "ALL_VISITS">("SELECTED_VISIT");
 
   // 2. Filter States
   const [viewAs, setViewAs] = useState<string>('all'); // 'all' | 'myself' | delegateId
@@ -149,19 +154,31 @@ export const useUpcomingVisitors = () => {
   }
     , [data, viewAs]);
 
-const redirectToVisitorDetailPage = (data : any) => {
-  if (!data?.id) return;
+  const redirectToVisitorDetailPage = (data: any) => {
+    if (!data?.id) return;
 
-  const isPrefill = !!data.visitInfoModel;
-  const id = isPrefill ? data.visitInfoModel?.id : data.id;
+    const isPrefill = !!data.visitInfoModel;
+    const id = isPrefill ? data.visitInfoModel?.id : data.id;
 
-  const url = isPrefill
-    ? `/host/visitor-detail/${id}?isPrefill=true`
-    : `/host/visitor-detail/${id}`;
+    const url = isPrefill
+      ? `/host/visitor-detail/${id}?isPrefill=true`
+      : `/host/visitor-detail/${id}`;
 
-  navigate(url);
-};
+    navigate(url);
+  };
 
+
+  const handleCancelClick = useCallback((visitor: VisitorsRowsType) => {
+    setVisitorToCancel(visitor);
+    const isRecurring = !!visitor.recurrenceType && visitor.recurrenceType !== "NONE" || !!visitor.parentVisitId;
+
+    if (isRecurring) {
+      setShowCancelRecurrence(true);
+    } else {
+      setCancelUpdateType("SELECTED_VISIT");
+      setShowCancelConfirmation(true);
+    }
+  }, []);
 
   const colDefs = useMemo<ColDef<VisitorsRowsType>[]>(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -179,29 +196,29 @@ const redirectToVisitorDetailPage = (data : any) => {
         suppressMovable: true,
       },
       {
-              headerName: "Name",
-              field: "fullName",
-              flex: 2,
-              minWidth: 200,
-              cellRenderer: (params: ICellRendererParams) => {
-                const data = params.data;
-                if (!data) return null;
-                return (
-                  <div  onClick={() => redirectToVisitorDetailPage(data)} className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
-                    { (data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={16} />}
-                    <Avatar name={data.fullName} size={30} />
-                    <div className="tw:min-w-0 tw:leading-tight">
-                      <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
-                        {data.fullName}
-                      </div>
-                      {/* <div className="tw:text-xs tw:text-gray-400 tw:truncate">
+        headerName: "Name",
+        field: "fullName",
+        flex: 2,
+        minWidth: 200,
+        cellRenderer: (params: ICellRendererParams) => {
+          const data = params.data;
+          if (!data) return null;
+          return (
+            <div onClick={() => redirectToVisitorDetailPage(data)} className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
+              {(data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={16} />}
+              <NamedAvatar url={data.visitPhotoURI} name={data.fullName} size={30} />
+              <div className="tw:min-w-0 tw:leading-tight">
+                <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
+                  {data.fullName}
+                </div>
+                {/* <div className="tw:text-xs tw:text-gray-400 tw:truncate">
                         {data.email}
                       </div> */}
-                    </div>
-                  </div>
-                );
-              },
-            },
+              </div>
+            </div>
+          );
+        },
+      },
       { headerName: "Type", field: "visitorType", hide: !isVisible("Type") },
       { headerName: "Host", field: "hostName", hide: !isVisible("Host") },
       { headerName: "Location", field: "siteName", hide: !isVisible("Location") },
@@ -233,6 +250,7 @@ const redirectToVisitorDetailPage = (data : any) => {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => params.data && handleCancelClick(params.data)}
               className="tw:text-red-500 hover:tw:text-red-600 tw:p-0 tw:h-auto"
             >
               <Trash2 size={16} />
@@ -254,7 +272,7 @@ const redirectToVisitorDetailPage = (data : any) => {
       }));
 
     return [...allPossibleCols, ...customCols];
-  }, [rowData, showSettingModal]);
+  }, [rowData, showSettingModal, handleCancelClick]);
 
   const onSortChanged = (event: any) => {
     const sortedColumn = event.api.getColumnState().find((col: any) => col.sort);
@@ -353,6 +371,14 @@ const redirectToVisitorDetailPage = (data : any) => {
     setShowMoreActionsMenu,
     setSelectedRows,
     openBulkUpdateModal,
-    navigate
+    navigate,
+    showCancelConfirmation,
+    setShowCancelConfirmation,
+    showCancelRecurrence,
+    setShowCancelRecurrence,
+    visitorToCancel,
+    cancelUpdateType,
+    setCancelUpdateType,
+    handleCancelClick,
   };
 };

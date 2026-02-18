@@ -160,21 +160,37 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
             </div>
           </div>
 
-          {/* Group Name */}
-          <div className="tw:space-y-1.5">
-            <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
-              Group Name
-            </Label>
-            <Input
-              name="groupName"
-              value={formik.values.groupName}
-              onChange={formik.handleChange}
-              placeholder="Optional — e.g. Conference Group A"
-              className="tw:h-10"
-            />
+
+          {/* Dates */}
+          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-6">
+            <div className="tw:space-y-1.5">
+              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
+                Scheduled Check-in
+              </Label>
+              <Input
+                type="datetime-local"
+                name="scheduleCheckinDate"
+                value={formik.values.scheduleCheckinDate}
+                onChange={formik.handleChange}
+                className="tw:h-10"
+              />
+            </div>
+
+            <div className="tw:space-y-1.5">
+              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
+                Scheduled Check-out
+              </Label>
+              <Input
+                type="datetime-local"
+                name="scheduleCheckoutDate"
+                value={formik.values.scheduleCheckoutDate}
+                onChange={formik.handleChange}
+                className="tw:h-10"
+              />
+            </div>
           </div>
 
-          {/* Hosts */}
+           {/* Hosts */}
           <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-6">
             <div className="tw:space-y-1.5">
               <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
@@ -212,33 +228,18 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
             </div>}
           </div>
 
-          {/* Dates */}
-          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-6">
-            <div className="tw:space-y-1.5">
-              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
-                Scheduled Check-in
-              </Label>
-              <Input
-                type="datetime-local"
-                name="scheduleCheckinDate"
-                value={formik.values.scheduleCheckinDate}
-                onChange={formik.handleChange}
-                className="tw:h-10"
-              />
-            </div>
-
-            <div className="tw:space-y-1.5">
-              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
-                Scheduled Check-out
-              </Label>
-              <Input
-                type="datetime-local"
-                name="scheduleCheckoutDate"
-                value={formik.values.scheduleCheckoutDate}
-                onChange={formik.handleChange}
-                className="tw:h-10"
-              />
-            </div>
+           {/* Group Name */}
+          <div className="tw:space-y-1.5">
+            <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
+              Group Name
+            </Label>
+            <Input
+              name="groupName"
+              value={formik.values.groupName}
+              onChange={formik.handleChange}
+              placeholder="Optional — e.g. Conference Group A"
+              className="tw:h-10"
+            />
           </div>
 
           {/* Buttons */}

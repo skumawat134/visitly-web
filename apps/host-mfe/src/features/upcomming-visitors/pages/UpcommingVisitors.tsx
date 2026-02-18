@@ -24,6 +24,8 @@ import DateRangePicker from "../../../shared/components/DateRangePicker";
 // import { BulkCancelModal, BulkUpdateModal } from "../components/BulkActionModals";
 import { BulkCancelModal } from "../components/BulkCancelModal";
 import { BulkUpdateModal } from "../components/BulkUpdateModal";
+import { CancelRecurrenceModal } from "../components/CancelRecurrenceModal";
+import { CancelVisitModal } from "../components/CancelVisitModal";
 
 
 
@@ -76,7 +78,14 @@ const UpcommingVisitors: React.FC = () => {
     setShowMoreActionsMenu,
     setSelectedRows,
     openBulkUpdateModal,
-    navigate // Ensure navigate is returned from hook or use useNavigate here if hook doesn't return it
+    navigate, // Ensure navigate is returned from hook or use useNavigate here if hook doesn't return it
+    showCancelConfirmation,
+    setShowCancelConfirmation,
+    showCancelRecurrence,
+    setShowCancelRecurrence,
+    visitorToCancel,
+    cancelUpdateType,
+    setCancelUpdateType,
   } = useUpcomingVisitors();
 
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
@@ -318,7 +327,7 @@ const UpcommingVisitors: React.FC = () => {
               value={dateRange}
               onChange={(val: DateRangeValue | string) => setDateRange(val as any)}
             />
-             {/* More Actions Dropdown (Visible only when rows selected) */}
+            {/* More Actions Dropdown (Visible only when rows selected) */}
             {selectedRowIds.length > 0 && (
               <div className="tw:relative">
                 <button
@@ -418,7 +427,7 @@ const UpcommingVisitors: React.FC = () => {
                     onSortChanged={onSortChanged}
                     onSelectionChanged={onSelectionChanged}
                     rowSelection="multiple"
-                    suppressRowClickSelection={true} 
+                    suppressRowClickSelection={true}
                     className="tw:h-full"
                   />
                 </div>
@@ -480,6 +489,27 @@ const UpcommingVisitors: React.FC = () => {
         selectedIds={selectedRowIds}
         onSuccess={() => setSelectedRowIds([])}
       />
+      {showCancelRecurrence && (
+        <CancelRecurrenceModal
+          isOpen={showCancelRecurrence}
+          onClose={() => setShowCancelRecurrence(false)}
+          onNext={(type) => {
+            setCancelUpdateType(type);
+            setShowCancelRecurrence(false);
+            setShowCancelConfirmation(true);
+          }}
+          visitDate={visitorToCancel?.scheduleCheckinDate ? format(new Date(visitorToCancel.scheduleCheckinDate), 'MMM dd, yyyy') : ""}
+        />
+      )}
+      {showCancelConfirmation && visitorToCancel && (
+        <CancelVisitModal
+          isOpen={showCancelConfirmation}
+          onClose={() => setShowCancelConfirmation(false)}
+          visitorId={visitorToCancel.id}
+          onSuccess={() => { }}
+          updateType={cancelUpdateType}
+        />
+      )}
     </div>
 
   );
