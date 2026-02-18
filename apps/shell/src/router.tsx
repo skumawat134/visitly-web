@@ -25,9 +25,9 @@ const ADMIN_SPECIAL_ROUTES = [
 ];
 
 
-const checkOnBoardingStatusAndRedirect  = async ({request} :{request : any})=>{
-   // Onboarding Logic
-   const authStore = useAuthStore.getState();
+const checkOnBoardingStatusAndRedirect = async ({ request }: { request: any }) => {
+    // Onboarding Logic
+    const authStore = useAuthStore.getState();
     const url = new URL(request.url);
     if (authStore.isAuthenticated && authStore.user) {
         try {
@@ -52,6 +52,13 @@ const checkOnBoardingStatusAndRedirect  = async ({request} :{request : any})=>{
             }
         } catch (e) {
             console.warn('[Router] Could not verify onboarding status, proceeding...');
+            const status = (e as any)?.response?.status;
+            if (status) {
+                // Cache fake onboarded = true
+                queryClient.setQueryData(['auth', 'onboarding'], { onboarded: true });
+                const landing = resolveLanding(authStore.user);
+                return redirect(landing);
+            }
         }
     }
     return null;
@@ -68,7 +75,7 @@ const checkOnBoardingStatusAndRedirect  = async ({request} :{request : any})=>{
 // - Bootstrapping Auth (checking tempToken, hydrating store)
 // - Fetching initial User/Entitlements if token exists
 // - Syncing sessionStorage for legacy MFE compatibility
-const appLoader = async ({request} : {request: any}) => {
+const appLoader = async ({ request }: { request: any }) => {
     const authStore = useAuthStore.getState();
     let accessToken = authStore.tokens.accessToken;
     // A. Check for tempToken (Impersonation Fix)
@@ -132,11 +139,11 @@ const appLoader = async ({request} : {request: any}) => {
             }
 
             // // Onboarding Status
-            promises.push(queryClient.fetchQuery({
-                queryKey: ['auth', 'onboarding'],
-                queryFn: getOnboardingStatusApi,
-                staleTime: 1000 * 60,
-            }));
+            // promises.push(queryClient.fetchQuery({
+            //     queryKey: ['auth', 'onboarding'],
+            //     queryFn: getOnboardingStatusApi,
+            //     staleTime: 1000 * 60,
+            // }));
             await Promise.all(promises);
 
         } catch (error) {
@@ -161,7 +168,7 @@ const protectedLoader = async ({ request }: any) => {
         return redirect("/visitly/login");
     }
 
-   return await checkOnBoardingStatusAndRedirect({request});
+    return await checkOnBoardingStatusAndRedirect({ request });
 };
 
 // 3. Host Loader (Auth only, NO onboarding)
@@ -174,7 +181,7 @@ const hostLoader = async ({ request }: any) => {
         sessionStorage.setItem('redirect_after_login', redirectPath);
         return redirect("/visitly/login");
     }
-   return await checkOnBoardingStatusAndRedirect({request});
+    return await checkOnBoardingStatusAndRedirect({ request });
 };
 
 // 4. Public Auth Loader (Login/Signup)
