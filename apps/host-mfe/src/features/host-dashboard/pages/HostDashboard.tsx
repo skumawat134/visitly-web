@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { redirect, replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AgGridReact } from "ag-grid-react";
 import {
   themeQuartz,
@@ -434,7 +434,7 @@ export const HostDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowInviteMenu(false);
-                    navigate('/host/bulk-pre-register');
+                    // navigate('/host/bulk-pre-register');
                   }}
                   className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:p-2.5 tw:rounded-lg hover:tw:bg-gray-50 tw:transition-colors tw:text-left"
                 >
