@@ -13,6 +13,8 @@ import { resolveLanding, resolveRole } from "./shared/utils/navigation";
 import { getProductInfo } from "./shared/services/entitlement.api";
 import { getOnboardingStatusApi } from "./shared/services/onboarding.api";
 import WallboardRedirect from "./redirects/WallboardRedirect";
+import HostMFE from "./mfe/HostMFE";
+import SwitchRole from "./shared/components/SwitchRole";
 
 // --- Constants ---
 
@@ -113,7 +115,7 @@ const appLoader = async () => {
     return null;
 };
 
-// 2. Protected Route Loader
+// 2. Protected Route Loader (Includes Onboarding)
 const protectedLoader = async ({ request }: any) => {
     const authStore = useAuthStore.getState();
     const url = new URL(request.url);
@@ -157,7 +159,21 @@ const protectedLoader = async ({ request }: any) => {
     return null;
 };
 
-// 3. Public Auth Loader (Login/Signup)
+// 3. Host Loader (Auth only, NO onboarding)
+const hostLoader = async ({ request }: any) => {
+    const authStore = useAuthStore.getState();
+    const url = new URL(request.url);
+
+    if (!authStore.isAuthenticated) {
+        const redirectPath = url.pathname + url.search;
+        sessionStorage.setItem('redirect_after_login', redirectPath);
+        return redirect("/visitly/login");
+    }
+
+    return null;
+};
+
+// 4. Public Auth Loader (Login/Signup)
 const publicAuthLoader = async () => {
     const authStore = useAuthStore.getState();
     if (authStore.isAuthenticated && authStore.user) {
@@ -196,6 +212,16 @@ export const router = createBrowserRouter([
                         element: <DataMFE />,
                     },
                 ]
+            },
+            {
+                path: "/host/*",
+                element: <HostMFE />,
+                loader: hostLoader,
+            },
+            {
+                path: "/switch",
+                element: <SwitchRole />,
+                loader: hostLoader,
             },
             {
                 path: "/saml",
