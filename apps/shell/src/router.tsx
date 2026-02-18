@@ -179,7 +179,6 @@ const hostLoader = async ({ request }: any) => {
 
 // 4. Public Auth Loader (Login/Signup)
 const publicAuthLoader = async () => {
-    debugger
     const authStore = useAuthStore.getState();
     if (authStore.isAuthenticated && authStore.user) {
         const landing = resolveLanding(authStore.user);

@@ -16,7 +16,6 @@ export function useFetchUserInfo() {
   const { data: user } = query;
 
   useEffect(() => {
-    debugger;
     if (!user) return;
     setUser(user);
     sessionStorage.setItem('userinfo', JSON.stringify(user));
