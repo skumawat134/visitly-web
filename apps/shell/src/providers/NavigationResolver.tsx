@@ -15,6 +15,9 @@ const SKIP_AUTH_PATHS = [
   '/visitly/forgot-password'
 ];
 
+/**
+ * @unused this logic has been move to loaders in router.
+ */
 export function NavigationResolver() {
   const status = useAuthStore(s => s.status);
   const permissions = useSidebarPermissions();
