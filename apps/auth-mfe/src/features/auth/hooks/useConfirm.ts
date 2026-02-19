@@ -50,7 +50,6 @@ export const useConfirm = () => {
         }
     }, [code, email]);
     const initCalendly = (userEmail: string) => {
-        console.log('Initializing Calendly with email:', userEmail);
         if ((window as any).Calendly) {
             (window as any).Calendly.initInlineWidget({
                 "url": 'https://calendly.com/d/cvgv-9vz-88q/book-your-personalized-visitly-demo',

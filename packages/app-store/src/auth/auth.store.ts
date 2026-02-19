@@ -126,7 +126,6 @@ export const useAuthStore = create<AuthState>()(
           }
           if (state) {
             // Optional: validate tokens age, etc.
-            console.log('state=================',state,sessionStorage.getItem('userinfo') && sessionStorage.getItem('accessToken'))
             if(sessionStorage.getItem('userinfo') && sessionStorage.getItem('accessToken')){
             state.isAuthenticated = true;
             state.tokens.accessToken =  sessionStorage.getItem('accessToken')?.split(' ')[1] as string;

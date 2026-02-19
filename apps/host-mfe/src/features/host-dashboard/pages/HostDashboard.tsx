@@ -370,7 +370,6 @@ export const HostDashboard: React.FC = () => {
   )?.name;
 
   const redirectToVisitorDetailPage = (data: VisitorDetail, source: string) => {
-    console.log("Row clicked with data:", data, "from source:", source); // Debug log to check the data structure
     if (!data?.id) return;
     const isPrefill = !!data.visitInfoModel;
     const id = isPrefill ? data.visitInfoModel?.id : data.id;

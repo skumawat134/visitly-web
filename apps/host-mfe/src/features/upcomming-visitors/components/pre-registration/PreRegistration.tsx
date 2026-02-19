@@ -119,7 +119,6 @@ export const PreRegistrationModal = ({
   };
 
   if (!isOpen) return null;
-  console.log("formikk>>", formik)
 
   const renderDynamicField = (field: any, index: number) => {
     const fieldName = `preregisterVisitCustomFieldModels[${index}].value`;
@@ -172,7 +171,6 @@ export const PreRegistrationModal = ({
 
     // Input fields (edit mode)
     if (field.name === 'Point of Entry') {
-      console.log("poi options", form.poeId, poeOptions, poeOptions.find((item) => item.value == form.poeId))
       return (
         <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
           <Select

@@ -18,7 +18,6 @@ export const useChangePassword = () => {
     if (userInfoStr) {
       try {
         const userInfo = JSON.parse(userInfoStr);
-        console.log("userInfo",userInfo)
         return userInfo.id || '';
       } catch (e) {
         console.error('Error parsing userinfo from session storage', e);

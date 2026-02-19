@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useVerifyEmail } from '../hooks/useVerifyEmail';
 import appLogo from '@/assets/images/logo.png';
 export const VerifyEmail: React.FC = () => {
-    console.log("VerifyEmail component rendered");
     const { isResendMail, handleResend, resendMutation } = useVerifyEmail();
     if (isResendMail) {
         return (

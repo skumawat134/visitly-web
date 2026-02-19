@@ -18,7 +18,6 @@ import { useEntitlements } from "@/features/visitor-detail/hooks/useEntitlement"
 export const useHostDashboard = () => {
   const { isDeliveryManagerEntitled } = useEntitlements();
 
-  console.log("isDeliveryManagerEntitled", isDeliveryManagerEntitled);
   const queryClient = useQueryClient();
   const [viewAs, setViewAs] = useState("all"); // 'all' | 'myself' | delegate userId
   const [upcomingSearch, setUpcomingSearch] = useState("");
@@ -102,7 +101,6 @@ export const useHostDashboard = () => {
     queryFn: getHostSites,
   });
 
-console.log('mySignInLogsData',mySignInLogsData)
 
   const filterByHost = (v: VisitorVisit) => {
     if (viewAs === "all") return true;
@@ -212,7 +210,6 @@ console.log('mySignInLogsData',mySignInLogsData)
     }
   }, []);
 
-  console.log("Delegates:", delegates);
 
   return {
     viewAs,

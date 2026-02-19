@@ -30,7 +30,6 @@ export const useAngularURLSync = () => {
 
             // Only navigate if different from current shell URL
             if (location.pathname !== targetShellPath && lastSyncedPath.current !== targetShellPath) {
-                console.log('[URLSync] Syncing Angular -> Shell:', targetShellPath);
                 lastSyncedPath.current = targetShellPath;
                 navigate(targetShellPath, { replace: true });
             }

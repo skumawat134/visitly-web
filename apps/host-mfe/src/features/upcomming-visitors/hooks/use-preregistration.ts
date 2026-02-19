@@ -237,7 +237,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     const isRecurring = form.recurrenceType && form.recurrenceType !== 'NONE';
     const isParentVisit = !!form.parentVisitId;
     const isPrefilledVisit = !!existingVisit?.visitInfoModel?.id || !!existingVisit?.id;
-    console.log("checking disable the field", isPrefilledVisit, { isEditMode, isRecurring, isParentVisit, isPreScreening, existingVisit })
     if (isEditMode) {
       if (isRecurring || isParentVisit || isPrefilledVisit) {
         return ['siteId', 'visitorTypeId', 'scheduleCheckinDate', 'scheduleCheckinTimeOnly', 'recurrenceType', 'scheduleCheckoutDate', 'recurrenceEndDateOnly', 'scheduleCheckoutTimeOnly'].includes(fieldName);

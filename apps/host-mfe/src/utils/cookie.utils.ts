@@ -41,7 +41,6 @@ export function setCookie(
 
   if (secure) cookie += `; Secure`;
   if (sameSite) cookie += `; SameSite=${sameSite}`;
-  console.log('as,dbfkasbdfkabsdfbasidlfbaisdf n====================================')
   document.cookie = cookie;
 }
 

@@ -27,7 +27,6 @@ const SidebarItemComponent: React.FC<{
     const itemRef = React.useRef<HTMLDivElement>(null);
     const Icon = item.icon;
     const location = useLocation();
-    console.log('Rendering SidebarItem:', item.title, context);
     // Condition check
     if (item.condition && !item.condition(context)) return null;
 
@@ -249,7 +248,6 @@ export const Sidebar: React.FC = () => {
     };
 
     const getMenuItems = () => {
-        console.log('Evaluating menu items with context:', context);
         if (isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return LOCATION_MENU;
         }
@@ -281,7 +279,6 @@ export const Sidebar: React.FC = () => {
     };
 
     const menuItems = getMenuItems();
-    console.log('menuItems:', menuItems);
     return (
         <aside
             className={`

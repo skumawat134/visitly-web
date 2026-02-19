@@ -11,7 +11,6 @@ const FieldCheckbox: React.FC<FieldCheckboxProps> = ({
   checked,
   onToggle,
 }) => {
-   console.log( "Checked:", checked );
   return (
     <div
     //   className={cn(

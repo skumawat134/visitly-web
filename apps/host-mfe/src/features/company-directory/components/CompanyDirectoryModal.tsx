@@ -18,7 +18,6 @@ export function CompanyDirectoryModal({
   onClose,
   width = 560,
 }: CompanyDirectoryModalProps) {
-  console.log("Modal Rendered with user:", user);
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
