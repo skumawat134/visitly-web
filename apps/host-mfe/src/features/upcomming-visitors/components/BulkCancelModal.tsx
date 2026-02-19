@@ -66,7 +66,7 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
         {/* Notification Toggles */}
         <div className="tw:mb-8 tw:flex tw:flex-col tw:items-center tw:gap-4">
           <span className="tw:text-sm tw:font-medium tw:text-gray-700">
-            Notification 
+            Notification
           </span>
 
           <div className="tw:flex tw:flex-wrap tw:justify-center tw:gap-3">
@@ -74,12 +74,14 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
               label="Notify Visitor"
               isActive={notifyVisitFlag}
               onClick={() => setNotifyVisitFlag((prev) => !prev)}
+              data-testid="bulk-cancel-notify-visitor-toggle"
             />
 
             <RoundedToggleButton
               label="Notify Host"
               isActive={notifyHostFlag}
               onClick={() => setNotifyHostFlag((prev) => !prev)}
+              data-testid="bulk-cancel-notify-host-toggle"
             />
           </div>
         </div>
@@ -90,6 +92,7 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
             variant="primary"
             onClick={handleCancel}
             isLoading={isLoading}
+            data-testid="bulk-cancel-confirm-btn"
           >
             Yes, Cancel {visitCount !== 1 ? "Visits" : "Visit"}
           </Button>
@@ -98,6 +101,7 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
+            data-testid="bulk-cancel-no-btn"
           >
             No
           </Button>

@@ -143,6 +143,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                   formik.setFieldValue('siteId', e.target.value);
                   formik.setFieldValue('visitorTypeId', '');
                 }}
+                data-testid="bulk-update-location-select"
               />
             </div>
 
@@ -156,6 +157,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                 options={visitorTypeOptions}
                 disabled={!formik.values.siteId}
                 onChange={formik.handleChange}
+                data-testid="bulk-update-visitor-type-select"
               />
             </div>
           </div>
@@ -173,6 +175,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                 value={formik.values.scheduleCheckinDate}
                 onChange={formik.handleChange}
                 className="tw:h-10"
+                data-testid="bulk-update-checkin-date-input"
               />
             </div>
 
@@ -186,11 +189,12 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                 value={formik.values.scheduleCheckoutDate}
                 onChange={formik.handleChange}
                 className="tw:h-10"
+                data-testid="bulk-update-checkout-date-input"
               />
             </div>
           </div>
 
-           {/* Hosts */}
+          {/* Hosts */}
           <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-6">
             <div className="tw:space-y-1.5">
               <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
@@ -206,6 +210,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                   formik.setFieldValue('hostUserId', val || '');
                 }}
                 placeholder="Search for host..."
+                data-testid="bulk-update-host-select"
               />
             </div>
 
@@ -224,11 +229,12 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                   formik.setFieldValue('cohostUserIds', values);
                 }}
                 placeholder="Add one or more co-hosts..."
+                data-testid="bulk-update-cohost-select"
               />
             </div>}
           </div>
 
-           {/* Group Name */}
+          {/* Group Name */}
           <div className="tw:space-y-1.5">
             <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
               Group Name
@@ -239,6 +245,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
               onChange={formik.handleChange}
               placeholder="Optional — e.g. Conference Group A"
               className="tw:h-10"
+              data-testid="bulk-update-group-name-input"
             />
           </div>
 
@@ -250,6 +257,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
               onClick={onClose}
               disabled={isLoading}
               className="tw:min-w-28 tw:h-10"
+              data-testid="bulk-update-cancel-btn"
             >
               Cancel
             </Button>
@@ -258,6 +266,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
               type="submit"
               isLoading={isLoading}
               className="tw:min-w-36 tw:h-10"
+              data-testid="bulk-update-save-btn"
             >
               Apply Changes
             </Button>

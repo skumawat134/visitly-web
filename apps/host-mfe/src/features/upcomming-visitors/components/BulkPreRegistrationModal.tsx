@@ -109,7 +109,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                             </Tooltip>
                         </DialogTitle>
                         <p className="tw:text-sm tw:text-gray-500">
-                            Please <span className="tw:text-primary-600 tw:cursor-pointer tw:underline" onClick={downloadTemp}>click here</span> to download CSV template.
+                            Please <span className="tw:text-primary-600 tw:cursor-pointer tw:underline" onClick={downloadTemp} data-testid="bulk-prereg-download-template-link">click here</span> to download CSV template.
                         </p>
                     </div>
                 </DialogHeader>
@@ -126,6 +126,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                     formik.setFieldValue('siteId', e.target.value);
                                     formik.setFieldValue('visitorTypeId', '');
                                 }}
+                                data-testid="bulk-prereg-location-select"
                             />
                             {formik.touched.siteId && formik.errors.siteId && (
                                 <p className="tw:text-xs tw:text-red-500">{formik.errors.siteId}</p>
@@ -139,6 +140,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 options={visitorTypeOptions}
                                 disabled={!formik.values.siteId}
                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => formik.setFieldValue('visitorTypeId', e.target.value)}
+                                data-testid="bulk-prereg-visitor-type-select"
                             />
                             {formik.touched.visitorTypeId && formik.errors.visitorTypeId && (
                                 <p className="tw:text-xs tw:text-red-500">{formik.errors.visitorTypeId}</p>
@@ -151,10 +153,12 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 options={hostOptions}
                                 onSearch={setHostSearch}
                                 onChange={(opt) => {
-                                    formik.setFieldValue('hostUserId', opt?.value || '');
-                                    formik.setFieldValue('hostEmail', (opt as any)?.email || '');
+                                    const selected = Array.isArray(opt) ? opt[0] : opt;
+                                    formik.setFieldValue('hostUserId', selected?.value || '');
+                                    formik.setFieldValue('hostEmail', (selected as any)?.email || '');
                                 }}
                                 placeholder="Search Host"
+                                data-testid="bulk-prereg-host-select"
                             />
                         </div>
 
@@ -164,14 +168,16 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 options={coHostOptions}
                                 onSearch={setCoHostSearch}
                                 onChange={(opt) => {
-                                    if (opt) {
+                                    const selected = Array.isArray(opt) ? opt[0] : opt;
+                                    if (selected) {
                                         const current = formik.values.cohostUserIds;
-                                        if (!current.includes(opt.value)) {
-                                            formik.setFieldValue('cohostUserIds', [...current, opt.value]);
+                                        if (!current.includes(selected.value)) {
+                                            formik.setFieldValue('cohostUserIds', [...current, selected.value]);
                                         }
                                     }
                                 }}
                                 placeholder="Search Co-Hosts"
+                                data-testid="bulk-prereg-cohost-select"
                             />
                         </div>
 
@@ -183,6 +189,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                     value={formik.values.pointOfEntryValue}
                                     options={poeOptions}
                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => formik.setFieldValue('pointOfEntryValue', e.target.value)}
+                                    data-testid="bulk-prereg-poe-select"
                                 />
                             </div>
                         )}
@@ -194,6 +201,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                     value={formik.values.parkingLotValue}
                                     options={parkingOptions}
                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => formik.setFieldValue('parkingLotValue', e.target.value)}
+                                    data-testid="bulk-prereg-parking-select"
                                 />
                             </div>
                         )}
@@ -205,6 +213,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                     value={formik.values.destinationValue}
                                     options={destOptions}
                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => formik.setFieldValue('destinationValue', e.target.value)}
+                                    data-testid="bulk-prereg-building-select"
                                 />
                             </div>
                         )}
@@ -236,6 +245,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 <Checkbox
                                     checked={formik.values.notifyHostFlag}
                                     onChange={(e: any) => formik.setFieldValue('notifyHostFlag', e.target.checked)}
+                                    data-testid="bulk-prereg-notify-host-checkbox"
                                 />
                                 <Label htmlFor="notifyHost" className="tw:text-sm">Notify Host</Label>
                             </div>
@@ -243,6 +253,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 <Checkbox
                                     checked={formik.values.notifyVisitFlag}
                                     onChange={(e: any) => formik.setFieldValue('notifyVisitFlag', e.target.checked)}
+                                    data-testid="bulk-prereg-notify-visitor-checkbox"
                                 />
                                 <Label htmlFor="notifyVisitor" className="tw:text-sm">Notify Visitor</Label>
                             </div>
@@ -250,6 +261,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 <Checkbox
                                     checked={formik.values.shouldPrefill}
                                     onChange={(e: any) => formik.setFieldValue('shouldPrefill', e.target.checked)}
+                                    data-testid="bulk-prereg-prefill-checkbox"
                                 />
                                 <Label htmlFor="shouldPrefill" className="tw:text-sm">Allow Prefill</Label>
                             </div>
@@ -264,12 +276,14 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 placeholder="Press Ctrl+V or Cmd+V to paste your data here (Tab-separated)..."
                                 onPaste={handlePaste}
                                 autoFocus
+                                data-testid="bulk-prereg-paste-textarea"
                             />
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 className="tw:absolute tw:top-2 tw:right-2 tw:p-0 tw:w-6 tw:h-6 tw:rounded-full hover:tw:bg-gray-200"
                                 onClick={() => setShowPasteArea(false)}
+                                data-testid="bulk-prereg-close-paste-btn"
                             >
                                 <X size={16} />
                             </Button>
@@ -295,6 +309,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                                 size="sm"
                                 className="tw:text-primary-600 hover:tw:text-primary-700 tw:p-0"
                                 onClick={onAddRow}
+                                data-testid="bulk-prereg-add-row-btn"
                             >
                                 <PlusCircle size={16} className="tw:mr-1" />
                                 Add New Row
@@ -316,7 +331,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                 </div>
 
                 <DialogFooter className="tw:px-6 tw:py-4 tw:border-t tw:bg-gray-50 tw:gap-3">
-                    <Button variant="outline" onClick={onClose} disabled={isSaving || isPreScreening}>
+                    <Button variant="outline" onClick={onClose} disabled={isSaving || isPreScreening} data-testid="bulk-prereg-cancel-btn">
                         Cancel
                     </Button>
                     <Button
@@ -324,6 +339,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                         onClick={handlePreScreen}
                         isLoading={isPreScreening}
                         disabled={isSaving || rowData.length === 0}
+                        data-testid="bulk-prereg-prescreen-btn"
                     >
                         Pre-screen
                     </Button>
@@ -331,6 +347,7 @@ export const BulkPreRegistrationModal: React.FC<BulkPreRegistrationModalProps> =
                         onClick={() => handleSave(onClose)}
                         isLoading={isSaving}
                         disabled={isPreScreening || rowData.length === 0 || !formik.isValid}
+                        data-testid="bulk-prereg-save-btn"
                     >
                         Save
                     </Button>

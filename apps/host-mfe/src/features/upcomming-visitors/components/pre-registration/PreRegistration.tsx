@@ -143,6 +143,7 @@ export const PreRegistrationModal = ({
             label="Building / Destination"
             required={field.isMandatoryForPreregistration}
             error={isTouched ? fieldError : undefined}
+            data-testid="custom-field-select-building"
           />
         </div>
       );
@@ -164,6 +165,7 @@ export const PreRegistrationModal = ({
             label="Parking Lot"
             required={field.isMandatoryForPreregistration}
             error={isTouched ? fieldError : undefined}
+            data-testid="custom-field-select-parking-lot"
           />
         </div>
       );
@@ -186,6 +188,7 @@ export const PreRegistrationModal = ({
             required={field.isMandatoryForPreregistration}
             label="Point of Entry"
             error={isTouched ? fieldError : undefined}
+            data-testid="custom-field-select-poe"
           />
         </div>
       );
@@ -207,7 +210,7 @@ export const PreRegistrationModal = ({
             isDisabled={isFieldDisabled('hostUserId')}
             placeholder="Search host"
             error={isTouched ? fieldError : undefined}
-
+            data-testid="host-search-select"
           />
         </div>
       );
@@ -226,6 +229,7 @@ export const PreRegistrationModal = ({
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           disabled={isFieldDisabled(field.name)}
+          data-testid={`custom-field-text-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
         />
       );
     }
@@ -245,6 +249,7 @@ export const PreRegistrationModal = ({
           onBlur={() => formik.setFieldTouched(fieldName, true)}
           error={isTouched ? fieldError : undefined}
           disabled={isFieldDisabled(field.name)}
+          data-testid={`custom-field-select-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
         />
       );
     }
@@ -255,7 +260,7 @@ export const PreRegistrationModal = ({
           <Label>
             {field.name} {field.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}
           </Label>
-          <div className="tw:flex tw:gap-4">
+          <div className="tw:flex tw:gap-4" data-testid={`custom-field-radio-${field.name.toLowerCase().replace(/\s+/g, '-')}`}>
             {field.options?.map((o: any) => (
               <Radio
                 key={o.value}
@@ -286,6 +291,7 @@ export const PreRegistrationModal = ({
           onBlur={() => formik.setFieldTouched(fieldName, true)}
           error={isTouched ? fieldError : undefined}
           disabled={isFieldDisabled(field.name)}
+          data-testid={`custom-field-date-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
         />
       );
     }
@@ -362,6 +368,7 @@ export const PreRegistrationModal = ({
                         ? "tw:bg-blue-600 tw:text-white"
                         : "tw:bg-white tw:border-2 tw:border-gray-200 tw:text-gray-400"
                   )}
+                  data-testid={`step-${s.step}-indicator`}
                 >
                   {isCompleted ? <Check size={18} /> : s.step}
                 </div>
@@ -429,7 +436,11 @@ export const PreRegistrationModal = ({
         {/* Header */}
         <div className="tw:flex tw:items-center tw:justify-between tw:px-8 tw:py-4 tw:border-b tw:border-gray-100">
           <h3 className="tw:text-xl tw:font-bold tw:text-gray-900">{modalTitle}</h3>
-          <button onClick={onClose} className="tw:p-2 tw:rounded-full tw:hover:bg-gray-100 tw:transition-colors">
+          <button
+            onClick={onClose}
+            className="tw:p-2 tw:rounded-full tw:hover:bg-gray-100 tw:transition-colors"
+            data-testid="modal-close-btn"
+          >
             <Check className="tw:rotate-45" size={20} />
           </button>
         </div>
@@ -470,7 +481,7 @@ export const PreRegistrationModal = ({
                           }}
                           disabled={isFieldDisabled('siteId')}
                           error={formik.touched.siteId && formik.errors.siteId ? String(formik.errors.siteId) : undefined}
-
+                          data-testid="location-select"
                         />
                       </div>
                       <div className="tw:space-y-1.5">
@@ -481,7 +492,7 @@ export const PreRegistrationModal = ({
                           onChange={(e) => setFormField('visitorTypeId', e.target.value)}
                           disabled={!form.siteId || isFieldDisabled('visitorTypeId')}
                           error={formik.touched.visitorTypeId && formik.errors.visitorTypeId ? String(formik.errors.visitorTypeId) : undefined}
-
+                          data-testid="visitor-type-select"
                         />
                       </div>
                     </div>
@@ -501,7 +512,7 @@ export const PreRegistrationModal = ({
                           }}
                           disabled={isFieldDisabled('scheduleCheckinDate')}
                           error={formik.touched.scheduleCheckinDate && formik.errors.scheduleCheckinDate ? String(formik.errors.scheduleCheckinDate) : undefined}
-
+                          data-testid="checkin-date-input"
                         />
                       </div>
                       <div className="tw:space-y-1.5">
@@ -517,7 +528,7 @@ export const PreRegistrationModal = ({
                           }}
                           disabled={isFieldDisabled('scheduleCheckinTimeOnly')}
                           error={formik.touched.scheduleCheckinTimeOnly && formik.errors.scheduleCheckinTimeOnly ? String(formik.errors.scheduleCheckinTimeOnly) : undefined}
-
+                          data-testid="checkin-time-select"
                         />
                       </div>
                     </div>
@@ -530,6 +541,7 @@ export const PreRegistrationModal = ({
                           options={repeatOptions}
                           onChange={(e) => setFormField('recurrenceType', e.target.value)}
                           disabled={isFieldDisabled('recurrenceType')}
+                          data-testid="recurrence-select"
                         />
 
                       </div>
@@ -542,6 +554,7 @@ export const PreRegistrationModal = ({
                             onChange={(e) => setFormField('scheduleCheckoutDate', e.target.value ? format(e.target.value, 'yyyy-MM-dd') : null)}
                             error={formik.touched.scheduleCheckoutDate && formik.errors.scheduleCheckoutDate ? String(formik.errors.scheduleCheckoutDate) : undefined}
                             disabled={isFieldDisabled('scheduleCheckoutDate')}
+                            data-testid="checkout-date-input"
                           />
                         </div>
                       ) : (
@@ -553,7 +566,7 @@ export const PreRegistrationModal = ({
                             onChange={(e) => setFormField('recurrenceEndDateOnly', e.target.value ? format(e.target.value, 'yyyy-MM-dd') : null)}
                             error={formik.touched.recurrenceEndDateOnly && formik.errors.recurrenceEndDateOnly ? String(formik.errors.recurrenceEndDateOnly) : undefined}
                             disabled={isFieldDisabled('recurrenceEndDateOnly')}
-
+                            data-testid="recurrence-end-date-input"
                           />
                         </div>
                       )}
@@ -567,6 +580,7 @@ export const PreRegistrationModal = ({
                           onChange={(e) => setFormField('scheduleCheckoutTimeOnly', e.target.value)}
                           error={formik.touched.scheduleCheckoutTimeOnly && formik.errors.scheduleCheckoutTimeOnly ? String(formik.errors.scheduleCheckoutTimeOnly) : undefined}
                           disabled={isFieldDisabled('scheduleCheckoutTimeOnly')}
+                          data-testid="checkout-time-select"
                         />
                       </div>
                     </div>
@@ -632,6 +646,7 @@ export const PreRegistrationModal = ({
                           isDisabled={isFieldDisabled('cohostUserIds')}
                           multi={true}
                           placeholder="Search co-hosts"
+                          data-testid="co-host-search-select"
                         />
 
                       </div>
@@ -653,12 +668,14 @@ export const PreRegistrationModal = ({
                           value={form.groupName}
                           onChange={(e) => setFormField('groupName', e.target.value)}
                           placeholder="Team Alpha, Project X..."
+                          data-testid="group-name-input"
                         />
                         <Input
                           label="Internal Note"
                           value={form.internalNote}
                           onChange={(e) => setFormField('internalNote', e.target.value)}
                           placeholder="Special instructions for reception..."
+                          data-testid="internal-note-input"
                         />
                       </div>
 
@@ -924,6 +941,7 @@ export const PreRegistrationModal = ({
                                 ? "tw:bg-blue-50 tw:border-blue-600 tw:text-blue-700"
                                 : "tw:bg-white tw:border-gray-200 tw:text-gray-500 tw:hover:border-gray-300"
                             )}
+                            data-testid={`notify-${item.field}-btn`}
                           >
                             {isActive && <Check size={14} />}
                             {item.label}
@@ -945,6 +963,7 @@ export const PreRegistrationModal = ({
                   type="button"
                   onClick={() => setWizardStep(prev => prev - 1)}
                   className="tw:text-sm tw:font-bold tw:text-gray-500 tw:hover:text-gray-900 tw:transition-colors tw:px-4 tw:py-2"
+                  data-testid="back-btn"
                 >
                   Back
                 </button>
@@ -956,6 +975,7 @@ export const PreRegistrationModal = ({
                 type="button"
                 onClick={onClose}
                 className="tw:text-sm tw:font-bold tw:text-gray-500 tw:hover:text-gray-900 tw:transition-colors tw:px-4 tw:py-2"
+                data-testid="cancel-btn"
               >
                 Cancel
               </button>
@@ -965,6 +985,7 @@ export const PreRegistrationModal = ({
                   type="button"
                   onClick={handleNextStep}
                   className="tw:bg-blue-600 tw:hover:bg-blue-700 tw:rounded-xl tw:px-6 tw:py-2.5 tw:shadow-lg tw:shadow-blue-200"
+                  data-testid="continue-btn"
                 >
                   Continue <ArrowRight size={18} className="tw:ml-2" />
                 </Button>
@@ -976,6 +997,7 @@ export const PreRegistrationModal = ({
                     onClick={handlePreScreen}
                     isLoading={isPreScreening}
                     className="tw:rounded-xl tw:border-gray-300"
+                    data-testid="prescreen-btn"
                   >
                     Pre-screen
                   </Button>
@@ -983,6 +1005,7 @@ export const PreRegistrationModal = ({
                     type="submit"
                     isLoading={isSaving}
                     className="tw:bg-blue-600 tw:hover:bg-blue-700 tw:rounded-xl tw:px-8 tw:py-2.5 tw:shadow-lg tw:shadow-blue-200"
+                    data-testid="submit-btn"
                   >
                     <UserPlus size={18} className="tw:mr-2" />
                     {status === 'Update' ? 'Update Visit' : 'Create Visit'}

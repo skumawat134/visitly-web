@@ -150,6 +150,7 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
             <button
               onClick={() => setIsImageOpen(true)}
               className="tw:absolute tw:top-2 tw:right-2 tw:z-10 tw:bg-black/60 tw:text-white tw:p-2 tw:rounded-full"
+              data-testid="delivery-log-expand-image-btn"
             >
               <Expand size={16} />
             </button>
@@ -198,6 +199,7 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
                   )
                 }
                 variant="primary"
+                data-testid="delivery-log-picked-up-btn"
               >
                 Picked Up
               </Button>
@@ -205,40 +207,42 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
 
             {(packageItem.status === DeliveryLogStatus.UNIDENTIFIED ||
               packageItem.status === DeliveryLogStatus.PENDING) && (
-              <>
-                <Button
-                  onClick={() =>
-                    onUpdateStatus(
-                      packageItem.id,
-                      DeliveryLogStatus.UNIDENTIFIED,
-                    )
-                  }
-                  variant="outline"
-                >
-                  Not My Delivery
-                </Button>
+                <>
+                  <Button
+                    onClick={() =>
+                      onUpdateStatus(
+                        packageItem.id,
+                        DeliveryLogStatus.UNIDENTIFIED,
+                      )
+                    }
+                    variant="outline"
+                    data-testid="delivery-log-not-my-delivery-btn"
+                  >
+                    Not My Delivery
+                  </Button>
 
-                <Button
-                  onClick={() =>
-                    onUpdateStatus(
-                      packageItem.id,
-                      DeliveryLogStatus.DISCARD,
-                    )
-                  }
-                  variant="outline"
-                >
-                  Discard
-                </Button>
-              </>
-            )}
+                  <Button
+                    onClick={() =>
+                      onUpdateStatus(
+                        packageItem.id,
+                        DeliveryLogStatus.DISCARD,
+                      )
+                    }
+                    variant="outline"
+                    data-testid="delivery-log-discard-btn"
+                  >
+                    Discard
+                  </Button>
+                </>
+              )}
           </div>
 
           {/* Bottom Save / Cancel */}
           <div className="tw:flex tw:justify-end tw:gap-3 tw:pt-4 tw:border-t tw:border-gray-200">
-            <Button onClick={onClose} variant="outline">
+            <Button onClick={onClose} variant="outline" data-testid="delivery-log-cancel-btn">
               Cancel
             </Button>
-            <Button onClick={handleSave} variant="primary">
+            <Button onClick={handleSave} variant="primary" data-testid="delivery-log-save-btn">
               Save
             </Button>
           </div>

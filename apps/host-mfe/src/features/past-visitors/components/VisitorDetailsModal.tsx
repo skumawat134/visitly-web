@@ -49,6 +49,7 @@ export function VisitorDetailsModal({
           <button
             onClick={onClose}
             className="tw:p-1 tw:rounded-full hover:tw:bg-gray-200 tw:transition-colors"
+            data-testid="visitor-details-close-btn"
           >
             <X size={20} className="tw:text-gray-600" />
           </button>

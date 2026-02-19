@@ -26,6 +26,7 @@ const FieldCheckbox: React.FC<FieldCheckboxProps> = ({
         onChange={onToggle}
         label={field.columnTitle}
         className="tw:mr-2"
+        data-testid={`column-setting-checkbox-${field.columnTitle.toLowerCase().replace(/\s+/g, '-')}`}
       />
     </div>
   );
