@@ -1,16 +1,18 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getCustomFields } from '../api/upcomming-visitors.api';
-import { Button, Checkbox, cn, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@visitly/ui';
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@visitly/ui';
 import Section from './Section';
 import { useToastStore } from '@visitly/app-store';
-export const STORAGE_KEY = 'columnSettingsForUpcomingVisitors';
+import { STORAGE_KEY, standardFields, MEGA_LOCATION_FIELDS } from '../types/upcomming-visitors.types';
+
 const ColumnSettingsModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
 }> = ({ isOpen, onClose }) => {
   const [selectedFields, setSelectedFields] = useState<any[]>([]);
   const showToast = useToastStore((state) => state.showToast);
+
   // 1. Fetch Custom Fields via React Query
   const { data: customFieldsRaw } = useQuery({
     queryKey: ['orgCustomFields'],
@@ -20,33 +22,16 @@ const ColumnSettingsModal: React.FC<{
 
   // 2. Process Entitlements and Standard Fields
   const allStandardFields = useMemo(() => {
-    let fields = [
-      { columnTitle: 'Name', prop: 'fullName', isSelected: true, isDisabled: true, type: 'Standard' },
-      { columnTitle: 'Type', prop: 'visitorType', isSelected: true, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Host', prop: 'hostName', isSelected: true, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Location', prop: 'siteName', isSelected: true, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Company', prop: 'companyName', isSelected: true, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Group Name', prop: 'groupName', isSelected: true, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Phone', prop: 'phoneNumber', isSelected: true, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Pre-fill Status', prop: 'id', isSelected: true, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Internal Note', prop: 'internalNote', isSelected: false, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Email', prop: 'email', isSelected: false, isDisabled: false, type: 'Standard' },
-      { columnTitle: 'Scheduled Check-In Date', prop: 'scheduleCheckinDate', isSelected: true, isDisabled: true, type: 'Standard' },
-      { columnTitle: 'Action', prop: 'id', isSelected: true, isDisabled: true, type: 'Standard' },
-    ];
+    let fields = [...standardFields];
 
     const entitlement = JSON.parse(sessionStorage.getItem('entitlement') || '{}');
     const hasMegaLocation = entitlement?.products?.[0]?.entitlements?.some(
       (e: any) => e.key === 'ADVANCED_MEGA_LOCATION' && e.value === 'true'
     );
 
-    if (hasMegaLocation) {
-      const megaFields = [
-        { columnTitle: 'Parking Lot', prop: 'parkingLotName', isSelected: false, isDisabled: false, type: 'Standard' },
-        { columnTitle: 'Point of Entry', prop: 'poeName', isSelected: false, isDisabled: false, type: 'Standard' },
-        { columnTitle: 'Building', prop: 'buildingName', isSelected: false, isDisabled: false, type: 'Standard' }
-      ];
-      fields.splice(10, 0, ...megaFields); // Insert at index 10
+    if (!hasMegaLocation) {
+      // Filter out mega location fields if not entitled
+      fields = fields.filter(f => !MEGA_LOCATION_FIELDS.includes(f.columnTitle));
     }
     return fields;
   }, []);
@@ -61,7 +46,7 @@ const ColumnSettingsModal: React.FC<{
         prop: cf.name,
         isSelected: false,
         isDisabled: false,
-        type: 'Custom'
+        type: 'CUSTOM_FIELD'
       }));
   }, [customFieldsRaw]);
 
@@ -72,13 +57,17 @@ const ColumnSettingsModal: React.FC<{
       if (saved) {
         setSelectedFields(JSON.parse(saved));
       } else {
-        // Default: only enabled & selected standard fields
-        setSelectedFields(allStandardFields.filter(f => f.isSelected && !f.isDisabled));
+        // Default: only selected standard fields (respecting entitlements handled in allStandardFields)
+        setSelectedFields(allStandardFields.filter(f => f.isSelected));
       }
     }
   }, [isOpen, allStandardFields]);
 
-  const isFieldSelected = (title: string) => selectedFields.some(f => f.columnTitle === title);
+  const isFieldSelected = (title: string) => {
+    const field = allStandardFields.find(f => f.columnTitle === title);
+    if (field?.isDisabled) return true; // Mandatory fields are always "selected" in UI
+    return selectedFields.some(f => f.columnTitle === title);
+  };
 
   const toggleField = (field: any) => {
     if (field.isDisabled) return;
@@ -91,6 +80,8 @@ const ColumnSettingsModal: React.FC<{
   };
 
   const handleSave = () => {
+    // Only save fields that are NOT disabled (mandatory fields are assumed implicit or handled by hook)
+    // Actually Angular saves everything including mandatory but let's stick to consistency
     localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedFields));
     showToast({
       message: 'Column settings saved successfully.',
