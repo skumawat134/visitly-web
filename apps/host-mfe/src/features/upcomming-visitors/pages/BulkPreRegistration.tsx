@@ -2,8 +2,9 @@ import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, X, Upload, Clipboard, Download } from 'lucide-react';
 import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-enterprise';
 import { themeQuartz } from 'ag-grid-community';
-import type { ColDef, ICellRendererParams, ValueFormatterParams } from 'ag-grid-community';
+import type { ColDef, ICellRendererParams, ValueFormatterParams, ProcessDataFromClipboardParams } from 'ag-grid-community';
 import { useSites, useVisitorTypes, useHosts, useCoHosts } from '../hooks/use-preregistration.queries';
 import { bulkPreRegistration, preScreenBulk, getPointOfEntry, getParkingLots, getDestinations, getVistorTypeFields } from '../api/pre-registration.api';
 import { useAuthStore } from '@visitly/app-store';
@@ -311,7 +312,14 @@ export const BulkPreRegistration: React.FC = () => {
             editable: true,
             flex: 1.2,
             minWidth: 150,
-            cellStyle: requiredCellStyle,
+            cellClassRules: {
+                'tw:bg-red-50': (params) => !params.value || params.value.trim() === '' || !nameRegex.test(params.value),
+            },
+            tooltipValueGetter: (params) => {
+                if (!params.value || params.value.trim() === '') return 'Full Name cannot be empty';
+                if (!nameRegex.test(params.value)) return 'Please enter a valid name';
+                return null;
+            }
         },
         {
             headerName: 'Email',
@@ -319,7 +327,15 @@ export const BulkPreRegistration: React.FC = () => {
             editable: true,
             flex: 1.2,
             minWidth: 170,
-            cellStyle: emailCellStyle,
+            cellClassRules: {
+                'tw:bg-red-50': (params) => params.value && !emailRegex.test(params.value),
+            },
+            tooltipValueGetter: (params) => {
+                if (params.value && !emailRegex.test(params.value)) {
+                    return 'Please enter a valid email address (e.g., user@example.com)';
+                }
+                return null;
+            },
         },
         {
             headerName: 'Override Host',
@@ -330,13 +346,8 @@ export const BulkPreRegistration: React.FC = () => {
             cellEditor: HostCellEditor,
             cellRenderer: HostCellRenderer,
             headerComponent: HostHeader,
-            // custom setter prevents the object from being wiped out by a
-            // stray null/blank commit. if `newValue` is null we ignore the
-            // change and leave the previous host untouched.
             valueSetter: (params) => {
-                if (params.newValue === null) {
-                    return false; // cancel the update
-                }
+                if (params.newValue === null) return false;
                 params.data.host = params.newValue;
                 return true;
             },
@@ -354,20 +365,50 @@ export const BulkPreRegistration: React.FC = () => {
             editable: true,
             flex: 1,
             minWidth: 120,
-            cellStyle: phoneCellStyle,
+            cellClassRules: {
+                'tw:bg-red-50': (params) => params.value && !phoneRegex.test(params.value),
+            },
+            tooltipValueGetter: (params) => {
+                if (params.value && !phoneRegex.test(params.value)) {
+                    return 'Phone Number must be numeric and between 6 to 15 digits';
+                }
+                return null;
+            },
         },
         {
-            headerName: 'Check In Date *',
+            headerName: 'Schedule Check In Date *',
             field: 'checkinDate',
             editable: true,
-            flex: 1,
-            minWidth: 170,
+            flex: 1.5,
+            minWidth: 190,
             cellEditor: 'agDateCellEditor',
-            cellStyle: dateCellStyle,
             cellEditorParams: {
                 default: new Date(),
                 includeTime: true,
-                step:60
+                step: 60
+            },
+            cellClassRules: {
+                'tw:bg-red-50': (params) => {
+                    if (!params.value) return true;
+                    const d = params.value instanceof Date ? params.value : new Date(params.value);
+                    const now = new Date();
+                    const maxDate = addYears(now, 5);
+                    return !isValid(d) || isBefore(d, now) || isAfter(d, maxDate);
+                },
+            },
+            tooltipValueGetter: (params) => {
+                if (!params.value) return 'Schedule Check-In Date cannot be empty';
+                const d = params.value instanceof Date ? params.value : new Date(params.value);
+                const now = new Date();
+                const maxDate = addYears(now, 5);
+                if (!isValid(d)) return 'Invalid Check-In Date format';
+                if (isBefore(d, now)) {
+                    return `Check-In Date must be after current time (${format(now, 'dd MMM yy hh:mm a')})`;
+                }
+                if (isAfter(d, maxDate)) {
+                    return `Check-In Date cannot be more than 5 years from now (${format(now, 'dd MMM yy hh:mm a')})`;
+                }
+                return null;
             },
             valueFormatter: (params) => {
                 if (!params.value) return '';
@@ -379,29 +420,49 @@ export const BulkPreRegistration: React.FC = () => {
                 const d = new Date(params.newValue);
                 return isValid(d) ? d : null;
             },
-            valueSetter: (params) => {
-                const val = params.newValue;
-                if (!val) {
-                    params.data.checkinDate = null;
-                } else {
-                    const d = val instanceof Date ? val : new Date(val);
-                    params.data.checkinDate = isValid(d) ? d : null;
-                }
-                return true;
-            }
         },
         {
-            headerName: 'Checkout Date',
+            headerName: 'Schedule Checkout Date',
             field: 'checkoutDate',
             editable: true,
-            flex: 1,
-            minWidth: 170,
+            flex: 1.5,
+            minWidth: 190,
             cellEditor: 'agDateCellEditor',
-            cellStyle: dateCellStyle,
             cellEditorParams: {
                 default: new Date(),
                 includeTime: true,
-                step:60
+                step: 60
+            },
+            cellClassRules: {
+                'tw:bg-red-50': (params) => {
+                    if (!params.value) return false;
+                    const d = params.value instanceof Date ? params.value : new Date(params.value);
+                    const now = new Date();
+                    const maxDate = addYears(now, 5);
+                    if (!isValid(d) || isBefore(d, now) || isAfter(d, maxDate)) return true;
+
+                    const checkin = params.data.checkinDate;
+                    if (checkin && isValid(new Date(checkin)) && isBefore(d, new Date(checkin))) return true;
+                    return false;
+                },
+            },
+            tooltipValueGetter: (params) => {
+                if (!params.value) return null;
+                const d = params.value instanceof Date ? params.value : new Date(params.value);
+                const now = new Date();
+                const maxDate = addYears(now, 5);
+                if (!isValid(d)) return 'Invalid Checkout Date format';
+                if (isBefore(d, now)) {
+                    return `Checkout Date must be after current time (${format(now, 'dd MMM yy hh:mm a')})`;
+                }
+                if (isAfter(d, maxDate)) {
+                    return `Checkout Date cannot be more than 5 years from now (${format(now, 'dd MMM yy hh:mm a')})`;
+                }
+                const checkin = params.data.checkinDate;
+                if (checkin && isValid(new Date(checkin)) && isBefore(d, new Date(checkin))) {
+                    return `Checkout Date must be after Check-In Date (${format(new Date(checkin), 'dd MMM yy hh:mm a')})`;
+                }
+                return null;
             },
             valueFormatter: (params) => {
                 if (!params.value) return '';
@@ -413,16 +474,6 @@ export const BulkPreRegistration: React.FC = () => {
                 const d = new Date(params.newValue);
                 return isValid(d) ? d : null;
             },
-            valueSetter: (params) => {
-                const val = params.newValue;
-                if (!val) {
-                    params.data.checkoutDate = null;
-                } else {
-                    const d = val instanceof Date ? val : new Date(val);
-                    params.data.checkoutDate = isValid(d) ? d : null;
-                }
-                return true;
-            }
         },
         {
             headerName: 'Group Name',
@@ -441,7 +492,7 @@ export const BulkPreRegistration: React.FC = () => {
         {
             headerName: 'Actions',
             field: '__actions',
-            width: 100,
+            width: 80,
             cellRenderer: ActionCellRenderer,
             editable: false,
             sortable: false,
@@ -455,13 +506,16 @@ export const BulkPreRegistration: React.FC = () => {
         filter: false,
         resizable: true,
         suppressMovable: true,
-        tooltipValueGetter: (params: any) => params.data.warningTooltipMessage,
-        cellClassRules: {
-            'tw:bg-yellow-100': (params: any) => params.data.isHighlighted,
-        },
+        enableBrowserTooltips: true,
     }), []);
 
     const addRow = useCallback(() => {
+        const currentCount = gridRef.current?.api.getDisplayedRowCount() || 0;
+        if (currentCount >= 200) {
+            toast({ message: 'Bulk Pre Registration has a limit of 200.', type: 'error' });
+            return;
+        }
+
         setRowData(prev => [...prev, makeEmptyRow()]);
         // Scroll grid to bottom after adding
         setTimeout(() => {
@@ -470,10 +524,76 @@ export const BulkPreRegistration: React.FC = () => {
                 api.ensureIndexVisible(api.getDisplayedRowCount() - 1, 'bottom');
             }
         }, 50);
-    }, []);
+    }, [toast]);
+
+    const processDataFromClipboard = useCallback((params: ProcessDataFromClipboardParams): string[][] | null => {
+        let data = [...params.data];
+        const currentCount = gridRef.current?.api.getDisplayedRowCount() || 0;
+
+        // When pasting, ag-grid gives us already-split rows. We convert them back to BulkRow objects
+        // and add them to the grid. This matches how CSV upload works.
+        
+        const newRows: BulkRow[] = [];
+        data.forEach(row => {
+            if (!row || row.length === 0) return;
+            if (row.every(cell => !cell || cell.trim() === '')) return; // Skip completely empty rows
+            
+            const r = makeEmptyRow();
+            r.fullName = row[0]?.trim().replace(/^"|"$/g, '') || '';
+            r.email = row[1]?.trim().replace(/^"|"$/g, '') || '';
+            r.host = row[2]?.trim().replace(/^"|"$/g, '') || '';
+            r.companyName = row[3]?.trim().replace(/^"|"$/g, '') || '';
+            r.phoneNumber = row[4]?.trim().replace(/^"|"$/g, '') || '';
+
+            // Parse check-in date
+            const checkinDateStr = row[5]?.trim().replace(/^"|"$/g, '') || '';
+            if (checkinDateStr) {
+                let d = new Date(checkinDateStr);
+                if (!isValid(d)) {
+                    d = parse(checkinDateStr, 'dd MMM yy hh:mm a', new Date());
+                }
+                if (isValid(d)) {
+                    r.checkinDate = d;
+                }
+            }
+
+            // Parse checkout date
+            const checkoutDateStr = row[6]?.trim().replace(/^"|"$/g, '') || '';
+            if (checkoutDateStr) {
+                let d = new Date(checkoutDateStr);
+                if (!isValid(d)) {
+                    d = parse(checkoutDateStr, 'dd MMM yy hh:mm a', new Date());
+                }
+                if (isValid(d)) {
+                    r.checkoutDate = d;
+                }
+            }
+
+            r.groupName = row[7]?.trim().replace(/^"|"$/g, '') || '';
+            r.internalNote = row[8]?.trim().replace(/^"|"$/g, '') || '';
+            newRows.push(r);
+        });
+
+        if (newRows.length + currentCount > 200) {
+            toast({ message: 'Bulk Pre Registration has a limit of 200.', type: 'error' });
+            return null;
+        }
+
+        // Add the new rows to grid state
+        setRowData(prev => {
+            const keptRows = prev.filter(p => isRowNonEmpty(p));
+            const combined = [...keptRows, ...newRows];
+            if (combined.length > 200) {
+                combined.splice(200);
+            }
+            return combined;
+        });
+
+        // Return empty array so ag-grid doesn't double-populate
+        return [];
+    }, [toast]);
 
     const handleCellValueChanged = useCallback((event: any) => {
-        console.log('[BulkPreRegistration] cell value changed', event.colDef.field, 'newValue=', event.newValue, 'data.host=', event.data.host);
 
         const field = event.colDef.field;
         const prevRows = rowData; // capture current state for comparison
@@ -483,7 +603,6 @@ export const BulkPreRegistration: React.FC = () => {
         if (field === 'host') {
             // if a null commit occurs after we already set a host, ignore it
             if (event.newValue === null && prevRow && prevRow.host != null) {
-                console.log('[BulkPreRegistration] ignoring null host commit');
                 return;
             }
             // ensure event.data.host contains the new value so state update keeps it
@@ -537,7 +656,7 @@ export const BulkPreRegistration: React.FC = () => {
                 hostEmail: typeof row.host === 'string' ? row.host : (row.host?.email || null),
 
                 // Common settings
-                hostUserId: host?.id || null,
+                hostUserId: row.host?.id ?? (host?.id || null),
                 siteId: siteId,
                 shouldPrefill: !!allowPrefill,
                 visitorTypeId: visitorTypeId,
@@ -672,7 +791,7 @@ export const BulkPreRegistration: React.FC = () => {
     };
 
     const downloadTemp = () => {
-        const csv = '"fullName","email","hostEmail","companyName","phoneNumber","arrivalTime (DD-MM-YYYY HH:MM)","departureTime (DD-MM-YYYY HH:MM)","groupName","internalNote"';
+        const csv = '"fullName","email","hostEmail","companyName","phoneNumber","scheduleCheckinDate (DD MMM YY hh:mm AM/PM)","scheduleCheckoutDate (DD MMM YY hh:mm AM/PM)","groupName","internalNote"';
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -690,11 +809,14 @@ export const BulkPreRegistration: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
             const csv = event.target?.result as string;
-            const lines = csv.split(/\r\n|\n/).slice(1); // Skip header
+            const allLines = csv.split(/\r\n|\n/).filter(line => line.trim() !== '');
+            const lines = allLines.slice(1); // Skip header
+
             if (lines.length > 200) {
-            alert('You cannot upload more than 200 rows at a time.');
-            return; // Stop processing
+                toast({ message: 'Bulk Pre Registration has a limit of 200.', type: 'error' });
+                return;
             }
+
             const newRows: BulkRow[] = [];
             lines.forEach(line => {
                 const cols = line.split(',');
@@ -706,55 +828,47 @@ export const BulkPreRegistration: React.FC = () => {
                     r.companyName = cols[3]?.replace(/"/g, '') || '';
                     r.phoneNumber = cols[4]?.replace(/"/g, '') || '';
 
-                    // CSV might have combined date or separate
+                    // Checkin Date/Time (Combined)
                     const checkinRaw = cols[5]?.replace(/"/g, '').trim() || '';
                     if (checkinRaw) {
-                        let d = new Date(checkinRaw);
-                        if (!isValid(d)) {
-                            // Try parsing "dd MMM yyyy" if it's just a date
-                            d = parse(checkinRaw, 'dd MMM yyyy', new Date());
-                        }
-
+                        const d = new Date(checkinRaw);
                         if (isValid(d)) {
-                            // If it's a date only, try merging time from column 6
-                            const hasTime = checkinRaw.includes(':');
-                            if (!hasTime) {
-                                const timeCol = cols[6]?.replace(/"/g, '').trim() || '00:00';
-                                const dateStr = format(d, 'yyyy-MM-dd');
-                                const combined = new Date(`${dateStr}T${timeCol}`);
-                                if (isValid(combined)) d = combined;
-                            }
                             r.checkinDate = d;
+                        } else {
+                            // Try parsing specific format if generic fails
+                            const parsed = parse(checkinRaw, 'dd MMM yy hh:mm a', new Date());
+                            if (isValid(parsed)) r.checkinDate = parsed;
                         }
                     }
 
-                    const checkoutRaw = cols[7]?.replace(/"/g, '').trim() || '';
+                    // Checkout Date/Time (Combined)
+                    const checkoutRaw = cols[6]?.replace(/"/g, '').trim() || '';
                     if (checkoutRaw) {
-                        let d = new Date(checkoutRaw);
-                        if (!isValid(d)) {
-                            d = parse(checkoutRaw, 'dd MMM yyyy', new Date());
-                        }
-
+                        const d = new Date(checkoutRaw);
                         if (isValid(d)) {
-                            const hasTime = checkoutRaw.includes(':');
-                            if (!hasTime) {
-                                const timeCol = cols[8]?.replace(/"/g, '').trim() || '00:00';
-                                const dateStr = format(d, 'yyyy-MM-dd');
-                                const combined = new Date(`${dateStr}T${timeCol}`);
-                                if (isValid(combined)) d = combined;
-                            }
                             r.checkoutDate = d;
+                        } else {
+                            const parsed = parse(checkoutRaw, 'dd MMM yy hh:mm a', new Date());
+                            if (isValid(parsed)) r.checkoutDate = parsed;
                         }
                     }
 
-                    r.groupName = cols[9]?.replace(/"/g, '') || '';
-                    r.internalNote = cols[10]?.replace(/"/g, '') || '';
+                    r.groupName = cols[7]?.replace(/"/g, '') || '';
+                    r.internalNote = cols[8]?.replace(/"/g, '') || '';
                     newRows.push(r);
                 }
             });
+
             setRowData(prev => {
                 const keptRows = prev.filter(p => isRowNonEmpty(p));
-                return [...keptRows, ...newRows, ...makeInitialRows(newRows.length > 0 ? 1 : 1)];
+                // If total exceeds 200 after merge, we might want to trim or alert.
+                // Assuming we just append but limit the total to 200 is safer.
+                const combined = [...keptRows, ...newRows];
+                if (combined.length > 200) {
+                    toast({ message: 'Bulk Pre Registration has a limit of 200 records. Only the first 200 were kept.', type: 'warning' });
+                    return combined.slice(0, 200);
+                }
+                return combined;
             });
         };
         reader.readAsText(file);
@@ -887,7 +1001,7 @@ export const BulkPreRegistration: React.FC = () => {
                             </select>
                         </div>
 
-    
+
 
                         {/* Host */}
                         <div className="tw:flex tw:flex-col tw:gap-1 tw:min-w-[240px]">
@@ -923,7 +1037,7 @@ export const BulkPreRegistration: React.FC = () => {
                             />
                         </div>}
 
-                          {/* Point of Entry (Advanced) */}
+                        {/* Point of Entry (Advanced) */}
                         {isAdvancedMegaLocationEntitled && (
                             <div className="tw:flex tw:flex-col tw:gap-1">
                                 <label className="tw:text-xs tw:font-semibold tw:text-gray-500 tw:uppercase tw:tracking-wide">
@@ -1059,10 +1173,11 @@ export const BulkPreRegistration: React.FC = () => {
                             context={gridContext}
                             getRowId={getRowId}
                             onCellValueChanged={handleCellValueChanged}
-                            singleClickEdit
+                            processDataFromClipboard={processDataFromClipboard}
+                            cellSelection={true}
+                            undoRedoCellEditing={true}
+                            undoRedoCellEditingLimit={10}
                             stopEditingWhenCellsLoseFocus={true}
-                            enableCellTextSelection
-                            //   domLayout="autoHeight" // Removing autoHeight to use flex container and scroll
                             suppressRowHoverHighlight={false}
                             rowHeight={42}
                             headerHeight={40}
