@@ -188,8 +188,8 @@ const UpcommingVisitors: React.FC = () => {
                     <button
                       className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
                       onClick={() => {
-                        // setShowInviteMenu(false);
-                        // navigate('/host/bulk-pre-register');
+                        setShowInviteMenu(false);
+                        navigate('/host/bulk-pre-register');
                       }}
                     >
                       <Upload size={15} className="tw:text-blue-600 tw:shrink-0" />
@@ -469,12 +469,6 @@ const UpcommingVisitors: React.FC = () => {
           onClose={closePreRegistrationModalHandler}
           status={modalStatus}
           visitId={selectedVisitId}
-        />
-      )}
-      {showBulkPreRegistrationModal && (
-        <BulkPreRegistrationModal
-          isOpen={showBulkPreRegistrationModal}
-          onClose={closeBulkPreRegistrationModalHandler}
         />
       )}
       <BulkCancelModal

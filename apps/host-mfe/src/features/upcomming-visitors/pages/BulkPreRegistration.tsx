@@ -2,14 +2,17 @@ import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, X, Upload, Clipboard, Download } from 'lucide-react';
 import { AgGridReact } from 'ag-grid-react';
-import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
+import { themeQuartz } from 'ag-grid-community';
 import type { ColDef, ICellRendererParams, ValueFormatterParams } from 'ag-grid-community';
-import { AllEnterpriseModule, LicenseManager } from 'ag-grid-enterprise';
 import { useSites, useVisitorTypes, useHosts, useCoHosts } from '../hooks/use-preregistration.queries';
-import { bulkPreRegistration, preScreenBulk } from '../api/pre-registration.api';
+import { bulkPreRegistration, preScreenBulk, getPointOfEntry, getParkingLots, getDestinations, getVistorTypeFields } from '../api/pre-registration.api';
 import { useAuthStore } from '@visitly/app-store';
-import { format } from 'date-fns';
-import { DateTimeCellEditor } from '../components/DateTimeCellEditor';
+import { format, addYears, isValid, isBefore, isAfter, parse } from 'date-fns';
+import { HostCellEditor, HostCellRenderer, HostHeader } from '../components/HostCellComponents';
+import { useEntitlements } from '../../visitor-detail/hooks/useEntitlement';
+import { useQuery } from '@tanstack/react-query';
+import { useToastStore } from '@visitly/app-store';
+import { Button, SearchUserSelect } from '@visitly/ui';
 // License key should be set ideally, but for now we might be in trial or it's set globally.
 
 // ---------------------------------------------------------------------------
@@ -45,20 +48,19 @@ const ActionCellRenderer: React.FC<ICellRendererParams> = (props) => {
 // ---------------------------------------------------------------------------
 // Validation helpers
 // ---------------------------------------------------------------------------
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^[+\d\s()-]*$/;
-
-  const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
+const nameRegex = /^[\p{L}\p{M}\p{Zs}.''-]+$/u;
+const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,50}$/i;
+const phoneRegex = /^[0-9]{6,15}$/;
 
 interface BulkRow {
     __id: number;
     fullName: string;
     email: string;
-    hostEmail: string; // Override Host
+    host: any; // Override Host object or string from CSV
     companyName: string; // Company
     phoneNumber: string; // Phone No.
-    scheduleCheckinDate: string; // Check In Date
-    scheduleCheckoutDate: string; // Checkout Date
+    checkinDate: Date | null;
+    checkoutDate: Date | null;
     groupName: string;
     internalNote: string;
     isHighlighted?: boolean;
@@ -67,55 +69,68 @@ interface BulkRow {
 
 function isRowNonEmpty(row: BulkRow) {
     return !!(row.fullName?.trim() || row.email?.trim() || row.phoneNumber?.trim() ||
-        row.companyName?.trim() || row.scheduleCheckinDate?.trim() || row.scheduleCheckoutDate?.trim() ||
-        row.hostEmail?.trim() || row.groupName?.trim() || row.internalNote?.trim());
+        row.companyName?.trim() || row.checkinDate ||
+        row.checkoutDate ||
+        row.host || row.groupName?.trim() || row.internalNote?.trim());
 }
 
 function validateRow(row: BulkRow) {
     if (!isRowNonEmpty(row)) return [];
 
     const errors: string[] = [];
+    const now = new Date();
+    const maxDate = addYears(now, 5);
 
-    if (!row.fullName?.trim()) errors.push('Full Name is required');
-    console.log('row.scheduleCheckinDate',row.scheduleCheckinDate)
-    if (!row.scheduleCheckinDate?.trim()) errors.push('Check In Date is required');
-    if (!isRowNonEmpty(row)) return [];
+    // Full Name
+    if (!row.fullName?.trim()) {
+        errors.push('Full Name is required');
+    } else if (!nameRegex.test(row.fullName.trim())) {
+        errors.push('Full Name format invalid');
+    }
 
-    
-
-  console.log('row.scheduleCheckinDate (raw):', row.scheduleCheckinDate);
-
-  // Check if value exists and is not just whitespace
-  const checkIn = row.scheduleCheckinDate?.trim();
-  if (!checkIn) {
-    errors.push('Check In Date is required');
-  } else if (!dateTimeRegex.test(checkIn)) {
-    errors.push('Check In Date format invalid');
-  }
-
+    // Email
     if (row.email?.trim() && !emailRegex.test(row.email.trim())) {
         errors.push('Invalid email format');
     }
+
+    // Phone
     if (row.phoneNumber?.trim() && !phoneRegex.test(row.phoneNumber.trim())) {
         errors.push('Invalid phone format');
     }
 
-    // Date format check (now allows both :ss and without)
-    if (row.scheduleCheckinDate?.trim() && !dateTimeRegex.test(row.scheduleCheckinDate.trim())) {
-        errors.push('Check In Date format invalid (use YYYY-MM-DDTHH:mm or YYYY-MM-DDTHH:mm:ss)');
-    }
-    if (row.scheduleCheckoutDate?.trim() && !dateTimeRegex.test(row.scheduleCheckoutDate.trim())) {
-        errors.push('Checkout Date format invalid (use YYYY-MM-DDTHH:mm or YYYY-MM-DDTHH:mm:ss)');
+    // Check In Date & Time
+    if (!row.checkinDate) {
+        errors.push('Check In Date is required');
+    } else {
+        if (!isValid(row.checkinDate)) {
+            errors.push('Check In Date format invalid');
+        } else {
+            if (isBefore(row.checkinDate, now)) {
+                errors.push('Check In must be in the future');
+            } else if (isAfter(row.checkinDate, maxDate)) {
+                errors.push('Check In must be within 5 years');
+            }
+        }
     }
 
-    // Logical check
-    if (row.scheduleCheckinDate && row.scheduleCheckoutDate) {
-        const checkIn  = new Date(row.scheduleCheckinDate);
-        const checkOut = new Date(row.scheduleCheckoutDate);
+    // Checkout Date & Time
+    if (row.checkoutDate) {
+        if (!isValid(row.checkoutDate)) {
+            errors.push('Checkout Date format invalid');
+        } else {
+            if (isBefore(row.checkoutDate, now)) {
+                errors.push('Checkout must be in the future');
+            } else if (isAfter(row.checkoutDate, maxDate)) {
+                errors.push('Checkout must be within 5 years');
+            }
 
-        if (isNaN(checkIn.getTime()))  errors.push('Invalid Check In date');
-        if (isNaN(checkOut.getTime())) errors.push('Invalid Checkout date');
-        if (checkOut < checkIn)        errors.push('Checkout must be after Check In');
+            // Logical check
+            if (row.checkinDate && isValid(row.checkinDate)) {
+                if (isBefore(row.checkoutDate, row.checkinDate)) {
+                    errors.push('Checkout must be after Check In');
+                }
+            }
+        }
     }
 
     return errors;
@@ -126,7 +141,7 @@ function requiredCellStyle(params: any) {
     const row = params.data;
     if (!isRowNonEmpty(row)) return null;
     const val = params.value;
-    if (!val || !val.toString().trim()) {
+    if (val === null || val === undefined || (typeof val === 'string' && !val.trim())) {
         return { borderLeft: '3px solid #EF4444', background: '#FEF2F2' };
     }
     return null;
@@ -155,17 +170,18 @@ function dateCellStyle(params: any) {
     const row = params.data;
     if (!isRowNonEmpty(row)) return null;
 
-    const val = params.value?.toString()?.trim() ?? "";
+    const val = params.value;
+    if (!isRowNonEmpty(row)) return null;
 
     // Required field check (only for check-in)
-    if (params.colDef.field === 'scheduleCheckinDate') {
+    if (params.colDef.field === 'checkinDate') {
         if (!val) {
             return { borderLeft: '3px solid #EF4444', background: '#FEF2F2' };
         }
     }
 
     // Format check
-    if (val && !dateTimeRegex.test(val)) {
+    if (val && !isValid(new Date(val))) {
         return { borderLeft: '3px solid #F59E0B', background: '#FFFBEB' };
     }
 
@@ -178,14 +194,14 @@ function dateCellStyle(params: any) {
 let rowIdCounter = 0;
 function makeEmptyRow(): BulkRow {
     return {
-        __id: ++rowIdCounter,
+        __id: Math.random(),
         fullName: '',
         email: '',
-        hostEmail: '',
+        host: null,
         companyName: '',
         phoneNumber: '',
-        scheduleCheckinDate: '',
-        scheduleCheckoutDate: '',
+        checkinDate: null,
+        checkoutDate: null,
         groupName: '',
         internalNote: '',
     };
@@ -202,6 +218,9 @@ export const BulkPreRegistration: React.FC = () => {
     const navigate = useNavigate();
     const gridRef = useRef<any>(null);
     const { user } = useAuthStore();
+    const toast = useToastStore((s) => s.showToast)
+
+    const { isAdvancedMegaLocationEntitled, isPreScreenCheckEntitled, isBulkPreRegCSVUploadEntitled, isCoHostsEntitled } = useEntitlements();
 
     // Hooks for data
     const { data: sites } = useSites();
@@ -213,6 +232,34 @@ export const BulkPreRegistration: React.FC = () => {
     const visitorTypeOptions = visitorTypes?.results || [];
 
     const [visitorTypeId, setVisitorTypeId] = useState('');
+
+    // Advanced Location States
+    const { data: poeData } = useQuery({
+        queryKey: ['poe', siteId],
+        queryFn: () => getPointOfEntry(siteId),
+        enabled: !!siteId && isAdvancedMegaLocationEntitled
+    });
+    const { data: parkingData } = useQuery({
+        queryKey: ['parking', siteId],
+        queryFn: () => getParkingLots(siteId),
+        enabled: !!siteId && isAdvancedMegaLocationEntitled
+    });
+    const { data: buildingData } = useQuery({
+        queryKey: ['buildings', siteId],
+        queryFn: () => getDestinations(siteId),
+        enabled: !!siteId && isAdvancedMegaLocationEntitled
+    });
+
+    const [poeId, setPoeId] = useState('');
+    const [parkingLotId, setParkingLotId] = useState('');
+    const [buildingId, setBuildingId] = useState('');
+
+    const { data: vtConfig } = useQuery({
+        queryKey: ['vtConfig', visitorTypeId],
+        queryFn: () => getVistorTypeFields(visitorTypeId),
+        enabled: !!visitorTypeId
+    });
+
     const [host, setHost] = useState<{ name: string; email: string; id: string } | null>(
         user ? { name: `${user.firstName} ${user.lastName}`, email: user.email, id: user.id } : null
     );
@@ -223,18 +270,13 @@ export const BulkPreRegistration: React.FC = () => {
 
     const [coHosts, setCoHosts] = useState<{ name: string; email: string; id: string }[]>([]);
     const [coHostSearch, setCoHostSearch] = useState('');
-    const [showCoHostDropdown, setShowCoHostDropdown] = useState(false);
     const { data: coHostsData } = useCoHosts(coHostSearch, siteId);
-
-    const coHostRef = useRef<HTMLDivElement>(null);
-    const hostRef = useRef<HTMLDivElement>(null);
-    const [showHostDropdown, setShowHostDropdown] = useState(false);
 
 
     // Notifications
     const [notifyHost, setNotifyHost] = useState(true);
     const [notifyVisitor, setNotifyVisitor] = useState(true);
-    const [allowPrefill, setAllowPrefill] = useState(false);
+    const [allowPrefill, setAllowPrefill] = useState(true);
 
     // Grid data
     const [rowData, setRowData] = useState<BulkRow[]>(makeInitialRows);
@@ -244,34 +286,30 @@ export const BulkPreRegistration: React.FC = () => {
     const [isWatchlistHit, setIsWatchlistHit] = useState(false);
     const [isPreScreenCheckSafe, setIsPreScreenCheckSafe] = useState(false);
 
-    // Close dropdowns on outside click
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (showCoHostDropdown && coHostRef.current && !coHostRef.current.contains(e.target as Node)) {
-                setShowCoHostDropdown(false);
-            }
-            if (showHostDropdown && hostRef.current && !hostRef.current.contains(e.target as Node)) {
-                setShowHostDropdown(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [showCoHostDropdown, showHostDropdown]);
+    // track times rows had a host set so we can ignore immediate null
+    const hostSetTimestamps = useRef<Record<string, number>>({});
 
     // Grid context for action renderer
     const gridContext = useMemo(() => ({
         deleteRow: (id: number) => {
             setRowData(prev => prev.filter(r => r.__id !== id));
         },
+        clearHost: (node: any) => {
+            node.setDataValue('host', null);
+            setRowData(prev =>
+                prev.map(r => r.__id === node.data.__id ? { ...r, host: null } : r)
+            );
+            hostSetTimestamps.current[String(node.data.__id)] = 0;
+        },
     }), []);
 
     // Column definitions
-    const columnDefs = useMemo<ColDef[]>(() => [
+    const columnDefs: ColDef[] = useMemo(() => [
         {
             headerName: 'Full Name *',
             field: 'fullName',
             editable: true,
-            flex: 1.5,
+            flex: 1.2,
             minWidth: 150,
             cellStyle: requiredCellStyle,
         },
@@ -279,16 +317,29 @@ export const BulkPreRegistration: React.FC = () => {
             headerName: 'Email',
             field: 'email',
             editable: true,
-            flex: 1.5,
-            minWidth: 160,
+            flex: 1.2,
+            minWidth: 170,
             cellStyle: emailCellStyle,
         },
         {
             headerName: 'Override Host',
-            field: 'hostEmail',
+            field: 'host',
             editable: true,
-            flex: 1,
-            minWidth: 130,
+            flex: 1.5,
+            minWidth: 180,
+            cellEditor: HostCellEditor,
+            cellRenderer: HostCellRenderer,
+            headerComponent: HostHeader,
+            // custom setter prevents the object from being wiped out by a
+            // stray null/blank commit. if `newValue` is null we ignore the
+            // change and leave the previous host untouched.
+            valueSetter: (params) => {
+                if (params.newValue === null) {
+                    return false; // cancel the update
+                }
+                params.data.host = params.newValue;
+                return true;
+            },
         },
         {
             headerName: 'Company',
@@ -305,51 +356,74 @@ export const BulkPreRegistration: React.FC = () => {
             minWidth: 120,
             cellStyle: phoneCellStyle,
         },
-         
-{
-  headerName: 'Check In Date *',
-  field: 'scheduleCheckinDate',
-  editable: true,
-  flex: 1.2,
-  minWidth: 170,
-  cellEditor: DateTimeCellEditor,
-  cellEditorPopup: false,  // ← this is the key change
-  cellStyle: dateCellStyle,
-  valueFormatter: (params: ValueFormatterParams) => {
-    if (!params.value) return '';
-    const d = new Date(params.value);
-    return d.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-  },
-},
-{
-  headerName: 'Checkout Date',
-  field: 'scheduleCheckoutDate',
-  editable: true,
-  flex: 1.2,
-  minWidth: 170,
-  cellEditor: DateTimeCellEditor,
-  cellEditorPopup: false,  // ← same here
-  cellStyle: dateCellStyle,
-  valueFormatter: (params: ValueFormatterParams) => {
-    if (!params.value) return '';
-    const d = new Date(params.value);
-    return d.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-  },
-},
+        {
+            headerName: 'Check In Date *',
+            field: 'checkinDate',
+            editable: true,
+            flex: 1,
+            minWidth: 170,
+            cellEditor: 'agDateCellEditor',
+            cellStyle: dateCellStyle,
+            cellEditorParams: {
+                default: new Date(),
+                includeTime: true,
+                step:60
+            },
+            valueFormatter: (params) => {
+                if (!params.value) return '';
+                const d = params.value instanceof Date ? params.value : new Date(params.value);
+                return isValid(d) ? format(d, 'dd MMM yy hh:mm a') : String(params.value);
+            },
+            valueParser: (params) => {
+                if (!params.newValue) return null;
+                const d = new Date(params.newValue);
+                return isValid(d) ? d : null;
+            },
+            valueSetter: (params) => {
+                const val = params.newValue;
+                if (!val) {
+                    params.data.checkinDate = null;
+                } else {
+                    const d = val instanceof Date ? val : new Date(val);
+                    params.data.checkinDate = isValid(d) ? d : null;
+                }
+                return true;
+            }
+        },
+        {
+            headerName: 'Checkout Date',
+            field: 'checkoutDate',
+            editable: true,
+            flex: 1,
+            minWidth: 170,
+            cellEditor: 'agDateCellEditor',
+            cellStyle: dateCellStyle,
+            cellEditorParams: {
+                default: new Date(),
+                includeTime: true,
+                step:60
+            },
+            valueFormatter: (params) => {
+                if (!params.value) return '';
+                const d = params.value instanceof Date ? params.value : new Date(params.value);
+                return isValid(d) ? format(d, 'dd MMM yy hh:mm a') : String(params.value);
+            },
+            valueParser: (params) => {
+                if (!params.newValue) return null;
+                const d = new Date(params.newValue);
+                return isValid(d) ? d : null;
+            },
+            valueSetter: (params) => {
+                const val = params.newValue;
+                if (!val) {
+                    params.data.checkoutDate = null;
+                } else {
+                    const d = val instanceof Date ? val : new Date(val);
+                    params.data.checkoutDate = isValid(d) ? d : null;
+                }
+                return true;
+            }
+        },
         {
             headerName: 'Group Name',
             field: 'groupName',
@@ -367,13 +441,12 @@ export const BulkPreRegistration: React.FC = () => {
         {
             headerName: 'Actions',
             field: '__actions',
-            width: 80,
+            width: 100,
             cellRenderer: ActionCellRenderer,
             editable: false,
             sortable: false,
             filter: false,
             suppressHeaderMenuButton: true,
-            cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
         },
     ], []);
 
@@ -400,37 +473,85 @@ export const BulkPreRegistration: React.FC = () => {
     }, []);
 
     const handleCellValueChanged = useCallback((event: any) => {
+        console.log('[BulkPreRegistration] cell value changed', event.colDef.field, 'newValue=', event.newValue, 'data.host=', event.data.host);
+
+        const field = event.colDef.field;
+        const prevRows = rowData; // capture current state for comparison
+        const prevRow = prevRows.find(r => r.__id === event.data.__id);
+
+        // special handling for host column
+        if (field === 'host') {
+            // if a null commit occurs after we already set a host, ignore it
+            if (event.newValue === null && prevRow && prevRow.host != null) {
+                console.log('[BulkPreRegistration] ignoring null host commit');
+                return;
+            }
+            // ensure event.data.host contains the new value so state update keeps it
+            if (event.newValue !== null) {
+                event.data.host = event.newValue;
+            }
+        }
+
         setRowData(prev =>
             prev.map(r => r.__id === event.data.__id ? { ...event.data } : r)
         );
         setValidationErrors([]);
-    }, []);
+    }, [rowData]);
 
     const getRowId = useCallback((params: any) => String(params.data.__id), []);
 
-    const preparePayload = (validRows: BulkRow[]) => {
-        return validRows.map(row => ({
-            fullName: row.fullName,
-            email: row.email || "",
-            companyName: row.companyName || "",
-            phoneNumber: row.phoneNumber || "",
-            // Use T00:00:00 to match the requested format roughly while keeping date picker simple
-            scheduleCheckinDate: row.scheduleCheckinDate || null,
-            scheduleCheckoutDate: row.scheduleCheckoutDate || null,
-            groupName: row.groupName || "",
-            internalNote: row.internalNote || "",
-            hostEmail: row.hostEmail || "", // Override host
+    // Prepare options for SearchUserSelect
+    const hostOptions = useMemo(() => {
+        return hostsData?.results?.map((u: any) => ({
+            label: `${u.firstName} ${u.lastName}`,
+            value: u.id,
+            email: u.email
+        })) || [];
+    }, [hostsData]);
 
-            // Common settings
-            orgId: user?.orgId,
-            siteId: siteId,
-            visitorTypeId: visitorTypeId,
-            hostUserId: host?.id, // Default host
-            cohostUserIds: coHosts.map(c => c.id),
-            notifyHostFlag: String(notifyHost),
-            notifyVisitFlag: String(notifyVisitor),
-            shouldPrefill: allowPrefill,
-        }));
+    const coHostOptions = useMemo(() => {
+        return coHostsData?.results?.map((u: any) => ({
+            label: `${u.firstName} ${u.lastName}`,
+            value: u.id,
+            email: u.email
+        })) || [];
+    }, [coHostsData]);
+
+    const preparePayload = (validRows: BulkRow[]) => {
+        return validRows.map(row => {
+            const formatISO = (date: Date | null) => {
+                if (!date || !isValid(date)) return null;
+                // Format to YYYY-MM-DDTHH:mm:ss for backend compatibility
+                return format(date, "yyyy-MM-dd'T'HH:mm:ss");
+            };
+
+            return {
+                fullName: row.fullName,
+                email: row.email || null,
+                companyName: row.companyName || null,
+                phoneNumber: row.phoneNumber || null,
+                scheduleCheckinDate: formatISO(row.checkinDate),
+                scheduleCheckoutDate: formatISO(row.checkoutDate),
+                groupName: row.groupName || null,
+                internalNote: row.internalNote || null,
+                hostEmail: typeof row.host === 'string' ? row.host : (row.host?.email || null),
+
+                // Common settings
+                hostUserId: host?.id || null,
+                siteId: siteId,
+                shouldPrefill: !!allowPrefill,
+                visitorTypeId: visitorTypeId,
+                notifyHostFlag: String(!!notifyHost),
+                notifyVisitFlag: String(!!notifyVisitor),
+                cohostUserIds: coHosts.map(c => c.id),
+                orgId: user?.orgId,
+
+                // Advanced Locations
+                poeId: poeId || null,
+                parkingLotId: parkingLotId || null,
+                buildingId: buildingId || null,
+            };
+        });
     };
 
     const runValidation = () => {
@@ -438,6 +559,26 @@ export const BulkPreRegistration: React.FC = () => {
         const settingsErrors: string[] = [];
         if (!siteId) settingsErrors.push('Location is required');
         if (!visitorTypeId) settingsErrors.push('Visitor Type is required');
+
+        // Advanced Location Validation based on VT Config
+        if (vtConfig) {
+            const hasField = (name: string) => vtConfig.fields?.find(f => f.name === name);
+
+            const poeField = hasField('Point of Entry');
+            if (poeField?.isMandatoryForPreregistration && !poeId) {
+                settingsErrors.push('Point of Entry is required');
+            }
+
+            const parkingField = hasField('Parking Lot');
+            if (parkingField?.isMandatoryForPreregistration && !parkingLotId) {
+                settingsErrors.push('Parking Lot is required');
+            }
+
+            const buildingField = hasField('Building');
+            if (buildingField?.isMandatoryForPreregistration && !buildingId) {
+                settingsErrors.push('Building is required');
+            }
+        }
 
         // Validate grid rows
         const filledRows = rowData.filter(isRowNonEmpty);
@@ -496,8 +637,8 @@ export const BulkPreRegistration: React.FC = () => {
                             newRowData[realIndex] = {
                                 ...newRowData[realIndex],
                                 isHighlighted: true,
-                                warningTooltipMessage: `Watchlist hit` // API response details would be better here if available per row
-                            };
+                                warningTooltipMessage: `Watchlist hit`
+                            } as BulkRow;
                         }
                     }
                 });
@@ -522,16 +663,16 @@ export const BulkPreRegistration: React.FC = () => {
         try {
             const payload = preparePayload(validRows);
             await bulkPreRegistration(payload);
-            navigate('/upcoming-visitors'); // Go back to main page
+            navigate('/host/upcoming-visitors');
+            toast({ message: 'Bulk preregistration completed successfully!' })
         } catch (error) {
-            console.error('Save failed', error);
         } finally {
             setIsSaving(false);
         }
     };
 
     const downloadTemp = () => {
-        const csv = '"fullName","email","hostEmail","companyName","phoneNumber","arrivalTime (YYYY-MM-DD HH:mm)","departureTime (YYYY-MM-DD HH:mm)","groupName","internalNote"';
+        const csv = '"fullName","email","hostEmail","companyName","phoneNumber","arrivalTime (DD-MM-YYYY HH:MM)","departureTime (DD-MM-YYYY HH:MM)","groupName","internalNote"';
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -550,6 +691,10 @@ export const BulkPreRegistration: React.FC = () => {
         reader.onload = (event) => {
             const csv = event.target?.result as string;
             const lines = csv.split(/\r\n|\n/).slice(1); // Skip header
+            if (lines.length > 200) {
+            alert('You cannot upload more than 200 rows at a time.');
+            return; // Stop processing
+            }
             const newRows: BulkRow[] = [];
             lines.forEach(line => {
                 const cols = line.split(',');
@@ -557,13 +702,53 @@ export const BulkPreRegistration: React.FC = () => {
                     const r = makeEmptyRow();
                     r.fullName = cols[0]?.replace(/"/g, '') || '';
                     r.email = cols[1]?.replace(/"/g, '') || '';
-                    r.hostEmail = cols[2]?.replace(/"/g, '') || '';
+                    r.host = cols[2]?.replace(/"/g, '') || '';
                     r.companyName = cols[3]?.replace(/"/g, '') || '';
                     r.phoneNumber = cols[4]?.replace(/"/g, '') || '';
-                    r.scheduleCheckinDate = cols[5]?.replace(/"/g, '') || '';
-                    r.scheduleCheckoutDate = cols[6]?.replace(/"/g, '') || '';
-                    r.groupName = cols[7]?.replace(/"/g, '') || '';
-                    r.internalNote = cols[8]?.replace(/"/g, '') || '';
+
+                    // CSV might have combined date or separate
+                    const checkinRaw = cols[5]?.replace(/"/g, '').trim() || '';
+                    if (checkinRaw) {
+                        let d = new Date(checkinRaw);
+                        if (!isValid(d)) {
+                            // Try parsing "dd MMM yyyy" if it's just a date
+                            d = parse(checkinRaw, 'dd MMM yyyy', new Date());
+                        }
+
+                        if (isValid(d)) {
+                            // If it's a date only, try merging time from column 6
+                            const hasTime = checkinRaw.includes(':');
+                            if (!hasTime) {
+                                const timeCol = cols[6]?.replace(/"/g, '').trim() || '00:00';
+                                const dateStr = format(d, 'yyyy-MM-dd');
+                                const combined = new Date(`${dateStr}T${timeCol}`);
+                                if (isValid(combined)) d = combined;
+                            }
+                            r.checkinDate = d;
+                        }
+                    }
+
+                    const checkoutRaw = cols[7]?.replace(/"/g, '').trim() || '';
+                    if (checkoutRaw) {
+                        let d = new Date(checkoutRaw);
+                        if (!isValid(d)) {
+                            d = parse(checkoutRaw, 'dd MMM yyyy', new Date());
+                        }
+
+                        if (isValid(d)) {
+                            const hasTime = checkoutRaw.includes(':');
+                            if (!hasTime) {
+                                const timeCol = cols[8]?.replace(/"/g, '').trim() || '00:00';
+                                const dateStr = format(d, 'yyyy-MM-dd');
+                                const combined = new Date(`${dateStr}T${timeCol}`);
+                                if (isValid(combined)) d = combined;
+                            }
+                            r.checkoutDate = d;
+                        }
+                    }
+
+                    r.groupName = cols[9]?.replace(/"/g, '') || '';
+                    r.internalNote = cols[10]?.replace(/"/g, '') || '';
                     newRows.push(r);
                 }
             });
@@ -595,22 +780,6 @@ export const BulkPreRegistration: React.FC = () => {
         </button>
     );
 
-    // Tag chip for host/co-host
-    const renderTag = (name: string, onRemove: () => void) => (
-        <span
-            key={name}
-            className="tw:inline-flex tw:items-center tw:gap-1 tw:px-2.5 tw:py-1 tw:rounded-full tw:bg-primary-50 tw:text-primary-600 tw:text-[13px] tw:font-medium tw:whitespace-nowrap"
-        >
-            {name}
-            <button
-                onClick={onRemove}
-                className="tw:bg-transparent tw:border-none tw:p-0 tw:flex tw:items-center tw:text-primary-600 tw:cursor-pointer tw:opacity-70 hover:tw:opacity-100"
-            >
-                <X size={13} />
-            </button>
-        </span>
-    );
-
     const selectStyle = {
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 4 4 4 4-4'/%3E%3C/svg%3E")`,
         backgroundRepeat: 'no-repeat',
@@ -634,14 +803,14 @@ export const BulkPreRegistration: React.FC = () => {
                         <h1 className="tw:text-xl tw:font-semibold tw:text-gray-900 tw:m-0">
                             Bulk Pre-Registration
                         </h1>
-                        <p className="tw:text-xs tw:text-gray-500 tw:mt-1 tw:cursor-pointer hover:tw:text-primary-600 hover:tw:underline" onClick={downloadTemp}>
-                            click here to download upload CSV template.
-                        </p>
+                        {isBulkPreRegCSVUploadEntitled && <p className="tw:text-xs tw:text-gray-500 tw:mt-1 tw:cursor-pointer hover:tw:text-primary-600 hover:tw:underline" onClick={downloadTemp}>
+                            click <span className='tw:underline tw:text-blue-700'>here</span> to download upload CSV template.
+                        </p>}
                     </div>
                 </div>
 
                 <div className="tw:flex tw:gap-3">
-                    <div className="tw:relative">
+                    {isBulkPreRegCSVUploadEntitled && <div className="tw:relative">
                         <input
                             type="file"
                             accept=".csv"
@@ -653,23 +822,23 @@ export const BulkPreRegistration: React.FC = () => {
                             <Upload size={16} /> Upload CSV
                         </button>
                     </div>
-
-                    <button
+                    }
+                    {isPreScreenCheckEntitled && <button
                         onClick={handlePreScreen}
                         disabled={isPreScreening || isSaving}
                         className="tw:px-4 tw:py-2.5 tw:bg-white tw:text-gray-700 tw:border tw:border-gray-300 tw:rounded-[10px] tw:text-sm tw:font-medium tw:cursor-pointer hover:tw:bg-gray-50"
                     >
                         {isPreScreening ? 'Checking...' : 'Pre-screen'}
-                    </button>
+                    </button>}
 
-                    <button
+                    <Button
                         onClick={handleSave}
+                        variant='primary'
                         disabled={isSaving || isPreScreening}
-                        className="tw:px-6 tw:py-2.5 tw:bg-primary-600 tw:text-white tw:border-none tw:rounded-[10px] tw:text-sm tw:font-medium tw:cursor-pointer hover:tw:bg-primary-700 tw:transition-colors"
-                        style={{ background: 'var(--color-primary)' }}
+                        className="tw:cursor-pointer"
                     >
                         {isSaving ? 'Saving...' : 'Save'}
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -718,113 +887,104 @@ export const BulkPreRegistration: React.FC = () => {
                             </select>
                         </div>
 
+    
+
                         {/* Host */}
-                        <div className="tw:flex tw:flex-col tw:gap-1 tw:relative" ref={hostRef}>
+                        <div className="tw:flex tw:flex-col tw:gap-1 tw:min-w-[240px]">
                             <label className="tw:text-xs tw:font-semibold tw:text-gray-500 tw:uppercase tw:tracking-wide">
                                 Host
                             </label>
-                            <div
-                                className="tw:flex tw:items-center tw:gap-1.5 tw:min-h-[38px] tw:px-2 tw:border tw:border-transparent tw:rounded-lg hover:tw:bg-white hover:tw:border-gray-200 tw:cursor-text tw:transition-all"
-                                onClick={() => {
-                                    setShowHostDropdown(true);
-                                    // Focus input logic if needed
+                            <SearchUserSelect
+                                options={hostOptions}
+                                onSearch={setHostSearch}
+                                value={host ? [{ label: host.name, value: host.id, email: host.email }] : []}
+                                onChange={(opt: any) => {
+                                    const selected = Array.isArray(opt) ? opt[0] : opt;
+                                    setHost(selected ? { name: selected.label, email: selected.email, id: selected.value } : null);
                                 }}
-                            >
-                                {host ? (
-                                    renderTag(host.name, () => setHost(null))
-                                ) : (
-                                    <input
-                                        type="text"
-                                        value={hostSearch}
-                                        onChange={(e) => {
-                                            setHostSearch(e.target.value);
-                                            setShowHostDropdown(true);
-                                        }}
-                                        onFocus={() => setShowHostDropdown(true)}
-                                        placeholder="Search host..."
-                                        className="tw:border-none tw:outline-none tw:text-[13px] tw:bg-transparent tw:text-gray-700 tw:w-full tw:min-w-[140px]"
-                                    />
-                                )}
-                            </div>
-                            {/* Host dropdown */}
-                            {showHostDropdown && hostsData && (
-                                <div className="tw:absolute tw:top-full tw:left-0 tw:mt-1 tw:bg-white tw:border tw:border-gray-200 tw:rounded-[10px] tw:shadow-lg tw:z-20 tw:max-h-52 tw:overflow-auto tw:p-1 tw:min-w-[240px]">
-                                    {hostsData.results?.map((u: any) => (
-                                        <button
-                                            key={u.id}
-                                            onClick={() => {
-                                                setHost({ name: `${u.firstName} ${u.lastName}`, email: u.email, id: u.id });
-                                                setHostSearch('');
-                                                setShowHostDropdown(false);
-                                            }}
-                                            className="tw:w-full tw:text-left tw:px-2.5 tw:py-2 tw:rounded-md hover:tw:bg-gray-50 tw:bg-transparent tw:border-none tw:cursor-pointer"
-                                        >
-                                            <div className="tw:text-[13px] tw:font-medium tw:text-gray-800">{u.firstName} {u.lastName}</div>
-                                            <div className="tw:text-[11px] tw:text-gray-400">{u.email}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                                placeholder="Search host..."
+                            />
                         </div>
 
                         {/* Co-Hosts */}
-                        <div className="tw:flex tw:flex-col tw:gap-1 tw:relative tw:min-w-[240px]" ref={coHostRef}>
+                        {isCoHostsEntitled && <div className="tw:flex tw:flex-col tw:gap-1 tw:min-w-[300px]">
                             <label className="tw:text-xs tw:font-semibold tw:text-gray-500 tw:uppercase tw:tracking-wide">
                                 Co-Host(s)
                             </label>
-                            <div
-                                className="tw:flex tw:flex-wrap tw:items-center tw:gap-1.5 tw:p-1.5 tw:min-h-[38px] tw:border tw:border-gray-200 tw:rounded-lg tw:bg-white tw:cursor-text focus-within:tw:border-primary-500 focus-within:tw:ring-2 focus-within:tw:ring-primary-500/10"
-                                onClick={() => {
-                                    setShowCoHostDropdown(true);
-                                    coHostRef.current?.querySelector('input')?.focus();
+                            <SearchUserSelect
+                                multi
+                                options={coHostOptions}
+                                onSearch={setCoHostSearch}
+                                value={coHosts.map(c => ({ label: c.name, value: c.id, email: c.email }))}
+                                onChange={(opts: any) => {
+                                    setCoHosts(opts.map((o: any) => ({ name: o.label, email: o.email, id: o.value })));
                                 }}
-                            >
-                                {coHosts.map(c => renderTag(c.name, () => {
-                                    setCoHosts(prev => prev.filter(p => p.email !== c.email));
-                                }))}
-                                <input
-                                    type="text"
-                                    value={coHostSearch}
-                                    onChange={(e) => {
-                                        setCoHostSearch(e.target.value);
-                                        setShowCoHostDropdown(true);
-                                    }}
-                                    onFocus={() => setShowCoHostDropdown(true)}
-                                placeholder={coHosts.length === 0 ? 'Search co-hosts...' : ''}
-                                className="tw:border-none tw:outline-none tw:text-[13px] tw:flex-1 tw:min-w-[80px] tw:bg-transparent tw:text-gray-700"
-                />
+                                placeholder="Search co-hosts..."
+                            />
+                        </div>}
+
+                          {/* Point of Entry (Advanced) */}
+                        {isAdvancedMegaLocationEntitled && (
+                            <div className="tw:flex tw:flex-col tw:gap-1">
+                                <label className="tw:text-xs tw:font-semibold tw:text-gray-500 tw:uppercase tw:tracking-wide">
+                                    Point of Entry {vtConfig?.fields?.find(f => f.name === 'Point of Entry')?.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}
+                                </label>
+                                <select
+                                    value={poeId}
+                                    onChange={(e) => setPoeId(e.target.value)}
+                                    disabled={!siteId || !poeData}
+                                    className="tw:appearance-none tw:px-3 tw:py-2 tw:pr-8 tw:text-[13px] tw:font-medium tw:rounded-lg tw:border tw:border-gray-200 tw:bg-white tw:text-gray-700 tw:outline-none tw:min-w-[180px] focus:tw:ring-2 focus:tw:ring-primary-500/20 focus:tw:border-primary-500"
+                                    style={selectStyle}
+                                >
+                                    <option value="">Select point of entry</option>
+                                    {(Array.isArray(poeData) ? poeData : (poeData as any)?.results || [])?.map((p: any) => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
                             </div>
+                        )}
 
-                            {/* Co-host dropdown */}
-                            {showCoHostDropdown && coHostsData && (
-                                <div className="tw:absolute tw:top-full tw:left-0 tw:right-0 tw:mt-1 tw:bg-white tw:border tw:border-gray-200 tw:rounded-[10px] tw:shadow-lg tw:z-20 tw:max-h-52 tw:overflow-auto tw:p-1">
-                                    {coHostsData.results?.map((u: any) => {
-                                        const fullName = `${u.firstName} ${u.lastName}`.trim();
-                                        const isSelected = coHosts.some(c => c.email === u.email);
-                                        if (isSelected) return null;
+                        {/* Parking Lot (Advanced) */}
+                        {isAdvancedMegaLocationEntitled && (
+                            <div className="tw:flex tw:flex-col tw:gap-1">
+                                <label className="tw:text-xs tw:font-semibold tw:text-gray-500 tw:uppercase tw:tracking-wide">
+                                    Parking Lot {vtConfig?.fields?.find(f => f.name === 'Parking Lot')?.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}
+                                </label>
+                                <select
+                                    value={parkingLotId}
+                                    onChange={(e) => setParkingLotId(e.target.value)}
+                                    disabled={!siteId || !parkingData}
+                                    className="tw:appearance-none tw:px-3 tw:py-2 tw:pr-8 tw:text-[13px] tw:font-medium tw:rounded-lg tw:border tw:border-gray-200 tw:bg-white tw:text-gray-700 tw:outline-none tw:min-w-[180px] focus:tw:ring-2 focus:tw:ring-primary-500/20 focus:tw:border-primary-500"
+                                    style={selectStyle}
+                                >
+                                    <option value="">Select parking lot</option>
+                                    {(Array.isArray(parkingData) ? parkingData : (parkingData as any)?.results || [])?.map((p: any) => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
-                                        return (
-                                            <button
-                                                key={u.id}
-                                                onClick={() => {
-                                                    setCoHosts(prev => [...prev, { name: fullName, email: u.email, id: u.id }]);
-                                                    setCoHostSearch('');
-                                                    setShowCoHostDropdown(false);
-                                                }}
-                                                className="tw:flex tw:flex-col tw:w-full tw:px-2.5 tw:py-2 tw:bg-transparent tw:border-none tw:rounded-md tw:cursor-pointer tw:text-left hover:tw:bg-gray-50"
-                                            >
-                                                <span className="tw:text-[13px] tw:font-medium tw:text-gray-800">
-                                                    {fullName}
-                                                </span>
-                                                <span className="tw:text-[11px] tw:text-gray-400">
-                                                    {u.email}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
+                        {/* Building (Advanced) */}
+                        {isAdvancedMegaLocationEntitled && (
+                            <div className="tw:flex tw:flex-col tw:gap-1">
+                                <label className="tw:text-xs tw:font-semibold tw:text-gray-500 tw:uppercase tw:tracking-wide">
+                                    Building {vtConfig?.fields?.find(f => f.name === 'Building')?.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}
+                                </label>
+                                <select
+                                    value={buildingId}
+                                    onChange={(e) => setBuildingId(e.target.value)}
+                                    disabled={!siteId || !buildingData}
+                                    className="tw:appearance-none tw:px-3 tw:py-2 tw:pr-8 tw:text-[13px] tw:font-medium tw:rounded-lg tw:border tw:border-gray-200 tw:bg-white tw:text-gray-700 tw:outline-none tw:min-w-[180px] focus:tw:ring-2 focus:tw:ring-primary-500/20 focus:tw:border-primary-500"
+                                    style={selectStyle}
+                                >
+                                    <option value="">Select building</option>
+                                    {(Array.isArray(buildingData) ? buildingData : (buildingData as any)?.results || [])?.map((b: any) => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
 
                     {/* Notification & Prefill chips */}
@@ -837,6 +997,30 @@ export const BulkPreRegistration: React.FC = () => {
                         {renderChip('Allow Prefill', allowPrefill, () => setAllowPrefill(v => !v))}
                     </div>
                 </div>
+
+                {/* ---- Watchlist Warning ---- */}
+                {isWatchlistHit && (
+                    <div className="tw:p-4 tw:bg-amber-50 tw:border tw:border-amber-200 tw:rounded-[10px] tw:flex tw:items-start tw:gap-3">
+                        <div className="tw:flex-shrink-0 tw:mt-0.5">
+                            <img src="/assets/images/vl-status-under-review.svg" height="15px" alt="Warning" className="tw:h-4 tw:w-4" />
+                        </div>
+                        <p className="tw:text-[13px] tw:text-amber-800 tw:m-0">
+                            Please review and edit the highlighted record due to a watchlist hit. Hover on the icon for the details, click "Save" to proceed, or "X" to cancel.
+                        </p>
+                        <button
+                            onClick={() => setIsWatchlistHit(false)}
+                            className="tw:ml-auto tw:bg-transparent tw:border-none tw:p-0.5 tw:text-amber-800 tw:cursor-pointer hover:tw:text-amber-900"
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                )}
+
+                {isPreScreenCheckSafe && (
+                    <div className="tw:p-3 tw:bg-green-50 tw:border tw:border-green-200 tw:rounded-[10px]">
+                        <p className="tw:text-[13px] tw:text-green-800 tw:m-0">No watchlist matches found</p>
+                    </div>
+                )}
 
                 {/* ---- Validation Errors ---- */}
                 {validationErrors.length > 0 && (
@@ -876,7 +1060,7 @@ export const BulkPreRegistration: React.FC = () => {
                             getRowId={getRowId}
                             onCellValueChanged={handleCellValueChanged}
                             singleClickEdit
-                            stopEditingWhenCellsLoseFocus={false}
+                            stopEditingWhenCellsLoseFocus={true}
                             enableCellTextSelection
                             //   domLayout="autoHeight" // Removing autoHeight to use flex container and scroll
                             suppressRowHoverHighlight={false}
