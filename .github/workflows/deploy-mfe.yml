@@ -15,7 +15,7 @@ on:
       mfe_selection:
         description: 'Which MFE(s) to deploy'
         required: true
-        default: 'both'
+        default: 'all'
         type: choice
         options:
           - all
