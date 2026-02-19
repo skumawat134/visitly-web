@@ -13,6 +13,8 @@ import { resolveLanding, resolveRole } from "./shared/utils/navigation";
 import { getProductInfo } from "./shared/services/entitlement.api";
 import { getOnboardingStatusApi } from "./shared/services/onboarding.api";
 import WallboardRedirect from "./redirects/WallboardRedirect";
+import HostMFE from "./mfe/HostMFE";
+import SwitchRole from "./shared/components/SwitchRole";
 
 // --- Constants ---
 
@@ -21,6 +23,48 @@ const ADMIN_SPECIAL_ROUTES = [
     '/admin/dashboard/wallboard',
     '/admin/impersonate/user',
 ];
+
+
+const checkOnBoardingStatusAndRedirect = async ({ request }: { request: any }) => {
+    // Onboarding Logic
+    const authStore = useAuthStore.getState();
+    const url = new URL(request.url);
+    if (authStore.isAuthenticated && authStore.user) {
+        try {
+            // Fetch status if not in cache (or trust stale for a bit)
+            const onboardingStatus = await queryClient.fetchQuery({
+                queryKey: ['auth', 'onboarding'],
+                queryFn: getOnboardingStatusApi,
+                staleTime: 1000 * 60,
+            });
+
+            const isOnboarded = onboardingStatus?.onboarded;
+            const isOnboardingRoute = url.pathname.startsWith('/admin/onboarding');
+
+            if (isOnboarded === false && !isOnboardingRoute) {
+                console.log('[Router] Not onboarded. Forcing onboarding redirect.');
+                return redirect('/admin/onboarding');
+            }
+
+            if (isOnboarded === true && isOnboardingRoute) {
+                const landing = resolveLanding(authStore.user);
+                return redirect(landing);
+            }
+        } catch (e) {
+            console.warn('[Router] Could not verify onboarding status, proceeding...');
+            const status = (e as any)?.response?.status;
+            if (status) {
+                // Cache fake onboarded = true
+                queryClient.setQueryData(['auth', 'onboarding'], { onboarded: true });
+                const landing = resolveLanding(authStore.user);
+                return redirect(landing);
+            }
+        }
+    }
+    return null;
+}
+
+
 
 // ----------------------------------------------------
 // Loaders
@@ -31,10 +75,9 @@ const ADMIN_SPECIAL_ROUTES = [
 // - Bootstrapping Auth (checking tempToken, hydrating store)
 // - Fetching initial User/Entitlements if token exists
 // - Syncing sessionStorage for legacy MFE compatibility
-const appLoader = async () => {
+const appLoader = async ({ request }: { request: any }) => {
     const authStore = useAuthStore.getState();
     let accessToken = authStore.tokens.accessToken;
-
     // A. Check for tempToken (Impersonation Fix)
     if (!accessToken) {
         const tempToken = localStorage.getItem('tempToken');
@@ -95,13 +138,12 @@ const appLoader = async () => {
                 }));
             }
 
-            // Onboarding Status
-            promises.push(queryClient.fetchQuery({
-                queryKey: ['auth', 'onboarding'],
-                queryFn: getOnboardingStatusApi,
-                staleTime: 1000 * 60,
-            }));
-
+            // // Onboarding Status
+            // promises.push(queryClient.fetchQuery({
+            //     queryKey: ['auth', 'onboarding'],
+            //     queryFn: getOnboardingStatusApi,
+            //     staleTime: 1000 * 60,
+            // }));
             await Promise.all(promises);
 
         } catch (error) {
@@ -113,11 +155,10 @@ const appLoader = async () => {
     return null;
 };
 
-// 2. Protected Route Loader
+// 2. Protected Route Loader (Includes Onboarding)
 const protectedLoader = async ({ request }: any) => {
     const authStore = useAuthStore.getState();
     const url = new URL(request.url);
-
     // Bypasses for special routes (Wallboard, Impersonation)
     const isSpecialRoute = ADMIN_SPECIAL_ROUTES.some(route => url.pathname.startsWith(route));
 
@@ -127,37 +168,23 @@ const protectedLoader = async ({ request }: any) => {
         return redirect("/visitly/login");
     }
 
-    // Onboarding Logic
-    if (authStore.isAuthenticated && authStore.user) {
-        try {
-            // Fetch status if not in cache (or trust stale for a bit)
-            const onboardingStatus = await queryClient.fetchQuery({
-                queryKey: ['auth', 'onboarding'],
-                queryFn: getOnboardingStatusApi,
-                staleTime: 1000 * 60,
-            });
-
-            const isOnboarded = onboardingStatus?.onboarded;
-            const isOnboardingRoute = url.pathname.startsWith('/admin/onboarding');
-
-            if (isOnboarded === false && !isOnboardingRoute) {
-                console.log('[Router] Not onboarded. Forcing onboarding redirect.');
-                return redirect('/admin/onboarding');
-            }
-
-            if (isOnboarded === true && isOnboardingRoute) {
-                const landing = resolveLanding(authStore.user);
-                return redirect(landing);
-            }
-        } catch (e) {
-            console.warn('[Router] Could not verify onboarding status, proceeding...');
-        }
-    }
-
-    return null;
+    return await checkOnBoardingStatusAndRedirect({ request });
 };
 
-// 3. Public Auth Loader (Login/Signup)
+// 3. Host Loader (Auth only, NO onboarding)
+const hostLoader = async ({ request }: any) => {
+    const authStore = useAuthStore.getState();
+    const url = new URL(request.url);
+
+    if (!authStore.isAuthenticated) {
+        const redirectPath = url.pathname + url.search;
+        sessionStorage.setItem('redirect_after_login', redirectPath);
+        return redirect("/visitly/login");
+    }
+    return await checkOnBoardingStatusAndRedirect({ request });
+};
+
+// 4. Public Auth Loader (Login/Signup)
 const publicAuthLoader = async () => {
     const authStore = useAuthStore.getState();
     if (authStore.isAuthenticated && authStore.user) {
@@ -196,6 +223,16 @@ export const router = createBrowserRouter([
                         element: <DataMFE />,
                     },
                 ]
+            },
+            {
+                path: "/host/*",
+                element: <HostMFE />,
+                loader: hostLoader,
+            },
+            {
+                path: "/switch",
+                element: <SwitchRole />,
+                loader: hostLoader,
             },
             {
                 path: "/saml",

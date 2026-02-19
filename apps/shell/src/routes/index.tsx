@@ -10,11 +10,14 @@ import AuthInitializer from '@/providers/AuthInitializer';
 import { NavigationResolver } from '@/providers/NavigationResolver';
 import NotFound from '@/shared/components/NotFound';
 import { PermaVisitsRedirect, SamlRedirect } from '@/redirects';
+import HostMFE from '@/mfe/HostMFE';
+import  SwitchRole  from '../shared/components/SwitchRole'
 
 // const AuthMFEggg = React.lazy(() => import('AuthM FE/AppRouter'));
 
 function AppRouter() {
   console.warn("process.env.VITE_ANGULAR_MFE_REMOTE_URL", process.env.VITE_ANGULAR_MFE_REMOTE_URL)
+    console.warn("process.env.VITE_HOST_MFE_REMOTE_URL", process.env.VITE_HOST_MFE_REMOTE_URL)
   return (
     <>
       <BrowserRouter>
@@ -30,10 +33,15 @@ function AppRouter() {
               </RequireCapability>
             } />
           </Route>
+          <Route path="/host/*" element ={<HostMFE />} />
+          
+          
           <Route path='/dashboard/wallboard' element={<Navigate to="/admin/dashboard/wallboard" replace />} />
           <Route path='/impersonate/user' element={<Navigate to="/admin/impersonate/user" replace />} />
           <Route path="/saml" element={<SamlRedirect />} />
           <Route path="/permaVisits/*" element={<PermaVisitsRedirect />} />
+          <Route path="/switch" element={<SwitchRole />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

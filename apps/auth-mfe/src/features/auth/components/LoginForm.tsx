@@ -9,7 +9,7 @@ import appLogo from '@/assets/images/logo.png';
 const LoginForm = () => {
     const { handleSubmit, isSubmitting, showPassword, setShowPassword, touched, errors, values, showPasswordField, handleBlur, handleChange, setStep, ssoUrl } = useLogin();
     return (
-        <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8">
+        <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8" data-test-id="auth-mfe-login-form-root">
             {/* Visitly Logo */}
             <div className="tw:flex tw:items-center tw:gap-2 tw:my-12" data-testid="login-logo-container">
                 <Image src={appLogo} alt='visity-web-logo' width={196} data-testid="login-logo" />

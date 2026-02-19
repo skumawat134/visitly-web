@@ -1,0 +1,1 @@
+export { default as MyDeliveryLogs } from './pages/MyDeliveryLogs'

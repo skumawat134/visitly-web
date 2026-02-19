@@ -60,7 +60,8 @@ export type UserRoleType =
   | 'FRONTDESK_ADMIN'
   | 'EVAC_MANAGER'
   | 'DELIVERY_MANAGER'
-  | 'SITE_ADMIN';
+  | 'SITE_ADMIN'
+  | 'HOST';
 
 export interface UserRole {
   role: UserRoleType;

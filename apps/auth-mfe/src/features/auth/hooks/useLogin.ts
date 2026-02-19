@@ -49,7 +49,6 @@ const useLogin = () => {
           showToast({ message: "Log-in successful!" })
         }
       } catch (error: any) {
-        console.log("resp", error.response, error.message)
         const err = error?.response?.data
         switch (err?.status) {
           case 401:

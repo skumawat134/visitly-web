@@ -5,7 +5,6 @@ const Dotenv = require("dotenv-webpack");
 const { postcssTailwindPlugin } = require("./postcss.tailwind");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const appRoot = process.cwd();
-console.log("appRoot" ,appRoot ,    path.join(appRoot, '../../packages/app-store/dist'))
 module.exports = (env = {}) => {
     const nodeEnv = env.NODE_ENV || "development";
     const envPath = path.resolve(process.cwd(), `.env.${nodeEnv}`);

@@ -21,6 +21,32 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
     const user = useAuthStore((s) => s.user);
 
     const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
+    const SESSION_TO_LOCAL_KEYS: string = "__session_backup_keys__";
+
+
+    async function switchToHost() {
+        await setToLocalStorageTemporarily();
+        window.open("/switch", "_blank");
+    }
+
+    function setToLocalStorageTemporarily() {
+        const copiedKeys: string[] = [];
+        localStorage.setItem('redirectFrom', 'ADMIN')
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (!key) continue;
+
+            const value = sessionStorage.getItem(key);
+            if (value !== null) {
+                localStorage.setItem(key, value);
+                copiedKeys.push(key);
+            }
+        }
+
+        localStorage.setItem(SESSION_TO_LOCAL_KEYS, JSON.stringify(copiedKeys));
+    }
+
+
 
     // Fetch Sites
     const { data: sitesData } = useQuery({
@@ -118,7 +144,9 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                         Upgrade Plan
                     </Button>
                 )}
-
+                <Button variant="primary" onClick={switchToHost} data-testid="upgrade-plan-button">
+                    Launch My Visitly
+                </Button>
 
                 {/* Help Dropdown */}
                 <Popover
@@ -146,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                             </a>
                             <button
                                 className="tw:w-full tw:flex tw:items-center tw:gap-2 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600"
-                                onClick={() => { /* Open Freshdesk widget logic would go here, traditionally invokes global script */ }}
+                                onClick={() => { (window as any).FreshworksWidget?.('open'); }}
                                 data-testid="support-link"
                             >
                                 Support

@@ -25,7 +25,6 @@ const LoginForm = () => {
   const handleSubmit = async (values: { email: string; password: string }) => {
     setIsSubmitting(true);
     try {
-      console.log('Form data', values);
       // TODO: Integrate with auth store
       // await useAuthStore.getState().login(values.email, values.password);
     } catch (error) {
@@ -36,7 +35,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:justify-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8">
+    <div className="tw:min-h-screen tw:flex tw:flex-col tw:items-center tw:justify-center tw:bg-slate-50 tw:py-12 tw:px-4 tw:sm:px-6 tw:lg:px-8" data-test-id="auth-mfe-login-form-root">
       {/* Visitly Logo */}
       <div className="tw:flex tw:items-center tw:gap-2 tw:mb-8">
         <svg 
@@ -114,7 +113,6 @@ const LoginForm = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       // TODO: Implement forgot password flow
-                      console.log('Forgot password clicked');
                     }}
                   >
                     Forgot password?
@@ -140,8 +138,6 @@ const LoginForm = () => {
                     className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
                     onClick={(e) => {
                       e.preventDefault();
-                      // TODO: Implement SSO flow
-                      console.log('SSO clicked');
                     }}
                   >
                     Use single sign-on instead
@@ -153,8 +149,6 @@ const LoginForm = () => {
                       className="tw:font-bold tw:text-indigo-600 hover:tw:underline"
                       onClick={(e) => {
                         e.preventDefault();
-                        // TODO: Navigate to signup
-                        console.log('Sign up clicked');
                       }}
                     >
                       Join Us

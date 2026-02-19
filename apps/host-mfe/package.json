@@ -19,9 +19,16 @@
   "dependencies": {
     "@visitly/api-client": "*",
     "@visitly/app-store": "*",
+    "@visitly/shared-core": "workspace:^",
     "@visitly/ui": "*",
     "@visitly/webpack-config": "*",
+    "ag-grid-community": "^35.0.1",
+    "ag-grid-enterprise": "^35.0.1",
+    "ag-grid-react": "^35.0.1",
+    "date-fns": "^4.1.0",
     "formik": "^2.4.9",
+    "framer-motion": "^12.34.2",
+    "lucide-react": "^0.468.0",
     "yup": "^1.7.1"
   },
   "devDependencies": {

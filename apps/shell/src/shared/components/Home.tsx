@@ -32,7 +32,6 @@ const App = () => {
     },
   ];
   const user = useAuthStore();
-  console.log("userrrrrrrrr" , user)
   return (
     <>
         <main>

@@ -7,11 +7,12 @@
 @import "@visitly/tailwind-config/theme.css";
 
 /* Source files for Tailwind to scan for class names */
-@source "../../../auth-mfe/src/**/*.{ts,tsx}";
 @source "../*.{ts,tsx,js,jsx}";
 @source "../**/*.{ts,tsx,js,jsx}";
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
 @source "../../../../packages/shared-core/src/**/*.{ts,tsx}";
+@source "../../../auth-mfe/src/**/*.{ts,tsx}";
+@source "../../../host-mfe/src/**/*.{ts,tsx}";
 
 /* 2. Apply to the whole page */
 html,
@@ -22,7 +23,8 @@ body {
   padding: 0;
   height: 100vh;
   width: 100vw;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 #root {

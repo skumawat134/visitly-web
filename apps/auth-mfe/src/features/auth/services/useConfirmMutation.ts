@@ -3,7 +3,6 @@ import { confirmEmailApi } from "../services/auth.api";
 import type { ConfirmEmailPayload, ConfirmEmailResponse } from "../types/auth.types";
 
 export function useConfirmMutation() {
-    console.log("useConfirmMutation called");
     return useMutation<ConfirmEmailResponse, Error, ConfirmEmailPayload>({
         mutationKey: ["auth", "confirmEmail"],
 

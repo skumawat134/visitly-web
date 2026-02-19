@@ -30,12 +30,16 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "lucide-react": "^0.468.0"
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.468.0",
+    "react-date-range": "^2.0.1",
+    "react-select": "^5.10.2"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@tailwindcss/cli": "^4.1.5",
     "@types/react": "^18.3.1",
+    "@types/react-date-range": "^1.4.10",
     "@types/react-dom": "^18.3.1",
     "@visitly/typescript-config": "*",
     "eslint": "^9.39.1",

@@ -70,7 +70,6 @@ export const useSignup = () => {
 
   useEffect(() => {
     // Initial GA Tracking
-    console.log('GA Tracking for signup page');
     if ((window as any).ga) {
       (window as any).ga('set', 'page', 'signup page');
       (window as any).ga('send', 'pageview');
@@ -111,7 +110,6 @@ export const useSignup = () => {
   const signUpMutation = useMutation({
     mutationFn: createUserApi,
     onSuccess: (data, variables) => {
-      console.log('Signup successful:------------------------------------------>', data, variables);
       if (window.location.hostname.toLowerCase() === 'app.visitly.io') {
         createHubSpot(variables);
       }
@@ -119,7 +117,6 @@ export const useSignup = () => {
       navigate('/visitly/confirmation', { relative: 'path' });
     },
     onError: (error: any) => {
-      console.log('Signup mutation error:', error, error.status, error.message);
       switch (error?.status) {
         case 400:
           showToast({ message: error?.message ? error?.message : 'Bad Request', type: "error" });
@@ -188,7 +185,6 @@ export const useSignup = () => {
       showLoader: false,
     },
     onSuccess: () => {
-      //  console.log('HubSpot integration successful');
     },
 
     onError: (error: any) => {
