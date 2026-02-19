@@ -18,10 +18,9 @@ on:
         default: 'both'
         type: choice
         options:
-          - all
+          - both
           - shell
           - auth-mfe
-          - host-mfe
 
 permissions:
   id-token: write
@@ -53,43 +52,20 @@ jobs:
   build:
     needs: determine-targets
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
-      max-parallel: 1
-    environment: ${{ matrix.env }}
-    env:
-      VITE_ANGULAR_MFE_REMOTE_URL: ${{ secrets.VITE_ANGULAR_MFE_REMOTE_URL }}
-      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-      VITE_SLACK_URL: ${{ secrets.VITE_SLACK_URL }}
-      VITE_GOOGLE_HANGOUT_URL: ${{ secrets.VITE_GOOGLE_HANGOUT_URL }}
-      VITE_FRESH_SALE_URL: ${{ secrets.VITE_FRESH_SALE_URL }}
-      VITE_HUBSPOT_URL: ${{ secrets.VITE_HUBSPOT_URL }}
-      VITE_HUBSPOT_CONTACT_URL: ${{ secrets.VITE_HUBSPOT_CONTACT_URL }}
-      VITE_GOOGLE_HANGOUTS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_HANGOUTS_CLIENT_ID }}
-      PERMA_LINK_FRONT_URI: ${{ secrets.PERMA_LINK_FRONT_URI }}
-      LANGUAGE_JSON_S3_URI: ${{ secrets.LANGUAGE_JSON_S3_URI }}
-      VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
-      VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
-      VITE_HOST_MFE_REMOTE_URL: ${{ secrets.VITE_HOST_MFE_REMOTE_URL }}
-      VITE_ENV: ${{ matrix.env }}
-      PLAN_PROD: false
-
     timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Enable Corepack
-        run: corepack enable  
-
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile 
+        run: yarn install --frozen-lockfile
 
       - name: Determine shell build command
         id: shell-build
@@ -110,65 +86,34 @@ jobs:
           esac
 
       - name: Build shell app
-        if: inputs.mfe_selection == 'shell'
-        run: yarn build --filter=@visitly/shell         
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
+        run: yarn workspace @visitly/shell run ${{ steps.shell-build.outputs.command }}
+        env:
+          VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
 
       - name: Build auth-mfe
-        if: inputs.mfe_selection == 'auth-mfe'
-        run: yarn build --filter=@visitly/auth-mfe  
-        
-      - name: Build host-mfe
-        if: inputs.mfe_selection == 'host-mfe'
-        run: yarn build --filter=@visitly/host-mfe    
-      
-      - name: Build All
-        if: inputs.mfe_selection == 'all' 
-        run: yarn ${{ steps.shell-build.outputs.command }}   
-        env:
-          VITE_ANGULAR_MFE_REMOTE_URL: ${{ secrets.VITE_ANGULAR_MFE_REMOTE_URL }}
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_SLACK_URL: ${{ secrets.VITE_SLACK_URL }}
-          VITE_GOOGLE_HANGOUT_URL: ${{ secrets.VITE_GOOGLE_HANGOUT_URL }}
-          VITE_FRESH_SALE_URL: ${{ secrets.VITE_FRESH_SALE_URL }}
-          VITE_HUBSPOT_URL: ${{ secrets.VITE_HUBSPOT_URL }}
-          VITE_HUBSPOT_CONTACT_URL: ${{ secrets.VITE_HUBSPOT_CONTACT_URL }}
-          VITE_GOOGLE_HANGOUTS_CLIENT_ID: ${{ secrets.VITE_GOOGLE_HANGOUTS_CLIENT_ID }}
-          PERMA_LINK_FRONT_URI: ${{ secrets.PERMA_LINK_FRONT_URI }}
-          LANGUAGE_JSON_S3_URI: ${{ secrets.LANGUAGE_JSON_S3_URI }}
-          VITE_AUTH_MFE_REMOTE_URL: ${{ secrets.VITE_AUTH_MFE_REMOTE_URL }}
-          VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
-          VITE_HOST_MFE_REMOTE_URL: ${{ secrets.VITE_HOST_MFE_REMOTE_URL }}
-          VITE_ENV: ${{ matrix.env }}
-          PLAN_PROD: false
-          
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
+        run: yarn workspace @visitly/auth-mfe run build
 
       - name: Upload shell build artifacts
-        if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'shell'
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
         uses: actions/upload-artifact@v5
         with:
-          name: shell-dist-${{ matrix.env }}
+          name: shell-dist
           path: apps/shell/dist/
-          retention-days: 1
+          retention-days: 7
 
       - name: Upload auth-mfe build artifacts
-        if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'auth-mfe'
+        if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
         uses: actions/upload-artifact@v5
         with:
-          name: auth-mfe-dist-${{ matrix.env }}
+          name: auth-mfe-dist
           path: apps/auth-mfe/dist/
-          retention-days: 1
-          
-      - name: Upload host-mfe build artifacts
-        if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'host-mfe'
-        uses: actions/upload-artifact@v5
-        with:
-          name: host-mfe-dist-${{ matrix.env }}
-          path: apps/host-mfe/dist/
-          retention-days: 1    
+          retention-days: 7
 
   deploy-shell:
     needs: [determine-targets, build]
-    if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'shell'
+    if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'shell'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -180,25 +125,33 @@ jobs:
       - name: Download shell build artifacts
         uses: actions/download-artifact@v6
         with:
-          name: shell-dist-${{ matrix.env }}
+          name: shell-dist
           path: dist/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
-          role-session-name: GitHubActions-portal-web-Shell-${{ matrix.env }}-${{ github.run_id }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GitHubActions-Deploy-Shell-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify AWS credentials
+        run: |
+          echo "Environment: ${{ matrix.env }}"
+          echo "✅ AWS credentials configured successfully!"
+          echo "Current AWS identity:"
+          aws sts get-caller-identity
+          echo "Deploying shell MFE to ${{ matrix.env }} environment"
 
       - name: Deploy shell to S3
         run: |
-          echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/ (root, excluding auth-mfe)"
-          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ --delete --exclude "auth-mfe/*" --exclude "angular-mfe/*" --exclude "host-mfe/*"
+          echo "Deploying shell MFE to s3://${{ secrets.S3_BUCKET_NAME }}/shell/"
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/shell/ --delete
           echo "✅ Shell MFE deployed successfully!"
 
   deploy-auth-mfe:
     needs: [determine-targets, build]
-    if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'auth-mfe'
+    if: inputs.mfe_selection == 'both' || inputs.mfe_selection == 'auth-mfe'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -210,51 +163,29 @@ jobs:
       - name: Download auth-mfe build artifacts
         uses: actions/download-artifact@v6
         with:
-          name: auth-mfe-dist-${{ matrix.env }}
+          name: auth-mfe-dist
           path: dist/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
-          role-session-name: GitHubActions-Deploy--portal-web-AuthMFE-${{ matrix.env }}-${{ github.run_id }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GitHubActions-Deploy-AuthMFE-${{ matrix.env }}-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify AWS credentials
+        run: |
+          echo "Environment: ${{ matrix.env }}"
+          echo "✅ AWS credentials configured successfully!"
+          echo "Current AWS identity:"
+          aws sts get-caller-identity
+          echo "Deploying auth-mfe to ${{ matrix.env }} environment"
 
       - name: Deploy auth-mfe to S3
         run: |
           echo "Deploying auth-mfe to s3://${{ secrets.S3_BUCKET_NAME }}/auth-mfe/"
           aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/auth-mfe/ --delete
           echo "✅ Auth MFE deployed successfully!"
-
-  deploy-host-mfe:
-    needs: [determine-targets, build]
-    if: inputs.mfe_selection == 'all' || inputs.mfe_selection == 'host-mfe'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy:
-      matrix:
-        env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
-      max-parallel: 1
-    environment: ${{ matrix.env }}
-    steps:
-      - name: Download auth-mfe build artifacts
-        uses: actions/download-artifact@v6
-        with:
-          name: host-mfe-dist-${{ matrix.env }}
-          path: dist/
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
-          role-session-name: GitHubActions-Deploy--portal-web-HostMFE-${{ matrix.env }}-${{ github.run_id }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy auth-mfe to S3
-        run: |
-          echo "Deploying host-mfe to s3://${{ secrets.S3_BUCKET_NAME }}/host-mfe/"
-          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/host-mfe/ --delete
-          echo "✅ Host MFE deployed successfully!"          
 
   invalidate:
     needs: [determine-targets, build, deploy-shell, deploy-auth-mfe]
@@ -264,7 +195,7 @@ jobs:
       matrix:
         env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
       max-parallel: 1
-    environment: ${{ matrix.env }}
+    environment: production
     timeout-minutes: 5
     steps:
       - name: Configure AWS credentials
@@ -272,7 +203,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}
           role-session-name: GitHubActions-Invalidate-${{ matrix.env }}-${{ github.run_id }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Verify AWS credentials
         run: |
@@ -303,7 +234,7 @@ jobs:
 
       - name: Invalidate CloudFront cache for MFEs (${{ matrix.env }})
         run: |
-          echo "Creating CloudFront invalidation"
+          echo "Creating CloudFront invalidation for distribution: ${{ steps.pick.outputs.dist_id }}"
           aws cloudfront create-invalidation \
             --distribution-id "${{ steps.pick.outputs.dist_id }}" \
             --paths "/*"
@@ -339,8 +270,8 @@ jobs:
         id: mfes
         run: |
           case "${{ inputs.mfe_selection }}" in
-            all)
-              echo "deployed=Shell, Auth MFE, Host MFE" >> "$GITHUB_OUTPUT"
+            both)
+              echo "deployed=Shell, Auth MFE" >> "$GITHUB_OUTPUT"
               ;;
             shell)
               echo "deployed=Shell" >> "$GITHUB_OUTPUT"
@@ -348,9 +279,6 @@ jobs:
             auth-mfe)
               echo "deployed=Auth MFE" >> "$GITHUB_OUTPUT"
               ;;
-            host-mfe)
-              echo "deployed=Host MFE" >> "$GITHUB_OUTPUT"
-              ;;  
             *)
               echo "deployed=Unknown" >> "$GITHUB_OUTPUT"
               ;;
