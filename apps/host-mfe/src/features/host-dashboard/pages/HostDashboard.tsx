@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { redirect, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AgGridReact } from "ag-grid-react";
 import {
   themeQuartz,
@@ -417,7 +417,7 @@ export const HostDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowInviteMenu(false);
-                    navigate("host/visitors");
+                    navigate("/host/upcoming-visitors");
                   }}
                   className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:p-2.5 tw:rounded-lg hover:tw:bg-gray-50 tw:transition-colors tw:text-left"
                 >
@@ -434,7 +434,7 @@ export const HostDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowInviteMenu(false);
-                    navigate("host/visitors");
+                    // navigate('/host/bulk-pre-register');
                   }}
                   className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:p-2.5 tw:rounded-lg hover:tw:bg-gray-50 tw:transition-colors tw:text-left"
                 >
@@ -689,7 +689,7 @@ export const HostDashboard: React.FC = () => {
           </div>
 
           <button
-            onClick={() => navigate("/host/past-visitors")}
+            onClick={() => navigate("/host/upcoming-visitors")}
             className="tw:mt-4 tw:flex tw:items-center tw:gap-1 tw:text-[13px] tw:font-medium tw:text-indigo-600 hover:tw:opacity-75"
           >
             View all visitors <ArrowRight size={14} />
@@ -777,7 +777,7 @@ export const HostDashboard: React.FC = () => {
               </div>
 
               <button
-                onClick={() => navigate("/host/delivery-logs")}
+                onClick={() => navigate("/host/my-deliveries")}
                 className="tw:mt-4 tw:flex tw:items-center tw:gap-1 tw:text-[13px] tw:font-medium tw:text-indigo-600 hover:tw:opacity-75"
               >
                 View all packages <ArrowRight size={14} />
@@ -920,7 +920,7 @@ export const HostDashboard: React.FC = () => {
 
                 <div className="tw:flex tw:gap-2 tw:items-center">
                   <button
-                    onClick={() => navigate("/host/sign-in-log")}
+                    onClick={() => navigate("/host/my-sign-in-log")}
                     className="tw:text-[13px] tw:font-medium tw:text-indigo-600 hover:tw:opacity-75"
                   >
                     View log <ArrowRight size={14} className="tw:inline" />

@@ -75,6 +75,7 @@ export {
   type TableCaptionProps,
 } from "./Table";
 export { DataTable, type DataTableProps, type Column } from "./DataTable";
+export {RoundedToggleButton} from './RoundedToggleButton'
 export {
   Alert,
   AlertTitle,

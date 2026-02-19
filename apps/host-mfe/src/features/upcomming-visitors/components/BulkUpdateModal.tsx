@@ -7,9 +7,9 @@ import {
   SearchUserSelect,
 } from '@visitly/ui';
 import { useFormik } from 'formik';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { bulkUpdatePreRegistrations } from '../api/upcomming-visitors.api';
 import { useSites, useVisitorTypes, useHosts } from '../hooks/use-preregistration.queries';
+import { useBulkUpdatePreRegistrations } from '../hooks/useBulkUpdatePreRegistrations';
+import { useEntitlements } from "@/features/visitor-detail/hooks/useEntitlement";
 
 interface BulkUpdateModalProps {
   isOpen: boolean;
@@ -24,8 +24,16 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
   selectedIds,
   onSuccess,
 }) => {
-  const queryClient = useQueryClient();
+  const { isCoHostsEntitled } = useEntitlements()
 
+  /* -------------------- Custom Hook -------------------- */
+  const { submitBulkUpdate, isLoading } = useBulkUpdatePreRegistrations({
+    selectedIds,
+    onClose,
+    onSuccess,
+  });
+
+  /* -------------------- Sites -------------------- */
   const { data: sitesData } = useSites();
   const siteOptions =
     (sitesData as any)?.results?.map((s: any) => ({
@@ -33,6 +41,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
       value: s.id,
     })) || [];
 
+  /* -------------------- Hosts -------------------- */
   const [hostSearch, setHostSearch] = useState('');
   const { data: hostsData } = useHosts(hostSearch);
   const hostOptions =
@@ -42,6 +51,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
       email: h.email,
     })) || [];
 
+  /* -------------------- Co-Hosts -------------------- */
   const [coHostSearch, setCoHostSearch] = useState('');
   const { data: coHostsData } = useHosts(coHostSearch);
   const coHostOptions =
@@ -51,15 +61,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
       email: h.email,
     })) || [];
 
-  const mutation = useMutation({
-    mutationFn: bulkUpdatePreRegistrations,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
-      onSuccess();
-      onClose();
-    },
-  });
-
+  /* -------------------- Formik -------------------- */
   const formik = useFormik({
     initialValues: {
       siteId: '',
@@ -71,29 +73,11 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
       scheduleCheckoutDate: '',
     },
     onSubmit: (values) => {
-      const payload: any = { ids: selectedIds };
-
-      const formatWithSeconds = (dateStr: string) => {
-        if (!dateStr) return '';
-        return dateStr.length === 16 ? `${dateStr}:00` : dateStr;
-      };
-
-      if (values.siteId) payload.siteId = values.siteId;
-      if (values.visitorTypeId) payload.visitorTypeId = values.visitorTypeId;
-      if (values.groupName) payload.groupName = values.groupName;
-      if (values.hostUserId) payload.hostUserId = values.hostUserId;
-      if (values.cohostUserIds.length > 0) payload.cohostUserIds = values.cohostUserIds;
-
-      if (values.scheduleCheckinDate)
-        payload.scheduleCheckinDate = formatWithSeconds(values.scheduleCheckinDate);
-
-      if (values.scheduleCheckoutDate)
-        payload.scheduleCheckoutDate = formatWithSeconds(values.scheduleCheckoutDate);
-
-      mutation.mutate(payload);
+      submitBulkUpdate(values);
     },
   });
 
+  /* -------------------- Visitor Types -------------------- */
   const { data: vtData } = useVisitorTypes(formik.values.siteId);
   const visitorTypeOptions =
     (vtData as any)?.results?.map((v: any) => ({
@@ -113,7 +97,6 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
       "
       onClick={onClose}
     >
-      {/* Modal card */}
       <div
         className="
           tw:relative tw:w-full tw:max-w-3xl
@@ -134,17 +117,14 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="
-                tw:rounded-full tw:p-1.5
-                tw:hover:bg-gray-100 tw:transition-colors
-              "
+              className="tw:rounded-full tw:p-1.5 tw:hover:bg-gray-100 tw:transition-colors"
             >
               <span className="tw:text-xl tw:text-gray-500">×</span>
             </button>
           </div>
         </div>
 
-        {/* Form content */}
+        {/* Form */}
         <form
           onSubmit={formik.handleSubmit}
           className="tw:px-6 tw:pb-8 tw:pt-6 tw:space-y-7"
@@ -163,7 +143,6 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                   formik.setFieldValue('siteId', e.target.value);
                   formik.setFieldValue('visitorTypeId', '');
                 }}
-                // placeholder="Select location..."
               />
             </div>
 
@@ -177,60 +156,10 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
                 options={visitorTypeOptions}
                 disabled={!formik.values.siteId}
                 onChange={formik.handleChange}
-                // placeholder="Select type..."
               />
             </div>
           </div>
 
-          {/* Group Name */}
-          <div className="tw:space-y-1.5">
-            <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
-              Group Name
-            </Label>
-            <Input
-              name="groupName"
-              value={formik.values.groupName}
-              onChange={formik.handleChange}
-              placeholder="Optional — e.g. Conference Group A"
-              className="tw:h-10"
-            />
-          </div>
-
-          {/* Hosts */}
-          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-6">
-            <div className="tw:space-y-1.5">
-              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
-                Host
-              </Label>
-              <SearchUserSelect
-                options={hostOptions}
-                onSearch={setHostSearch}
-                onChange={(opt) => {
-                  const val = Array.isArray(opt) ? opt[0]?.value : opt?.value;
-                  formik.setFieldValue('hostUserId', val || '');
-                }}
-                placeholder="Search for host..."
-              />
-            </div>
-
-            <div className="tw:space-y-1.5">
-              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
-                Co-Host(s)
-              </Label>
-              <SearchUserSelect
-                options={coHostOptions}
-                onSearch={setCoHostSearch}
-                multi={true}
-                onChange={(opts) => {
-                  const values = Array.isArray(opts)
-                    ? opts.map((o: any) => o.value)
-                    : [];
-                  formik.setFieldValue('cohostUserIds', values);
-                }}
-                placeholder="Add one or more co-hosts..."
-              />
-            </div>
-          </div>
 
           {/* Dates */}
           <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-6">
@@ -261,13 +190,65 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
             </div>
           </div>
 
+           {/* Hosts */}
+          <div className="tw:grid tw:grid-cols-1 tw:md:grid-cols-2 tw:gap-6">
+            <div className="tw:space-y-1.5">
+              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
+                Host
+              </Label>
+              <SearchUserSelect
+                options={hostOptions}
+                onSearch={setHostSearch}
+                onChange={(opt) => {
+                  const val = Array.isArray(opt)
+                    ? opt[0]?.value
+                    : opt?.value;
+                  formik.setFieldValue('hostUserId', val || '');
+                }}
+                placeholder="Search for host..."
+              />
+            </div>
+
+            {isCoHostsEntitled && <div className="tw:space-y-1.5">
+              <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
+                Co-Host(s)
+              </Label>
+              <SearchUserSelect
+                options={coHostOptions}
+                onSearch={setCoHostSearch}
+                multi={true}
+                onChange={(opts) => {
+                  const values = Array.isArray(opts)
+                    ? opts.map((o: any) => o.value)
+                    : [];
+                  formik.setFieldValue('cohostUserIds', values);
+                }}
+                placeholder="Add one or more co-hosts..."
+              />
+            </div>}
+          </div>
+
+           {/* Group Name */}
+          <div className="tw:space-y-1.5">
+            <Label className="tw:text-sm tw:font-medium tw:text-gray-700">
+              Group Name
+            </Label>
+            <Input
+              name="groupName"
+              value={formik.values.groupName}
+              onChange={formik.handleChange}
+              placeholder="Optional — e.g. Conference Group A"
+              className="tw:h-10"
+            />
+          </div>
+
           {/* Buttons */}
           <div className="tw:flex tw:justify-end tw:gap-3 tw:pt-5">
             <Button
               variant="outline"
               type="button"
               onClick={onClose}
-              disabled={mutation.isPending}
+              disabled={isLoading}
               className="tw:min-w-28 tw:h-10"
             >
               Cancel
@@ -275,7 +256,7 @@ export const BulkUpdateModal: React.FC<BulkUpdateModalProps> = ({
 
             <Button
               type="submit"
-              isLoading={mutation.isPending}
+              isLoading={isLoading}
               className="tw:min-w-36 tw:h-10"
             >
               Apply Changes

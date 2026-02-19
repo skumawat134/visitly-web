@@ -54,3 +54,13 @@ export async function bulkCancelPreRegistrations(payload: any): Promise<any> {
   });
   return data;
 }
+
+export async function cancelPreRegistration(id: string, params: any): Promise<any> {
+  const { updateType, ...body } = params;
+  const { data } = await getApiClient().patch(`/v1/host/preregistrations/${id}`,
+    { ...body, status: 'CANCELLED' },
+    { params: { updateType } }
+  );
+  return data;
+}
+

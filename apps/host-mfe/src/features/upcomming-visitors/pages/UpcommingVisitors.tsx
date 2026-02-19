@@ -24,6 +24,8 @@ import DateRangePicker from "../../../shared/components/DateRangePicker";
 // import { BulkCancelModal, BulkUpdateModal } from "../components/BulkActionModals";
 import { BulkCancelModal } from "../components/BulkCancelModal";
 import { BulkUpdateModal } from "../components/BulkUpdateModal";
+import { CancelRecurrenceModal } from "../components/CancelRecurrenceModal";
+import { CancelVisitModal } from "../components/CancelVisitModal";
 
 
 
@@ -68,13 +70,25 @@ const UpcommingVisitors: React.FC = () => {
     setActiveTab,
     showInviteMenu,
     setShowInviteMenu,
-    navigate // Ensure navigate is returned from hook or use useNavigate here if hook doesn't return it
+    showBulkUpdateModal,
+    setShowBulkUpdateModal,
+    showBulkCancelModal,
+    setShowBulkCancelModal,
+    showMoreActionsMenu,
+    setShowMoreActionsMenu,
+    setSelectedRows,
+    openBulkUpdateModal,
+    navigate, // Ensure navigate is returned from hook or use useNavigate here if hook doesn't return it
+    showCancelConfirmation,
+    setShowCancelConfirmation,
+    showCancelRecurrence,
+    setShowCancelRecurrence,
+    visitorToCancel,
+    cancelUpdateType,
+    setCancelUpdateType,
   } = useUpcomingVisitors();
 
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
-  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
-  const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
-  const [showMoreActionsMenu, setShowMoreActionsMenu] = useState(false);
 
 
   const { searchTerm, setSearchTerm } = search;
@@ -128,6 +142,7 @@ const UpcommingVisitors: React.FC = () => {
 
   const onSelectionChanged = (event: any) => {
     const selectedNodes = event.api.getSelectedNodes();
+    setSelectedRows(selectedNodes.map((node: any) => node.data))
     const ids = selectedNodes.map((node: any) => node.data.id);
     setSelectedRowIds(ids);
   };
@@ -173,8 +188,8 @@ const UpcommingVisitors: React.FC = () => {
                     <button
                       className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
                       onClick={() => {
-                        // setShowInviteMenu(false);
-                        // navigate('/host/bulk-pre-register');
+                        setShowInviteMenu(false);
+                        navigate('/host/bulk-pre-register');
                       }}
                     >
                       <Upload size={15} className="tw:text-blue-600 tw:shrink-0" />
@@ -187,50 +202,7 @@ const UpcommingVisitors: React.FC = () => {
                 </>
               )}
             </div>
-
-            {/* More Actions Dropdown (Visible only when rows selected) */}
-            {selectedRowIds.length > 0 && (
-              <div className="tw:relative">
-                <button
-                  className="tw:inline-flex tw:items-center tw:gap-2 tw:px-5 tw:py-2.5 tw:bg-white tw:text-gray-700 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:cursor-pointer tw:transition-colors tw:hover:bg-gray-50"
-                  onClick={() => setShowMoreActionsMenu(!showMoreActionsMenu)}
-                >
-                  More Actions
-                  <ChevronDown size={14} className="tw:ml-0.5 tw:opacity-70" />
-                </button>
-
-                {showMoreActionsMenu && (
-                  <>
-                    <div className="tw:fixed tw:inset-0 tw:z-30" onClick={() => setShowMoreActionsMenu(false)} />
-                    <div className="tw:absolute tw:top-full tw:right-0 tw:mt-1.5 tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:shadow-lg tw:p-1.5 tw:z-40 tw:min-w-[160px]">
-                      <button
-                        className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
-                        onClick={() => {
-                          setShowMoreActionsMenu(false);
-                          setShowBulkUpdateModal(true);
-                        }}
-                      >
-                        <Pencil size={15} className="tw:text-gray-600 tw:shrink-0" />
-                        <span className="tw:text-sm tw:font-medium tw:text-gray-800">Update</span>
-                      </button>
-                      <button
-                        className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50 tw:text-red-600"
-                        onClick={() => {
-                          setShowMoreActionsMenu(false);
-                          setShowBulkCancelModal(true);
-                        }}
-                      >
-                        <X size={15} className="tw:text-red-600 tw:shrink-0" />
-                        <span className="tw:text-sm tw:font-medium">Cancel</span>
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
           </div>
-
-
         </div>
 
         {/* View-As Switcher */}
@@ -349,16 +321,51 @@ const UpcommingVisitors: React.FC = () => {
             </select>
           </div>
 
-
-
-
-
           {/* Date Range Picker Section */}
           <div className="tw:md:col-span-12 tw:flex tw:items-center tw:gap-3 tw:flex-wrap tw:mt-4 md:tw:mt-0">
             <DateRangePicker
               value={dateRange}
               onChange={(val: DateRangeValue | string) => setDateRange(val as any)}
             />
+            {/* More Actions Dropdown (Visible only when rows selected) */}
+            {selectedRowIds.length > 0 && (
+              <div className="tw:relative">
+                <button
+                  className="tw:inline-flex tw:items-center tw:gap-2 tw:px-5 tw:py-2.5 tw:bg-white tw:text-gray-700 tw:border tw:border-gray-200 tw:rounded-xl tw:text-sm tw:font-medium tw:cursor-pointer tw:transition-colors tw:hover:bg-gray-50"
+                  onClick={() => setShowMoreActionsMenu(!showMoreActionsMenu)}
+                >
+                  More Actions
+                  <ChevronDown size={14} className="tw:ml-0.5 tw:opacity-70" />
+                </button>
+
+                {showMoreActionsMenu && (
+                  <>
+                    <div className="tw:fixed tw:inset-0 tw:z-30" onClick={() => setShowMoreActionsMenu(false)} />
+                    <div className="tw:absolute tw:top-full tw:right-0 tw:mt-1.5 tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:shadow-lg tw:p-1.5 tw:z-40 tw:min-w-[160px]">
+                      <button
+                        className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
+                        onClick={() => {
+                          openBulkUpdateModal()
+                        }}
+                      >
+                        <Pencil size={15} className="tw:text-gray-600 tw:shrink-0" />
+                        <span className="tw:text-sm tw:font-medium tw:text-gray-800">Update</span>
+                      </button>
+                      <button
+                        className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50 tw:text-red-600"
+                        onClick={() => {
+                          setShowMoreActionsMenu(false);
+                          setShowBulkCancelModal(true);
+                        }}
+                      >
+                        <X size={15} className="tw:text-red-600 tw:shrink-0" />
+                        <span className="tw:text-sm tw:font-medium">Cancel</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
         </div>
@@ -420,6 +427,7 @@ const UpcommingVisitors: React.FC = () => {
                     onSortChanged={onSortChanged}
                     onSelectionChanged={onSelectionChanged}
                     rowSelection="multiple"
+                    suppressRowClickSelection={true}
                     className="tw:h-full"
                   />
                 </div>
@@ -463,12 +471,6 @@ const UpcommingVisitors: React.FC = () => {
           visitId={selectedVisitId}
         />
       )}
-      {showBulkPreRegistrationModal && (
-        <BulkPreRegistrationModal
-          isOpen={showBulkPreRegistrationModal}
-          onClose={closeBulkPreRegistrationModalHandler}
-        />
-      )}
       <BulkCancelModal
         isOpen={showBulkCancelModal}
         onClose={() => setShowBulkCancelModal(false)}
@@ -481,6 +483,27 @@ const UpcommingVisitors: React.FC = () => {
         selectedIds={selectedRowIds}
         onSuccess={() => setSelectedRowIds([])}
       />
+      {showCancelRecurrence && (
+        <CancelRecurrenceModal
+          isOpen={showCancelRecurrence}
+          onClose={() => setShowCancelRecurrence(false)}
+          onNext={(type) => {
+            setCancelUpdateType(type);
+            setShowCancelRecurrence(false);
+            setShowCancelConfirmation(true);
+          }}
+          visitDate={visitorToCancel?.scheduleCheckinDate ? format(new Date(visitorToCancel.scheduleCheckinDate), 'MMM dd, yyyy') : ""}
+        />
+      )}
+      {showCancelConfirmation && visitorToCancel && (
+        <CancelVisitModal
+          isOpen={showCancelConfirmation}
+          onClose={() => setShowCancelConfirmation(false)}
+          visitorId={visitorToCancel.id}
+          onSuccess={() => { }}
+          updateType={cancelUpdateType}
+        />
+      )}
     </div>
 
   );

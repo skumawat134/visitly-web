@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { format, subDays, startOfToday, startOfDay, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import type {
   VisitorVisitResponse,
   VisitorListParams,
@@ -9,18 +9,20 @@ import type {
 } from '../types/upcomming-visitors.types';
 import { exportVisitorsCSV, getUpCommingVisitors, getAllSites, getAllVisitorType } from '../api/upcomming-visitors.api';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
-import { STORAGE_KEY } from '../components/CustomSettings';
+import { STORAGE_KEY, standardFields, MEGA_LOCATION_FIELDS } from '../types/upcomming-visitors.types';
 import { Edit2, Repeat, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@visitly/ui';
+import { Button, NamedAvatar } from '@visitly/ui';
 import type { DateRangeValue } from '../../../shared/components/DateRangePicker';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAuthStore } from '@visitly/app-store';
-import { Avatar } from '@/features/host-dashboard/components/Avatar';
+import { useToastStore } from '@visitly/app-store';
+import { useEntitlements } from '@/features/visitor-detail/hooks/useEntitlement';
 
 export const useUpcomingVisitors = () => {
   const navigate = useNavigate();
   const userinfo = JSON.parse(sessionStorage.getItem('userinfo') || '{}');
+  const toast = useToastStore((s) => s.showToast)
   // 1. Pagination & Search States
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(15);
@@ -34,10 +36,17 @@ export const useUpcomingVisitors = () => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'checkedin'>('upcoming');
   const debounceSearchTerm = useDebounce(searchTerm, 500)
   const currentUser = useAuthStore((state) => state.user)
-
-
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
+  const [showBulkCancelModal, setShowBulkCancelModal] = useState(false);
+  const [showMoreActionsMenu, setShowMoreActionsMenu] = useState(false);
+  const [selectedRows, setSelectedRows] = useState([])
   const [showBulkPreRegistrationModal, setShowBulkPreRegistrationModal] = useState(false);
   const [showInviteMenu, setShowInviteMenu] = useState(false);
+
+  const [visitorToCancel, setVisitorToCancel] = useState<VisitorsRowsType | null>(null);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+  const [showCancelRecurrence, setShowCancelRecurrence] = useState(false);
+  const [cancelUpdateType, setCancelUpdateType] = useState<"SELECTED_VISIT" | "FUTURE_VISITS_ONLY" | "ALL_VISITS">("SELECTED_VISIT");
 
   // 2. Filter States
   const [viewAs, setViewAs] = useState<string>('all'); // 'all' | 'myself' | delegateId
@@ -45,6 +54,7 @@ export const useUpcomingVisitors = () => {
   const [typeFilter, setTypeFilter] = useState<string>('');
   const [groupFilter, setGroupFilter] = useState<string>('');
   const debounceGroupSearch = useDebounce(groupFilter, 500)
+  const { isAdvancedMegaLocationEntitled } = useEntitlements()
 
 
   // Default to All Time (null) so filtering is optional
@@ -143,68 +153,101 @@ export const useUpcomingVisitors = () => {
   }
     , [data, viewAs]);
 
-const redirectToVisitorDetailPage = (data : any) => {
-  if (!data?.id) return;
+  const redirectToVisitorDetailPage = (data: any) => {
+    if (!data?.id) return;
 
-  const isPrefill = !!data.visitInfoModel;
-  const id = isPrefill ? data.visitInfoModel?.id : data.id;
+    const isPrefill = !!data.visitInfoModel;
+    const id = isPrefill ? data.visitInfoModel?.id : data.id;
 
-  const url = isPrefill
-    ? `/host/visitor-detail/${id}?isPrefill=true`
-    : `/host/visitor-detail/${id}`;
+    const url = isPrefill
+      ? `/host/visitor-detail/${id}?isPrefill=true`
+      : `/host/visitor-detail/${id}`;
 
-  navigate(url);
-};
+    navigate(url);
+  };
 
+
+  const handleCancelClick = useCallback((visitor: VisitorsRowsType) => {
+    setVisitorToCancel(visitor);
+    const isRecurring = !!visitor.recurrenceType && visitor.recurrenceType !== "NONE" || !!visitor.parentVisitId;
+
+    if (isRecurring) {
+      setShowCancelRecurrence(true);
+    } else {
+      setCancelUpdateType("SELECTED_VISIT");
+      setShowCancelConfirmation(true);
+    }
+  }, []);
 
   const colDefs = useMemo<ColDef<VisitorsRowsType>[]>(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
-    const savedColumns: any[] = savedData ? JSON.parse(savedData) : [];
-    const isVisible = (title: string) => savedColumns.some(col => col.columnTitle === title);
+    const savedColumns: any[] = savedData ? JSON.parse(savedData) : standardFields.filter((f: any) => f.isSelected);
+
+    const isVisible = (title: string) => {
+      // Action and Name and Scheduled Check-in are always visible if it's in standard fields and is selected
+      const field = standardFields.find((f: any) => f.columnTitle === title);
+      console.log('field',field)
+      const isMandatory = field?.isDisabled;
+      if (isMandatory) return true;
+
+      // Handle mega location fields
+      if (MEGA_LOCATION_FIELDS.includes(title) && !isAdvancedMegaLocationEntitled) return false;
+
+      return savedColumns.some(col => col.columnTitle === title);
+    };
 
     const allPossibleCols: ColDef<VisitorsRowsType>[] = [
-      // {
-      //   headerName: "",
-      //   checkboxSelection: true,
-      //   headerCheckboxSelection: true,
-      //   width: 50,
-      //   pinned: 'left',
-      //   lockPosition: 'left',
-      //   suppressMovable: true,
-      // },
       {
-              headerName: "Name",
-              field: "fullName",
-              flex: 2,
-              minWidth: 200,
-              cellRenderer: (params: ICellRendererParams) => {
-                const data = params.data;
-                if (!data) return null;
-                return (
-                  <div  onClick={() => redirectToVisitorDetailPage(data)} className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
-                    { (data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={16} />}
-                    <Avatar name={data.fullName} size={30} />
-                    <div className="tw:min-w-0 tw:leading-tight">
-                      <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
-                        {data.fullName}
-                      </div>
-                      {/* <div className="tw:text-xs tw:text-gray-400 tw:truncate">
+        headerName: "",
+        checkboxSelection: true,
+        headerCheckboxSelection: true,
+        width: 50,
+        pinned: 'left',
+        lockPosition: 'left',
+        suppressMovable: true,
+      },
+      {
+        headerName: "Name",
+        field: "fullName",
+        flex: 2,
+        minWidth: 200,
+        cellRenderer: (params: ICellRendererParams) => {
+          const data = params.data;
+          if (!data) return null;
+          return (
+            <div onClick={() => redirectToVisitorDetailPage(data)} className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
+              {(data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={16} />}
+              <NamedAvatar url={data.visitPhotoURI} name={data.fullName} size={30} />
+              <div className="tw:min-w-0 tw:leading-tight">
+                <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
+                  {data.fullName}
+                </div>
+                {/* <div className="tw:text-xs tw:text-gray-400 tw:truncate">
                         {data.email}
                       </div> */}
-                    </div>
-                  </div>
-                );
-              },
-            },
+              </div>
+            </div>
+          );
+        },
+      },
       { headerName: "Type", field: "visitorType", hide: !isVisible("Type") },
       { headerName: "Host", field: "hostName", hide: !isVisible("Host") },
       { headerName: "Location", field: "siteName", hide: !isVisible("Location") },
       { headerName: "Company", field: "companyName", hide: !isVisible("Company") },
       { headerName: "Group Name", field: "groupName", hide: !isVisible("Group Name") },
       { headerName: "Phone", field: "phoneNumber", hide: !isVisible("Phone") },
+      { headerName: "Point of Entry", field: "poeName", hide: !isVisible("Point of Entry"), width: 125 },
+      { headerName: "Parking Lot", field: "parkingLotName", hide: !isVisible("Parking Lot"), width: 125 },
+      { headerName: "Building", field: "buildingName", hide: !isVisible("Building"), width: 125 },
+      {
+        headerName: "Pre-fill Status", field: "id", hide: !isVisible("Pre-fill Status"), valueFormatter: (params) => {
+          const data = params.data as VisitorsRowsType;
+          return (data?.visitInfoModel && data?.visitInfoModel?.id) ? 'Yes' : 'No';
+        }, width: 125
+      },
       { headerName: "Internal Note", field: "internalNote", hide: !isVisible("Internal Note") },
       { headerName: "Email", field: "email", hide: !isVisible("Email") },
-      { headerName: "Scheduled Check-In", field: "scheduleCheckinDate", valueFormatter: (params) => params.value ? format(new Date(params.value), 'MMM dd, yyyy h:mm a') : '-' },
+      { headerName: "Scheduled Check-In", field: "scheduleCheckinDate", hide: !isVisible("Scheduled Check-In Date"), valueFormatter: (params) => params.value ? format(new Date(params.value), 'MMM dd, yyyy h:mm a') : '-' },
       {
         headerName: "Action",
         field: "id",
@@ -216,7 +259,8 @@ const redirectToVisitorDetailPage = (data : any) => {
               variant="ghost"
               size="sm"
               onClick={() => {
-                setSelectedVisitId(params.data?.id);
+                const id = (params.data as VisitorsRowsType)?.id;
+                setSelectedVisitId(id);
                 setModalStatus('Update');
                 setshowPreRegistrationModal(true);
               }}
@@ -227,6 +271,7 @@ const redirectToVisitorDetailPage = (data : any) => {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => params.data && handleCancelClick(params.data)}
               className="tw:text-red-500 hover:tw:text-red-600 tw:p-0 tw:h-auto"
             >
               <Trash2 size={16} />
@@ -248,7 +293,7 @@ const redirectToVisitorDetailPage = (data : any) => {
       }));
 
     return [...allPossibleCols, ...customCols];
-  }, [rowData, showSettingModal]);
+  }, [rowData, showSettingModal, handleCancelClick]);
 
   const onSortChanged = (event: any) => {
     const sortedColumn = event.api.getColumnState().find((col: any) => col.sort);
@@ -272,6 +317,36 @@ const redirectToVisitorDetailPage = (data : any) => {
   const openBulkPreRegistrationModalHandler = () => {
     setShowBulkPreRegistrationModal(true);
   }
+
+
+  const checkIsRecurringVisit = useCallback((datas: any) => {
+    const temp = datas.some((data: any) => data.recurrenceType && (data.recurrenceType !== 'NONE' || data.parentVisitId))
+    console.log('checkIsRecurringVisit', temp)
+    return temp;
+  }, [selectedRows.length])
+
+  const checkIsPreRegisterVisit = useCallback((datas: any) => {
+    const isAnyPrefill = datas.some((data: any) => data?.visitInfoModel && data?.visitInfoModel?.id)
+    console.log('checkIsRecurringVisit', isAnyPrefill)
+    return isAnyPrefill;
+  }, [selectedRows.length])
+
+
+  const openBulkUpdateModal = () => {
+    const isRecurring = checkIsRecurringVisit(selectedRows)
+    if (isRecurring) {
+      toast({ message: 'Some selected entries are recurring visits and cannot be updated. Please deselect recurring visits to proceed with bulk updates.' })
+      return;
+    }
+    const isPrefill = checkIsPreRegisterVisit(selectedRows)
+    if (isPrefill) {
+      toast({ message: 'Some selected entries are already prefilled and cannot be updated. Please deselect prefilled rows to proceed with bulk updates.' })
+      return;
+    }
+    setShowMoreActionsMenu(false);
+    setShowBulkUpdateModal(true);
+  }
+
 
   return {
     data,
@@ -309,6 +384,22 @@ const redirectToVisitorDetailPage = (data : any) => {
     closeBulkPreRegistrationModalHandler: () => setShowBulkPreRegistrationModal(false),
     activeTab,
     setActiveTab,
-    navigate
+    showBulkUpdateModal,
+    setShowBulkUpdateModal,
+    showBulkCancelModal,
+    setShowBulkCancelModal,
+    showMoreActionsMenu,
+    setShowMoreActionsMenu,
+    setSelectedRows,
+    openBulkUpdateModal,
+    navigate,
+    showCancelConfirmation,
+    setShowCancelConfirmation,
+    showCancelRecurrence,
+    setShowCancelRecurrence,
+    visitorToCancel,
+    cancelUpdateType,
+    setCancelUpdateType,
+    handleCancelClick,
   };
 };

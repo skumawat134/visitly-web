@@ -4,26 +4,28 @@ import {
   Button,
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  RoundedToggleButton,
+  DialogFooter,
 } from "@visitly/ui";
-import { useBulkCancelPreRegistrations } from "../hooks/useBulkCancelPreRegistrations";
+import { useCancelPreRegistration } from "../hooks/useCancelPreRegistration";
+import { RoundedToggleButton } from "@visitly/ui";
 
-interface BulkCancelModalProps {
+interface CancelVisitModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedIds: string[];
-  onSuccess: () => void;
+  visitorId: string;
+  onSuccess?: () => void;
+  updateType?: "SELECTED_VISIT" | "FUTURE_VISITS_ONLY" | "ALL_VISITS";
 }
 
-export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
+export const CancelVisitModal: React.FC<CancelVisitModalProps> = ({
   isOpen,
   onClose,
-  selectedIds,
+  visitorId,
   onSuccess,
+  updateType,
 }) => {
   const {
     notifyVisitFlag,
@@ -32,19 +34,18 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
     setNotifyHostFlag,
     handleCancel,
     isLoading,
-  } = useBulkCancelPreRegistrations({
-    selectedIds,
+  } = useCancelPreRegistration({
+    id: visitorId,
     onClose,
     onSuccess,
+    updateType,
   });
-
-  const visitCount = selectedIds.length;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         className="tw:max-w-md tw:py-10 tw:px-8"
-        data-testid="bulk-cancel-modal"
+        data-testid="cancel-visit-modal"
       >
         {/* Warning Icon */}
         <div className="tw:mb-8">
@@ -54,22 +55,21 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
         {/* Header */}
         <DialogHeader className="tw:mb-6 tw:space-y-3">
           <DialogTitle className="tw:text-2xl tw:text-center tw:font-bold tw:text-gray-900">
-            Cancel {visitCount !== 1 ? "Visits" : "Visit"}?
+            Cancel Visit?
           </DialogTitle>
 
           <DialogDescription className="tw:text-base tw:text-center tw:font-medium tw:text-gray-600">
-            You are about to cancel {visitCount} visit
-            {visitCount !== 1 ? "s" : ""}. This action cannot be undone.
+            This action will permanently cancel this visit.
           </DialogDescription>
         </DialogHeader>
 
         {/* Notification Toggles */}
         <div className="tw:mb-8 tw:flex tw:flex-col tw:items-center tw:gap-4">
           <span className="tw:text-sm tw:font-medium tw:text-gray-700">
-            Notification 
+            Email Notifications
           </span>
 
-          <div className="tw:flex tw:flex-wrap tw:justify-center tw:gap-3">
+          <div className="tw:flex tw:items-center tw:gap-3 tw:flex-wrap tw:justify-center">
             <RoundedToggleButton
               label="Notify Visitor"
               isActive={notifyVisitFlag}
@@ -90,14 +90,16 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
             variant="primary"
             onClick={handleCancel}
             isLoading={isLoading}
+            data-testid="confirm-cancel-button"
           >
-            Yes, Cancel {visitCount !== 1 ? "Visits" : "Visit"}
+            Yes
           </Button>
 
           <Button
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
+            data-testid="cancel-button"
           >
             No
           </Button>
@@ -106,4 +108,3 @@ export const BulkCancelModal: React.FC<BulkCancelModalProps> = ({
     </Dialog>
   );
 };
-

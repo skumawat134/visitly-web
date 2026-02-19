@@ -15,7 +15,7 @@ on:
       mfe_selection:
         description: 'Which MFE(s) to deploy'
         required: true
-        default: 'both'
+        default: 'all'
         type: choice
         options:
           - all
@@ -139,7 +139,7 @@ jobs:
           VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
           VITE_HOST_MFE_REMOTE_URL: ${{ secrets.VITE_HOST_MFE_REMOTE_URL }}
           VITE_ENV: ${{ matrix.env }}
-          PLAN_PROD: false
+          PLAN_PROD: ${{ secrets.PLAN_PROD }}
           
 
       - name: Upload shell build artifacts
@@ -264,7 +264,7 @@ jobs:
       matrix:
         env: ${{ fromJSON(needs.determine-targets.outputs.targets) }}
       max-parallel: 1
-    environment: ${{ matrix.env }}
+    environment: production
     timeout-minutes: 5
     steps:
       - name: Configure AWS credentials
