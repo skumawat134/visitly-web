@@ -139,7 +139,7 @@ jobs:
           VITE_MW_ACCOUNT_KEY: ${{ secrets.VITE_MW_ACCOUNT_KEY }}
           VITE_HOST_MFE_REMOTE_URL: ${{ secrets.VITE_HOST_MFE_REMOTE_URL }}
           VITE_ENV: ${{ matrix.env }}
-          PLAN_PROD: false
+          PLAN_PROD: ${{ secrets.PLAN_PROD }}
           
 
       - name: Upload shell build artifacts
