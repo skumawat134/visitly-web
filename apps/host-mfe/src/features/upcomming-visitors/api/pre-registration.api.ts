@@ -30,11 +30,12 @@ export async function getPointOfEntry(siteId: string): Promise<any[]> {
     return data;
 }
 
-export async function getParkingLots(siteId: string): Promise<any[]> {
-    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
-    const { data } = await getApiClient().get(`/v1/sites/${siteId}/advanced-locations/parking-availability?date=${yesterday}`);
+export async function getParkingLots(siteId: string, date?: string): Promise<any[]> {
+    const formattedDate = date || format(new Date(), "yyyy-MM-dd");
+    const { data } = await getApiClient().get(`/v1/sites/${siteId}/advanced-locations/parking-availability?date=${formattedDate}`);
     return data;
 }
+
 
 export async function getDestinations(siteId: string): Promise<any[]> {
     const { data } = await getApiClient().get(`/v1/sites/${siteId}/advanced-locations/buildings`);
@@ -57,7 +58,7 @@ export async function createPreregistration(payload: any): Promise<any> {
 }
 
 export async function updatePreregistration(visitId: string, updateType: string, payload: any): Promise<any> {
-    const { data } = await getApiClient().patch(`/v1/preregistrations/${visitId}?updateType=${updateType}`, payload);
+    const { data } = await getApiClient().patch(`/v1/visit/preregister/${visitId}?updateType=${updateType}`, payload);
     return data;
 }
 
