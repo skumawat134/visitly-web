@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, User, LogOut, LockOpen, HelpCircle, ChevronDown, ExternalLink } from 'lucide-react';
+import { Menu, User, LogOut, LockOpen, HelpCircle, ChevronDown, ExternalLink, Sparkles } from 'lucide-react';
 import { Button, Image, Popover, Select } from '@visitly/ui';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore, type AuthState } from '@visitly/app-store';
@@ -38,7 +38,7 @@ const isHost = !isAdmin
    
     async function switchToHost() {
         await setToLocalStorageTemporarily();
-       window.open("/switch?redirectTo=host&landIn=modern", "_blank");
+       window.open("/switch", "_blank");
     }
 
     async function switchToHostInSameTab() {
@@ -106,6 +106,19 @@ const isHost = !isAdmin
     const showUpgrade = (isTrial || isExpired) && permissions.currentPlan !== 'Enterprise' && permissions.isGlobalAdmin;
 
     return (
+        <>  
+       {isHost && <div className="tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2 tw:bg-gradient-to-r tw:from-purple-50 tw:to-indigo-50 tw:border-b tw:border-purple-100">
+        <div className="tw:flex tw:items-center tw:gap-2 tw:text-sm">
+          <Sparkles className="tw:w-4 tw:h-4 tw:text-purple-600" />
+          <span className="tw:text-gray-700">New Version Available</span>
+        </div>
+        <span
+         onClick={() => navigate('/host/dashboard')}
+          className="tw:text-sm tw:text-gray-500 tw:border-1 tw:px-2 tw:rounded-lg tw:mr-2 tw:md:mr-4"
+        >
+          Try now
+        </span>
+        </div>}
         <header className="tw:top-0 tw:z-50 tw:w-full tw:bg-white tw:border-b tw:border-gray-200 tw:h-16 tw:flex! tw:items-center tw:justify-between tw:px-4" data-testid="topbar-header">
             <div className="tw:flex tw:items-center tw:gap-1">
                 {/* Logo Section */}
@@ -163,10 +176,6 @@ const isHost = !isAdmin
                 { isAdmin && <Button variant="primary" className='tw:rounded-lg!' onClick={switchToHost} data-testid="upgrade-plan-button">
                    Launch My Visitly
                 </Button>}
-                { isHost && <Button variant="outline" className='tw:' onClick={switchToHostInSameTab} data-testid="upgrade-plan-button">
-                   Try new Experience
-                </Button>}
-
                 {/* Help Dropdown */}
                 <Popover
                     placement="bottom"
@@ -227,6 +236,7 @@ const isHost = !isAdmin
                 />
             </div>
         </header>
+        </>
     );
 };
 
