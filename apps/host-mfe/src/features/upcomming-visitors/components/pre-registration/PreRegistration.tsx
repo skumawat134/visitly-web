@@ -203,11 +203,12 @@ export const PreRegistrationModal = ({
           <SearchUserSelect
             options={hostOptions}
             onSearch={setHostSearch}
-            value={hostOptions.filter(opt => opt.value === form.hostUserId)}
+            value={form.hostUser}
             onChange={(opt) => {
               const selected = Array.isArray(opt) ? opt[0] : opt;
               setFormField('hostUserId', selected?.value || null);
               setFormField('hostEmail', selected?.email || '');
+              setFormField('hostUser', selected || null);
               formik.setFieldValue(fieldName, selected?.value || '');
             }}
             isDisabled={isFieldDisabled('hostUserId')}
@@ -447,7 +448,7 @@ export const PreRegistrationModal = ({
             className="tw:p-2 tw:rounded-full tw:hover:bg-gray-100 tw:transition-colors"
             data-testid="modal-close-btn"
           >
-            <X  size={20} />
+            <X size={20} />
           </button>
         </div>
 
@@ -638,15 +639,21 @@ export const PreRegistrationModal = ({
                         <SearchUserSelect
                           options={coHostOptions}
                           onSearch={setCoHostSearch}
-                          value={coHostOptions.filter(opt => (form.cohostUserIds || []).includes(opt.value))}
+                          value={form.cohostUsers || []}
                           onChange={(opt) => {
                             if (Array.isArray(opt)) {
                               setFormField('cohostUserIds', opt.map(o => o.value));
+                              setFormField('cohostUsers', opt);
                             } else if (opt) {
-                              const current = form.cohostUserIds || [];
-                              if (!current.includes(opt.value)) {
-                                setFormField('cohostUserIds', [...current, opt.value]);
+                              const currentIds = form.cohostUserIds || [];
+                              const currentUsers = form.cohostUsers || [];
+                              if (!currentIds.includes(opt.value)) {
+                                setFormField('cohostUserIds', [...currentIds, opt.value]);
+                                setFormField('cohostUsers', [...currentUsers, opt as any]);
                               }
+                            } else {
+                              setFormField('cohostUserIds', []);
+                              setFormField('cohostUsers', []);
                             }
                           }}
                           isDisabled={isFieldDisabled('cohostUserIds')}
@@ -781,20 +788,17 @@ export const PreRegistrationModal = ({
                         />
                         <SummaryField
                           label="Host"
-                          value={hostOptions.find(h => h.value === form.hostUserId)?.label}
+                          value={form.hostUser?.label || 'Not specified'}
                           icon={ShieldCheck}
                         />
                         <SummaryField
                           label="Co-hosts"
                           value={
-                            form.cohostUserIds && form.cohostUserIds.length > 0
-                              ? coHostOptions
-                                .filter(opt => form.cohostUserIds.includes(opt.value))
-                                .map(opt => opt.label)
-                                .join(', ')
+                            form.cohostUsers && form.cohostUsers.length > 0
+                              ? form.cohostUsers.map(u => u.label).join(', ')
                               : null
                           }
-                          icon={Users} // Changed to Users icon to represent a group
+                          icon={Users}
                         />
                         {form.preregisterVisitCustomFieldModels.map((field: any) => {
                           // Skip common fields already shown in the Hero Card

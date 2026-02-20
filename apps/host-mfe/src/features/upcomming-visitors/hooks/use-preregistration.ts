@@ -43,6 +43,8 @@ export interface PreRegistrationForm {
   poeId?: string;
   buildingId?: string;
   parkingLotId?: string;
+  hostUser?: { value: string; label: string; email?: string } | null;
+  cohostUsers?: Array<{ value: string; label: string; email?: string }>;
 }
 
 export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, status?: 'Create' | 'Update') => {
@@ -83,6 +85,8 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     poeId: '',
     buildingId: '',
     parkingLotId: '',
+    hostUser: null,
+    cohostUsers: [],
   }), []);
 
   const [isPreScreening, setIsPreScreening] = useState(false);
@@ -231,13 +235,14 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
   const { data: destData } = useDestination(form.siteId, entitlements.isAdvancedMegaLocationEntitled);
 
   const isFieldDisabled = useCallback((fieldName: string) => {
-
+    console.log("existingVisit>>>" ,existingVisit)
     // Angular logic: Disable if in edit mode AND (is recurring OR is part of a group/parent visit OR is prefilled)
     const isEditMode = status === 'Update';
     const isRecurring = form.recurrenceType && form.recurrenceType !== 'NONE';
     const isParentVisit = !!form.parentVisitId;
     const isPrefilledVisit = !!existingVisit?.visitInfoModel?.id || !!existingVisit?.id;
     if (isEditMode) {
+      if(['siteId', 'visitorTypeId'].includes(fieldName)) {return true}
       if (isRecurring || isParentVisit || isPrefilledVisit) {
         return ['siteId', 'visitorTypeId', 'scheduleCheckinDate', 'scheduleCheckinTimeOnly', 'recurrenceType', 'scheduleCheckoutDate', 'recurrenceEndDateOnly', 'scheduleCheckoutTimeOnly'].includes(fieldName);
       }
@@ -369,8 +374,8 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       companyName: getFieldValue('Company Name'),
       phoneNumber: String(getFieldValue('Phone Number') || ''),
       hostUserId: values.hostUserId,
-      hostEmail: selectedHost?.email || values.hostEmail,
-      hostName: selectedHost?.label?.split(' - ')[0] || '',
+      hostEmail: values.hostUser?.email || values.hostEmail,
+      hostName: values.hostUser?.label || '',
       visitorTypeId: values.visitorTypeId,
       siteId: values.siteId,
       notifyHostFlag: !!values.notifyHostFlag,
@@ -384,11 +389,11 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       buildingId: extractedBuildingId,
       parkingLotId: extractedParkingLotId,
       cohosts: (values.cohostUserIds || []).map(cid => {
-        const cohostOpt = coHostOptions.find(opt => opt.value === cid);
+        const cohostDetail = values.cohostUsers?.find(opt => opt.value === cid);
         return {
           cohostUserId: cid,
-          cohostEmail: cohostOpt?.email || '',
-          cohostName: cohostOpt?.label?.split(' - ')[0] || ''
+          cohostEmail: cohostDetail?.email || '',
+          cohostName: cohostDetail?.label || ''
         };
       })
     };
@@ -582,6 +587,16 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         poeId: prefilledPoeId || '',
         buildingId: prefilledBuildingId || '',
         parkingLotId: prefilledParkingLotId || '',
+        hostUser: existingVisit.hostUserId ? {
+          value: existingVisit.hostUserId,
+          label: existingVisit.hostName || '',
+          email: existingVisit.hostEmail || ''
+        } : null,
+        cohostUsers: existingVisit.cohosts?.map((c: any) => ({
+          value: c.cohostUserId,
+          label: c.cohostName || '',
+          email: c.cohostEmail || ''
+        })) || [],
       });
       lastLoadedId.current = visitId;
     }
@@ -599,52 +614,54 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
   ];
 
   const hostOptions = React.useMemo(() => {
-    const options = hostsData?.results?.map((user: any) => ({
-      value: user.id,
-      label: `${user.firstName} ${user.lastName} - ${user.email}`,
-      email: user.email,
-      emailValue: user.email
-    })) ?? [];
+    const options =
+      hostsData?.results?.map((user: any) => ({
+        value: user.id,
+        label: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+      })) ?? [];
 
-    // If in update mode and we have existing host data, ensure it's in the options
-    if (status === 'Update' && existingVisit?.hostUserId) {
-      const exists = options.some(opt => opt.value === existingVisit.hostUserId);
+    // Ensure currently selected host is in the options
+    if (form.hostUserId) {
+      const exists = options.some((opt) => opt.value === form.hostUserId);
       if (!exists) {
+        const hostName = existingVisit?.hostUserId === form.hostUserId ? (existingVisit.hostName || '') : (visitId ? '' : ''); // Fallback for name parsing if needed
         options.unshift({
-          value: existingVisit.hostUserId,
-          label: `${existingVisit.hostName || ''} - ${existingVisit.hostEmail || ''}`,
-          email: existingVisit.hostEmail,
-          emailValue: existingVisit.hostEmail
+          value: form.hostUserId,
+          label: hostName || form.hostEmail || 'Selected Host',
+          email: form.hostEmail || '',
         });
       }
     }
     return options;
-  }, [hostsData, existingVisit, status]);
+  }, [hostsData, form.hostUserId, form.hostEmail, existingVisit, visitId]);
 
   const [coHostSearch, setCoHostSearch] = React.useState('');
   const { data: coHostsData } = useCoHosts(coHostSearch, form.siteId);
   const coHostOptions = React.useMemo(() => {
-    const options = coHostsData?.results?.map((user: any) => ({
-      value: user.id,
-      label: `${user.firstName} ${user.lastName} - ${user.email}`,
-      email: user.email,
-    })) ?? [];
+    const options =
+      coHostsData?.results?.map((user: any) => ({
+        value: user.id,
+        label: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+      })) ?? [];
 
-    // If in update mode and we have existing co-hosts, ensure they are in the options
-    if (status === 'Update' && existingVisit?.cohosts) {
-      existingVisit.cohosts.forEach((ch: any) => {
-        const exists = options.some(opt => opt.value === ch.cohostUserId);
+    // Ensure currently selected co-hosts are in the options
+    if (form.cohostUserIds?.length) {
+      form.cohostUserIds.forEach((cid) => {
+        const exists = options.some((opt) => opt.value === cid);
         if (!exists) {
+          const existingCoHost = existingVisit?.cohosts?.find((c: any) => c.cohostUserId === cid);
           options.push({
-            value: ch.cohostUserId,
-            label: `${ch.cohostName || ''} - ${ch.cohostEmail || ''}`,
-            email: ch.cohostEmail
+            value: cid,
+            label: existingCoHost?.cohostName || cid,
+            email: existingCoHost?.cohostEmail || '',
           });
         }
       });
     }
     return options;
-  }, [coHostsData, existingVisit, status]);
+  }, [coHostsData, form.cohostUserIds, existingVisit]);
 
 
   const setFormField = useCallback(

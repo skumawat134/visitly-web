@@ -1,6 +1,6 @@
 import { useAuthStore } from "@visitly/app-store";
 import { useQuery } from "@tanstack/react-query";
-import { UserResponse } from "../types/auth.types";
+import {type UserResponse } from "../types/auth.types";
 import { getUserInfoApi } from "./auth.api";
 import { useEffect } from "react";
 
