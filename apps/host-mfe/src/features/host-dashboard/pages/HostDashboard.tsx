@@ -389,7 +389,7 @@ export const HostDashboard: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="tw:px-9 tw:py-7 tw:max-w-[1400px] tw:relative tw:overflow-visible"
+      className="tw:px-9 tw:py-7 tw:max-w-full tw:relative tw:overflow-visible"
     >
       {/* Welcome Strip */}
       <div className="tw:flex tw:items-start tw:justify-between tw:flex-wrap tw:gap-4 tw:mb-6">
