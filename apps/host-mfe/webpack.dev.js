@@ -14,29 +14,22 @@ module.exports = (env) => {
     },
     plugins: [
       ...base.plugins,
-        new ModuleFederationPlugin({
-          name: "host_mfe",
-          filename: "remoteEntry.js",
-          exposes: {
-            './AppRouter': './src/App',
-          },
+      new ModuleFederationPlugin({
+        name: "host_mfe",
+        filename: "remoteEntry.js",
+        exposes: {
+          './AppRouter': './src/App',
+        },
         shared: sharedDeps,
       }),
     ],
     devServer: {
-      // proxy: [
-      //   {
-      //     context: ['/assets', '/styles.css', '/data-table.woff', '/data-table.ttf'],
-      //     target: 'http://localhost:4200', // Redirect requests for /assets to the Auth MFE
-      //     changeOrigin: true,
-      //   },
-      // ],
       static: "./dist",
-      hot: true,
+      hot: false,
       historyApiFallback: true,
       port: 3007,
       open: true,
-    },
-    "mode" : "development"
+          },
+    "mode": "development"
   };
 };

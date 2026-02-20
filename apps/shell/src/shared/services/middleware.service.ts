@@ -11,9 +11,10 @@ class MiddlewareService {
     private middleware: any = null;
 
     initialize(): void {
-        console.warn('initalizing the middleware' , window.Middleware);
         if (!environment.middleware.enabled || this.initialized) return;
-         
+
+        console.log('[Middleware] Initializing RUM with service:', environment.middleware.serviceName);
+
         // Check if Middleware SDK is loaded via CDN script in index.html
         if (typeof window.Middleware === 'undefined') {
             console.warn('Middleware SDK not loaded. Make sure the CDN script is added to index.html');
@@ -36,7 +37,7 @@ class MiddlewareService {
         });
 
         this.initialized = true;
-        console.info('Middleware RUM initialized for portal-web');
+        console.info(`[Middleware] RUM initialized for ${environment.middleware.serviceName}`);
     }
 
     // Track custom actions
@@ -56,7 +57,7 @@ class MiddlewareService {
     // Set user context for RUM using setAttributes
     // Middleware.io SDK uses setAttributes() to update user context after initialization
     // Only non-PII attributes are captured: id, orgId
-    setUser(user: { id?: string; orgId?: string; [key: string]: unknown }): void {
+    setUser(user: { id?: string; orgId?: string;[key: string]: unknown }): void {
         if (!this.initialized || !this.middleware || !user) return;
 
         try {
