@@ -257,7 +257,7 @@ export const HostDashboard: React.FC = () => {
     [],
   );
 
-  const checkedInColDefs = useMemo(
+  const checkedInColDefs = useMemo<any>(
     () => [
       {
         headerName: "In",
@@ -617,7 +617,7 @@ export const HostDashboard: React.FC = () => {
 
           <div style={{ width: "100%" }} className="tw:ag-theme-quartz">
             <AgGridReact
-              rowData={expectedToday}
+              rowData={expectedToday?.slice(0, 50) || []}
               columnDefs={upcomingColDefs}
               defaultColDef={defaultColDef}
               theme={myTheme}

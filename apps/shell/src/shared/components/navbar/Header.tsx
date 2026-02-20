@@ -267,23 +267,23 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user"> & { close: () => void }>
 
             {/* Actions */}
             <div className="tw:py-1">
-                {/* <Link
+                <Link
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
                     to={"/admin/work_area/profile"}
                     data-testid="profile-link"
                     onClick={close}
                 >
                     <User size={16} /> Profile
-                </Link> */}
+                </Link>
 
-                {/* <Link
+                <Link
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:py-3! tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-600! tw:no-underline tw:border-b! tw:border-gray-300! border-b-2"
                     to={"/admin/work_area/change-password"}
                     data-testid="change-password-link"
                     onClick={close}
                 >
                     <LockOpen size={16} /> Change Password
-                </Link> */}
+                </Link>
                 <Button
                     onClick={logOut}
                     variant="ghost"

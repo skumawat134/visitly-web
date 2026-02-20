@@ -49,6 +49,10 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   const [selectedPreset, setSelectedPreset] =
     useState<DateRangePreset>("all");
 
+  // local state for custom inputs—only notify parent when user edits
+  const [customRange, setCustomRange] =
+    useState<DateRangeValue>({ startDate: null, endDate: null });
+
   // -------------------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------------------
@@ -124,6 +128,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     }
 
     setSelectedPreset("custom");
+    // keep custom inputs in sync when value changes externally
+    setCustomRange({ startDate: value?.startDate ?? null, endDate: value?.endDate ?? null });
   }, [value]);
 
   // -------------------------------------------------------------------------
@@ -133,11 +139,9 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   const handlePresetClick = (key: DateRangePreset) => {
     setSelectedPreset(key);
 
+    // setting custom preset—always start blank
     if (key === "custom") {
-      onChange({
-        startDate: value?.startDate ?? null,
-        endDate: value?.endDate ?? null,
-      });
+      setCustomRange({ startDate: null, endDate: null });
       return;
     }
 
@@ -194,7 +198,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
       {/* Custom Inputs */}
       {isCustom && (
-        <div className="tw:flex tw:items-center tw:gap-4 tw:pl-[44px] tw:animate-in tw:fade-in tw:slide-in-from-top-2">
+        <div className="tw:flex tw:items-center tw:gap-4 tw:pl-11 tw:animate-in tw:fade-in tw:slide-in-from-top-2">
           {/* FROM */}
           <div className="tw:flex tw:items-center tw:gap-3">
             <span className="tw:text-[11px] tw:font-bold tw:text-slate-400 tw:uppercase tw:tracking-widest">
@@ -203,13 +207,12 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
             <input
               type="date"
-              value={value?.startDate || ""}
-              onChange={(e) =>
-                onChange({
-                  startDate: e.target.value || null,
-                  endDate: value?.endDate ?? null,
-                })
-              }
+              value={customRange.startDate || ""}
+              onChange={(e) => {
+                const start = e.target.value || null;
+                setCustomRange((c) => ({ ...c, startDate: start }));
+                onChange({ startDate: start, endDate: customRange.endDate });
+              }}
               className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none tw:focus:ring-2 tw:focus:ring-indigo-500/20 tw:focus:border-indigo-500 tw:transition-all"
             />
           </div>
@@ -224,14 +227,13 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
             <input
               type="date"
-              value={value?.endDate || ""}
-              min={value?.startDate || undefined}
-              onChange={(e) =>
-                onChange({
-                  startDate: value?.startDate ?? null,
-                  endDate: e.target.value || null,
-                })
-              }
+              value={customRange.endDate || ""}
+              min={customRange.startDate || undefined}
+              onChange={(e) => {
+                const end = e.target.value || null;
+                setCustomRange((c) => ({ ...c, endDate: end }));
+                onChange({ startDate: customRange.startDate, endDate: end });
+              }}
               className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none tw:focus:ring-2 tw:focus:ring-indigo-500/20 tw:focus:border-indigo-500 tw:transition-all"
             />
           </div>
@@ -242,10 +244,6 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 };
 
 export default DateRangePicker;
-
-
-
-
 
 
 

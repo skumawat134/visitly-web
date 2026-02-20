@@ -132,10 +132,10 @@ export const useHostDashboard = () => {
       const q = upcomingSearch.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.fullName.toLowerCase().includes(q) ||
-          v.email.toLowerCase().includes(q) ||
-          (v.companyName || "").toLowerCase().includes(q) ||
-          (v.hostName || "").toLowerCase().includes(q),
+          v?.fullName?.toLowerCase()?.includes(q) ||
+          v?.email?.toLowerCase()?.includes(q) ||
+          (v?.companyName || "")?.toLowerCase()?.includes(q) ||
+          (v?.hostName || "")?.toLowerCase()?.includes(q),
       );
     }
     return filtered;

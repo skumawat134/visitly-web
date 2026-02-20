@@ -251,7 +251,7 @@ export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => 
   return (
     <aside className={`
       tw:bg-white tw:border-r tw:border-gray-200 
-      tw:transition-all tw:duration-300 tw:z-40 tw:overflow-y-visible
+      tw:transition-all tw:duration-300 tw:z-40 tw:overflow-y-visible tw:h-full
       ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
     `} id='sidebar' data-testid="left-sidebar" data-test-id="shell-sidebar-root">
       <div className="tw:flex tw:flex-col tw:h-full">
