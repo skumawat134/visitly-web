@@ -98,14 +98,7 @@ export function HostBanner({ onVersionChange }: VersionSwitcherProps) {
               <span className="tw:text-sm tw:font-medium"> Try New</span>
             </div> */}
           </div>
-
-          <Button
-            variant="outline"
-            className="tw:text-white tw:hover:bg-white/20 tw:h-8 tw:w-8 tw:border-none"
-            onClick={() => showSmaller()}
-          >
-          </Button>
-           <X className="tw:text-white"/>
+           <X className="tw:text-white tw:cursor-pointer"  onClick={() => showSmaller()}/>
         </div>
       </div>
     </div>
