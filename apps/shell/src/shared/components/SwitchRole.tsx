@@ -52,7 +52,7 @@ export default function SwitchRole() {
   }
 
   if (roles.some(r => ["EVAC_MANAGER"].includes(r))) {
-    return "/admin/work_area/evacuation/main";
+    return "/admin/work_area/evacuation/past-visitors";
   }
   
   return "/admin";

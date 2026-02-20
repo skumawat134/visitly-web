@@ -15,18 +15,34 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
-    const { switchToAnotherRole, roles } = useSwitchLogin();
+    const { switchToAnotherRole, roles  } = useSwitchLogin();
     const permissions = useSidebarPermissions();
     const navigate = useNavigate();
     const user = useAuthStore((s) => s.user);
 
     const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
     const SESSION_TO_LOCAL_KEYS: string = "__session_backup_keys__";
+  
+      const ADMIN_ROLES = [
+  'GLOBAL_ORG_ADMIN',
+  'GLOBAL_INTERNAL_ADMIN',
+  'GLOBAL_SITE_ADMIN',
+  'FRONTDESK_ADMIN',
+  'DELIVERY_MANAGER',
+  'EVAC_MANAGER',
+  'SITE_ADMIN'
+];
 
-
+const isAdmin = roles.some(role => ADMIN_ROLES.includes(role));
+const isHost = !isAdmin
+   
     async function switchToHost() {
         await setToLocalStorageTemporarily();
-        window.open("/switch", "_blank");
+       window.open("/switch?redirectTo=host&landIn=modern", "_blank");
+    }
+
+    async function switchToHostInSameTab() {
+        navigate('/host/dashboard')
     }
 
     function setToLocalStorageTemporarily() {
@@ -144,9 +160,12 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                         Upgrade Plan
                     </Button>
                 )}
-                <Button variant="primary" onClick={switchToHost} data-testid="upgrade-plan-button">
-                    Launch My Visitly
-                </Button>
+                { isAdmin && <Button variant="primary" className='tw:rounded-lg!' onClick={switchToHost} data-testid="upgrade-plan-button">
+                   Launch My Visitly
+                </Button>}
+                { isHost && <Button variant="outline" className='tw:' onClick={switchToHostInSameTab} data-testid="upgrade-plan-button">
+                   Try new Experience
+                </Button>}
 
                 {/* Help Dropdown */}
                 <Popover
@@ -238,23 +257,23 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user"> & { close: () => void }>
 
             {/* Actions */}
             <div className="tw:py-1">
-                <Link
+                {/* <Link
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50 hover:tw:text-indigo-600 tw:no-underline"
                     to={"/admin/work_area/profile"}
                     data-testid="profile-link"
                     onClick={close}
                 >
                     <User size={16} /> Profile
-                </Link>
+                </Link> */}
 
-                <Link
+                {/* <Link
                     className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:py-3! tw:text-sm tw:text-slate-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-600! tw:no-underline tw:border-b! tw:border-gray-300! border-b-2"
                     to={"/admin/work_area/change-password"}
                     data-testid="change-password-link"
                     onClick={close}
                 >
                     <LockOpen size={16} /> Change Password
-                </Link>
+                </Link> */}
                 <Button
                     onClick={logOut}
                     variant="ghost"

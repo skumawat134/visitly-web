@@ -138,24 +138,24 @@ export const MAIN_MENU: SidebarItem[] = [
         condition: (ctx) => ctx.isGlobalAdmin || ctx.isFrontDeskManager,
         testid: 'nav-evacuation'
     },
-    // {
-    //     title: 'My Visitly',
-    //     icon: Layers,
-    //     condition: (ctx) => ctx.isGlobalAdmin || ctx.isFrontDeskManager,
-    //     testid: 'nav-myvisitly-submenu',
-    //     children: [
-    //         { title: 'My Visitors', path: '/admin/work_area/evacuation/past-visitors', testid: 'my-visitors-link' },
-    //         { title: 'My Upcoming Visitors', path: '/admin/work_area/evacuation/upcoming-visitors', testid: 'my-upcoming-visitors-link' },
-    //         { title: 'My Sign In Log', path: '/admin/work_area/evacuation/my-sign-in-log', testid: 'my-sign-in-log-link' },
-    //         {
-    //             title: 'My Deliveries',
-    //             path: '/admin/work_area/evacuation/my-deliveries',
-    //             condition: (ctx) => ctx.isDeliveryManagerEntitled,
-    //             testid: 'my-deliveries-link'
-    //         },
-    //         { title: 'Company Directory', path: '/admin/work_area/evacuation/directory', testid: 'company-directory-link' }
-    //     ]
-    // },
+    {
+        title: 'My Visitly',
+        icon: Layers,
+        condition: (ctx) => ctx.isGlobalAdmin || ctx.isFrontDeskManager,
+        testid: 'nav-myvisitly-submenu',
+        children: [
+            { title: 'My Visitors', path: '/admin/work_area/evacuation/past-visitors', testid: 'my-visitors-link' },
+            { title: 'My Upcoming Visitors', path: '/admin/work_area/evacuation/upcoming-visitors', testid: 'my-upcoming-visitors-link' },
+            { title: 'My Sign In Log', path: '/admin/work_area/evacuation/my-sign-in-log', testid: 'my-sign-in-log-link' },
+            {
+                title: 'My Deliveries',
+                path: '/admin/work_area/evacuation/my-deliveries',
+                condition: (ctx) => ctx.isDeliveryManagerEntitled,
+                testid: 'my-deliveries-link'
+            },
+            { title: 'Company Directory', path: '/admin/work_area/evacuation/directory', testid: 'company-directory-link' }
+        ]
+    },
     {
         title: 'Users',
         icon: Users,
@@ -313,37 +313,37 @@ export const LOCATION_MENU: SidebarItem[] = [
 ];
 
 export const EVAC_HOST_MENU: SidebarItem[] = [
-    // {
-    //     title: 'My Upcoming Visitors',
-    //     icon: ClipboardList,
-    //     path: '/admin/work_area/evacuation/upcoming-visitors',
-    //     testid: 'evac-my-upcoming-visitors-link'
-    // },
-    // {
-    //     title: 'My Visitors',
-    //     icon: Users,
-    //     path: '/admin/work_area/evacuation/past-visitors',
-    //     testid: 'evac-my-visitors-link'
-    // },
-    // {
-    //     title: 'My Sign In Log',
-    //     icon: LogIn,
-    //     path: '/admin/work_area/evacuation/my-sign-in-log',
-    //     testid: 'evac-my-sign-in-log-link'
-    // },
-    // {
-    //     title: 'My Deliveries',
-    //     icon: Truck,
-    //     path: '/admin/work_area/evacuation/my-deliveries',
-    //     condition: (ctx) => ctx.isDeliveryManagerEntitled,
-    //     testid: 'evac-my-deliveries-link'
-    // },
-    // {
-    //     title: 'Company Directory',
-    //     icon: Contact,
-    //     path: '/admin/work_area/evacuation/directory',
-    //     testid: 'evac-company-directory-link'
-    // },
+    {
+        title: 'My Upcoming Visitors',
+        icon: ClipboardList,
+        path: '/admin/work_area/evacuation/upcoming-visitors',
+        testid: 'evac-my-upcoming-visitors-link'
+    },
+    {
+        title: 'My Visitors',
+        icon: Users,
+        path: '/admin/work_area/evacuation/past-visitors',
+        testid: 'evac-my-visitors-link'
+    },
+    {
+        title: 'My Sign In Log',
+        icon: LogIn,
+        path: '/admin/work_area/evacuation/my-sign-in-log',
+        testid: 'evac-my-sign-in-log-link'
+    },
+    {
+        title: 'My Deliveries',
+        icon: Truck,
+        path: '/admin/work_area/evacuation/my-deliveries',
+        condition: (ctx) => ctx.isDeliveryManagerEntitled,
+        testid: 'evac-my-deliveries-link'
+    },
+    {
+        title: 'Company Directory',
+        icon: Contact,
+        path: '/admin/work_area/evacuation/directory',
+        testid: 'evac-company-directory-link'
+    },
     {
         title: 'Evacuation & Emergency',
         icon: AlertTriangle,
@@ -389,15 +389,15 @@ export const DELIVERY_MANAGER_MENU: SidebarItem[] = [
         condition: (ctx) => ctx.isDeliveryManagerEntitled && ctx.isAdvanceAnalyticsEntitled,
         testid: 'dm-analytics-link'
     },
-    // {
-    //     title: 'My Visitly',
-    //     icon: Layers,
-    //     testid: 'dm-myvisitly-submenu',
-    //     children: [
-    //         { title: 'My Visitors', path: '/admin/work_area/evacuation/past-visitors', testid: 'dm-my-visitors-link' },
-    //         { title: 'My Upcoming Visitors', path: '/admin/work_area/evacuation/upcoming-visitors', testid: 'dm-my-upcoming-visitors-link' },
-    //         { title: 'My Sign In Log', path: '/admin/work_area/evacuation/my-sign-in-log', testid: 'dm-my-sign-in-log-link' },
-    //         { title: 'Company Directory', path: '/admin/work_area/evacuation/directory', testid: 'dm-company-directory-link' }
-    //     ]
-    // }
+    {
+        title: 'My Visitly',
+        icon: Layers,
+        testid: 'dm-myvisitly-submenu',
+        children: [
+            { title: 'My Visitors', path: '/admin/work_area/evacuation/past-visitors', testid: 'dm-my-visitors-link' },
+            { title: 'My Upcoming Visitors', path: '/admin/work_area/evacuation/upcoming-visitors', testid: 'dm-my-upcoming-visitors-link' },
+            { title: 'My Sign In Log', path: '/admin/work_area/evacuation/my-sign-in-log', testid: 'dm-my-sign-in-log-link' },
+            { title: 'Company Directory', path: '/admin/work_area/evacuation/directory', testid: 'dm-company-directory-link' }
+        ]
+    }
 ];
