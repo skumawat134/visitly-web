@@ -5,6 +5,7 @@ import { ToastProvider } from "./providers/ToastProvider";
 import { router } from "./router";
 
 const App = () => {
+ 
   return (
     <QueryClient>
       <RouterProvider router={router} />
