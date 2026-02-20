@@ -65,7 +65,6 @@ export const useChangePassword = () => {
         });
 
         toast({message : 'Your password has been changed successfully.'});
-        navigate('/host/past-visitors');
       } catch (error: any) {
         const errorMessage =
           error?.response?.data?.message ||

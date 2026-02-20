@@ -16,7 +16,7 @@ const DirectoryCard: React.FC<{
         tw:bg-white tw:rounded-xl tw:p-4 tw:border tw:border-slate-200 
         tw:flex tw:flex-col tw:gap-3 tw:cursor-pointer 
         tw:transition-[box-shadow,transform] tw:duration-150
-        hover:tw:shadow-md hover:-tw:translate-y-[1px]
+        tw:hover::shadow-md -tw:hover:translate-y-[1px] tw:max-h-60
       "
     >
       {/* Top Row */}
