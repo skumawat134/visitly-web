@@ -406,5 +406,6 @@ export const useUpcomingVisitors = () => {
     cancelUpdateType,
     setCancelUpdateType,
     handleCancelClick,
+    setshowPreRegistrationModal
   };
 };

@@ -703,6 +703,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     destData,
     wizardStep,
     setWizardStep,
-    isFieldDisabled
+    isFieldDisabled,
   };
 };

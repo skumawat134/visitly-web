@@ -34,6 +34,7 @@ import type { DateRangeValue } from "../../../shared/components/DateRangePicker"
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { PageDescription } from "@/shared/components/PageDescription";
 import { useDelegateOption } from '@visitly/shared-core';
+import { useSearchParams } from "react-router-dom";
 
 // Custom styles for the premium switcher
 const viewPillActive = "tw:px-4 tw:py-1.5 tw:rounded-lg tw:text-sm tw:font-semibold tw:text-blue-600 tw:bg-white tw:shadow-sm tw:border-none tw:cursor-pointer tw:whitespace-nowrap";
@@ -60,6 +61,7 @@ const UpcommingVisitors: React.FC = () => {
     closePreRegistrationModalHandler,
     openPreRegistrationModalHandler,
     showPreRegistrationModal,
+    setshowPreRegistrationModal,
     showBulkPreRegistrationModal,
     allVisitorTypeOption,
     openBulkPreRegistrationModalHandler,
@@ -89,10 +91,10 @@ const UpcommingVisitors: React.FC = () => {
      upcomingDateRange,
     setUpcomingDateRange
   } = useUpcomingVisitors();
-
+   const [searchParams] = useSearchParams();
+   const type = searchParams.get("type");
+   const mode = searchParams.get("mode");
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
-
-
   const { searchTerm, setSearchTerm } = search;
   const { pageSize, pageIndex } = pagination;
   const {
@@ -104,11 +106,16 @@ const UpcommingVisitors: React.FC = () => {
   } = filters;
 
   const delegates = useDelegateOption();
-
-
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const debouncedGroupName = useDebounce(groupFilter, 500);
-
+ 
+  useEffect(() => {
+    // show modal from other page
+     if(type =="single-invite"){
+         setshowPreRegistrationModal(true)
+     }
+  }, [type])
+  
 
   // Customizing the Theme for AG Grid
   const myTheme = useMemo(
