@@ -11,7 +11,7 @@ import {
   ChevronRight, ChevronLeft, ArrowRight, ArrowUpDown, Download,
   RotateCw, ArrowUpFromLine, Menu, Search as SearchIcon
 } from 'lucide-react';
-import { cn, Button, Input, Search, Select as VisitlySelect } from "@visitly/ui";
+import { cn, Button, Input, Search, Select as VisitlySelect, FutureDateRangeFilter } from "@visitly/ui";
 import { format } from "date-fns";
 import { useUpcomingVisitors } from "../hooks/use-upcomming-visitiors";
 import type { VisitorsRowsType } from "../types/upcomming-visitors.types";
@@ -88,6 +88,8 @@ const UpcommingVisitors: React.FC = () => {
     visitorToCancel,
     cancelUpdateType,
     setCancelUpdateType,
+     upcomingDateRange,
+    setUpcomingDateRange
   } = useUpcomingVisitors();
    const [searchParams] = useSearchParams();
    const type = searchParams.get("type");
@@ -330,10 +332,18 @@ const UpcommingVisitors: React.FC = () => {
 
           {/* Date Range Picker Section */}
           <div className="tw:md:col-span-12 tw:flex tw:items-center tw:gap-3 tw:flex-wrap tw:mt-4 md:tw:mt-0">
-            <DateRangePicker
+
+            { activeTab === 'upcoming' && 
+              <FutureDateRangeFilter
+              value={upcomingDateRange}
+              onChange={(val: DateRangeValue | string) => setUpcomingDateRange(val as any)}
+              />
+            }
+
+           {  activeTab === 'checkedin' && <DateRangePicker
               value={dateRange}
               onChange={(val: DateRangeValue | string) => setDateRange(val as any)}
-            />
+            />}
             {/* More Actions Dropdown (Visible only when rows selected) */}
             {selectedRowIds.length > 0 && (
               <div className="tw:relative">

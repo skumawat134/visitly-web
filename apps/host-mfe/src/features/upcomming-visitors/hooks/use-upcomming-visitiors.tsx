@@ -63,6 +63,12 @@ export const useUpcomingVisitors = () => {
     endDate: null
   });
 
+   // Default to All Time (null) so filtering is optional
+  const [upcomingDateRange, setUpcomingDateRange] = useState<DateRangeValue>({
+    startDate: format(new Date(), "yyyy-MM-dd"),
+    endDate: format(new Date(), "yyyy-MM-dd")
+  });
+
   // Fetch all sites for the filter
   const { data: sitesData } = useQuery({
     queryKey: ['allSites'],
@@ -105,13 +111,13 @@ export const useUpcomingVisitors = () => {
       siteId: locationFilter,
       groupName: debounceGroupSearch,
       visitorTypeId: typeFilter,
-      scheduleCheckinStartDate: dateRange.startDate || '',
-      scheduleCheckinEndDate: dateRange.endDate || '',
+      scheduleCheckinStartDate: upcomingDateRange.startDate || '',
+      scheduleCheckinEndDate: upcomingDateRange.endDate || '',
     };
   };
 
   const { data, isLoading, refetch, isFetching } = useQuery<VisitorVisitResponse>({
-    queryKey: ['upcomingVisitors', pageIndex, pageSize, debounceSearchTerm, sort, sortBy, locationFilter, typeFilter, debounceGroupSearch, dateRange],
+    queryKey: ['upcomingVisitors', pageIndex, pageSize, debounceSearchTerm, sort, sortBy, locationFilter, typeFilter, debounceGroupSearch, upcomingDateRange,activeTab],
     queryFn: () => getUpCommingVisitors(buildParams()),
     enabled: activeTab === 'upcoming',
   });
@@ -358,6 +364,8 @@ export const useUpcomingVisitors = () => {
       groupFilter, setGroupFilter,
       dateRange, setDateRange
     },
+    upcomingDateRange,
+    setUpcomingDateRange,
     sites: sitesData?.results || [],
     handlePageChange,
     handlePageSizeChange,
