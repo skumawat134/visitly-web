@@ -455,7 +455,7 @@ const MyDeliveryLogs: React.FC = () => {
               value={selectedStatus}
               onChange={(val) => setSelectedStatus(val)}
               icon={Filter}
-              placeholder="All Statuses"
+              placeholder="All"
               options={[
                 { value: DeliveryLogStatus.PENDING, label: "Pending" },
                 { value: DeliveryLogStatus.PICKEDUP, label: "Picked Up" },
@@ -477,7 +477,7 @@ const MyDeliveryLogs: React.FC = () => {
               value={siteAreaId}
               onChange={(val) => setSiteAreaId(val)}
               icon={MapPin}
-              placeholder="Select Areas"
+              placeholder=" Select Delivery Area"
               options={deliveryAreaOptions}
             />
 
