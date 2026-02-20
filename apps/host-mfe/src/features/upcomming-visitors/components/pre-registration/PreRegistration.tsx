@@ -447,7 +447,7 @@ export const PreRegistrationModal = ({
             className="tw:p-2 tw:rounded-full tw:hover:bg-gray-100 tw:transition-colors"
             data-testid="modal-close-btn"
           >
-            <X className="tw:rotate-45" size={20} />
+            <X  size={20} />
           </button>
         </div>
 
