@@ -33,21 +33,28 @@ export function registerServiceWorker(): void {
             navigator.serviceWorker
                 .register(swUrl)
                 .then((registration) => {
-                    console.log('[SW] Registered:', registration.scope);
+                    console.log('%c[SW] Registration Successful', 'color: #10b981; font-weight: bold; background: #ecfdf5; padding: 2px 5px; border-radius: 3px;', registration.scope);
                     setupUpdateDetection(registration);
                     startPeriodicChecks(registration);
                     setupOnlineRecheck(registration);
                 })
                 .catch((error) => {
-                    console.error('[SW] Registration failed:', error);
+                    console.error('%c[SW] Registration Failed', 'color: #ef4444; font-weight: bold; background: #fef2f2; padding: 2px 5px; border-radius: 3px;', error);
                 });
         };
 
         // Match Angular's registerWhenStable:30000
+        console.log(`[SW] Queuing registration (timeout: ${REGISTER_TIMEOUT_MS}ms)`);
         if ('requestIdleCallback' in window) {
-            (window as any).requestIdleCallback(doRegister, { timeout: REGISTER_TIMEOUT_MS });
+            (window as any).requestIdleCallback(() => {
+                console.log('[SW] Browser is idle, starting registration...');
+                doRegister();
+            }, { timeout: REGISTER_TIMEOUT_MS });
         } else {
-            setTimeout(doRegister, REGISTER_TIMEOUT_MS);
+            setTimeout(() => {
+                console.log('[SW] Registration timeout reached, starting registration...');
+                doRegister();
+            }, REGISTER_TIMEOUT_MS);
         }
     });
 }
@@ -73,20 +80,20 @@ function setupUpdateDetection(registration: ServiceWorkerRegistration): void {
     registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (!newWorker) return;
-        console.log('[SW] Update found. State:', newWorker.state);
+        console.log('%c[SW] Update Found', 'color: #f59e0b; font-weight: bold;', 'State:', newWorker.state);
         trackInstallation(newWorker);
     });
 
     function trackInstallation(worker: ServiceWorker) {
         worker.addEventListener('statechange', () => {
-            console.log('[SW] Worker state changed to:', worker.state);
+            console.log(`%c[SW] Worker State Change: %c${worker.state}`, 'color: #6366f1; font-weight: bold;', 'color: #312e81;');
             if (worker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
                     // A new version was deployed — force activation
-                    console.log('[SW] New version ready. Skipping waiting...');
+                    console.log('%c[SW] New version ready. Skipping waiting...', 'color: #10b981; font-weight: bold;');
                     worker.postMessage({ type: 'SKIP_WAITING' });
                 } else {
-                    console.log('[SW] Content cached for first time.');
+                    console.log('%c[SW] Content cached for first time.', 'color: #10b981;');
                 }
             }
         });
@@ -98,7 +105,7 @@ function setupUpdateDetection(registration: ServiceWorkerRegistration): void {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
         refreshing = true;
-        console.log('[SW] Controller changed. Reloading page...');
+        console.log('%c[SW] Controller Changed. Reloading page in 100ms...', 'color: #ec4899; font-weight: bold;');
         // Small delay to ensure activation completes fully across all tabs if needed
         setTimeout(() => {
             window.location.reload();
@@ -110,10 +117,21 @@ function setupUpdateDetection(registration: ServiceWorkerRegistration): void {
  * Check for updates every 5 minutes (same as Angular UpdateService).
  */
 function startPeriodicChecks(registration: ServiceWorkerRegistration): void {
+    if (checkIntervalId) clearInterval(checkIntervalId);
+
+    console.log(`[SW] Starting periodic update checks every ${CHECK_INTERVAL_MS / 1000 / 60} minutes.`);
+
     checkIntervalId = setInterval(() => {
-        registration.update().catch((err) => {
-            handleCheckError(err, registration);
-        });
+        const nextCheckIn = new Date(Date.now() + CHECK_INTERVAL_MS).toLocaleTimeString();
+        console.log(`%c[SW] Periodic check started at ${new Date().toLocaleTimeString()}. %cNext check at ~${nextCheckIn}`, 'color: #3b82f6; font-weight: bold;', 'color: gray;');
+
+        registration.update()
+            .then(() => {
+                console.log('[SW] Periodic check completed (no update or update detected).');
+            })
+            .catch((err) => {
+                handleCheckError(err, registration);
+            });
     }, CHECK_INTERVAL_MS);
 }
 
