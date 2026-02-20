@@ -11,6 +11,7 @@ import { VerifyEmail } from '../features/auth/pages/VerifyEmail';
 import Saml from '@/features/auth/pages/Saml';
 
 function AppRouter() {
+
   return (
     //  <BrowserRouter>
       <Routes>  
