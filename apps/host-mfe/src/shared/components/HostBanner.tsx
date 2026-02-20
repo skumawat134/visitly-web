@@ -54,7 +54,7 @@ export function HostBanner({ onVersionChange }: VersionSwitcherProps) {
           <span className="tw:text-gray-700">New Version Available</span>
         </div> */}
         <span
-          onClick={() => navigate(resolveLanding())}
+          onClick={() => navigate('/admin/work_area/evacuation/past-visitors  ')}
           className="tw:text-sm tw:text-gray-500 tw:border-1 tw:px-2 tw:rounded-lg tw:mr-2 tw:md:mr-4"
         >
           Switch To Classic
@@ -87,7 +87,7 @@ export function HostBanner({ onVersionChange }: VersionSwitcherProps) {
           <div className="tw:flex tw:items-center tw:gap-3 tw:bg-white/10 tw:backdrop-blur-sm tw:px-4 tw:py-2 tw:rounded-lg tw:border tw:border-white/20">
             <div className="tw:flex tw:items-center tw:gap-2 tw:cursor-pointer">
               <span
-                onClick={() => navigate(resolveLanding())}
+                onClick={() => navigate('/admin/work_area/evacuation/past-visitors')}
                 className="tw:text-sm tw:font-medium tw:cursor-pointer"
               >
                 Switch To Classic

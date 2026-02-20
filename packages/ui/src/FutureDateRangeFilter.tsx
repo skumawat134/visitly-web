@@ -31,7 +31,7 @@ const PRESETS: { key: FutureDateRangePreset; label: string }[] = [
   { key: "today", label: "Today" },
   { key: "tomorrow", label: "Tomorrow" },
   { key: "7d", label: "Next 7 Days" },
-  { key: "all", label: "All Time" },
+  { key: "all", label: "All Future" },
   { key: "custom", label: "Custom" },
 ];
 
@@ -44,8 +44,16 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
   onChange,
 }) => {
   const today = new Date();
+  const todayStr = format(today, "yyyy-MM-dd");
+
   const [selectedPreset, setSelectedPreset] =
     useState<FutureDateRangePreset>("all");
+
+  // when the user is in "custom" mode we keep a local copy of the
+  // start/end values so that clicking the preset button itself doesn't
+  // fire `onChange`.  the parent is only notified when the inputs change.
+  const [customRange, setCustomRange] =
+    useState<DateRangeValue>({ startDate: null, endDate: null });
 
   // -------------------------------------------------------------------------
   // Helpers
@@ -56,67 +64,71 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
   ): DateRangeValue => {
     switch (preset) {
       case "today":
-        return {
-          startDate: format(today, "yyyy-MM-dd"),
-          endDate: format(today, "yyyy-MM-dd"),
-        };
+        return { startDate: todayStr, endDate: todayStr };
 
       case "tomorrow": {
         const t = addDays(today, 1);
-        return {
-          startDate: format(t, "yyyy-MM-dd"),
-          endDate: format(t, "yyyy-MM-dd"),
-        };
+        const tStr = format(t, "yyyy-MM-dd");
+        return { startDate: tStr, endDate: tStr };
       }
 
       case "7d":
         return {
-          startDate: format(today, "yyyy-MM-dd"),
+          startDate: todayStr,
           endDate: format(addDays(today, 6), "yyyy-MM-dd"),
         };
 
       case "all":
-        return {
-          startDate: null,
-          endDate: null,
-        };
+        return { startDate: todayStr, endDate: null };
 
       default:
-        return {
-          startDate: null,
-          endDate: null,
-        };
+        return { startDate: null, endDate: null };
     }
   };
 
   // -------------------------------------------------------------------------
-  // Sync preset from external value
+  // Sync preset only when value changes externally
   // -------------------------------------------------------------------------
 
   useEffect(() => {
     if (!value) return;
 
-    if (!value.startDate && !value.endDate) {
+    const { startDate, endDate } = value;
+
+    // All Future
+    if (startDate === todayStr && endDate === null) {
       setSelectedPreset("all");
       return;
     }
 
-    for (const preset of PRESETS) {
-      if (preset.key === "custom" || preset.key === "all") continue;
-
-      const presetRange = getPresetRange(preset.key);
-
-      if (
-        presetRange.startDate === value.startDate &&
-        presetRange.endDate === value.endDate
-      ) {
-        setSelectedPreset(preset.key);
-        return;
-      }
+    // Today
+    if (startDate === todayStr && endDate === todayStr) {
+      setSelectedPreset("today");
+      return;
     }
 
+    // Tomorrow
+    const tomorrowStr = format(addDays(today, 1), "yyyy-MM-dd");
+    if (startDate === tomorrowStr && endDate === tomorrowStr) {
+      setSelectedPreset("tomorrow");
+      return;
+    }
+
+    // Next 7 Days
+    if (
+      startDate === todayStr &&
+      endDate === format(addDays(today, 6), "yyyy-MM-dd")
+    ) {
+      setSelectedPreset("7d");
+      return;
+    }
+
+    // Otherwise Custom
     setSelectedPreset("custom");
-  }, [value]);
+
+    // keep local inputs in sync when value changes externally
+    setCustomRange({ startDate, endDate });
+  }, [value]); // 🔥 only depends on value
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -126,10 +138,8 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
     setSelectedPreset(key);
 
     if (key === "custom") {
-      onChange({
-        startDate: value?.startDate ?? null,
-        endDate: value?.endDate ?? null,
-      });
+      // always start with empty inputs; user will type the dates manually
+      setCustomRange({ startDate: null, endDate: null });
       return;
     }
 
@@ -144,9 +154,9 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
   // UI
   // -------------------------------------------------------------------------
 
-  return (
+   return (
     <div className="tw:flex tw:flex-col tw:gap-4">
-      {/* Presets */}
+      {/* Preset Row */}
       <div className="tw:flex tw:items-center tw:gap-2.5 tw:flex-wrap">
         <div className="tw:p-2.5 tw:bg-slate-50 tw:rounded-xl tw:text-slate-400">
           <Calendar size={18} />
@@ -181,7 +191,7 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
         )}
       </div>
 
-      {/* Custom */}
+      {/* Custom Date Inputs */}
       {isCustom && (
         <div className="tw:flex tw:items-center tw:gap-4 tw:pl-[44px] tw:animate-in tw:fade-in tw:slide-in-from-top-2">
           {/* FROM */}
@@ -192,14 +202,13 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
 
             <input
               type="date"
-              value={value?.startDate || ""}
-              min={format(today, "yyyy-MM-dd")}
-              onChange={(e) =>
-                onChange({
-                  startDate: e.target.value || null,
-                  endDate: value?.endDate ?? null,
-                })
-              }
+              value={customRange.startDate || ""}
+              min={todayStr}
+              onChange={(e) => {
+                const start = e.target.value || null;
+                setCustomRange((c) => ({ ...c, startDate: start }));
+                onChange({ startDate: start, endDate: customRange.endDate });
+              }}
               className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none tw:focus:ring-2 tw:focus:ring-indigo-500/20 tw:focus:border-indigo-500 tw:transition-all"
             />
           </div>
@@ -214,14 +223,13 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
 
             <input
               type="date"
-              value={value?.endDate || ""}
-              min={value?.startDate || format(today, "yyyy-MM-dd")}
-              onChange={(e) =>
-                onChange({
-                  startDate: value?.startDate ?? null,
-                  endDate: e.target.value || null,
-                })
-              }
+              value={customRange.endDate || ""}
+              min={customRange.startDate || todayStr}
+              onChange={(e) => {
+                const end = e.target.value || null;
+                setCustomRange((c) => ({ ...c, endDate: end }));
+                onChange({ startDate: customRange.startDate, endDate: end });
+              }}
               className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none tw:focus:ring-2 tw:focus:ring-indigo-500/20 tw:focus:border-indigo-500 tw:transition-all"
             />
           </div>

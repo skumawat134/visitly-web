@@ -64,6 +64,8 @@ export const usePastVisitors = ({
           limit: pageSize,
           offset: pageIndex * pageSize,
           q: searchTerm,
+          sort : 'ASC',
+          sortBy:'checkinTime',  
           siteId,
           visitorTypeId,
           groupName,
