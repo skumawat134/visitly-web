@@ -56,7 +56,7 @@ export { Dropdown, type DropdownProps, type DropdownOption } from "./Dropdown";
 export { Popover, type PopoverProps } from "./Popover";
 export { Tooltip, type TooltipProps } from "./Tooltip";
 export { NamedAvatar } from "./NamedAvatar";
-
+export { default as FutureDateRangeFilter } from "./FutureDateRangeFilter";
 // Data Display Components
 export {
   Table,
