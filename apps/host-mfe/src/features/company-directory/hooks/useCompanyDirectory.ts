@@ -24,7 +24,7 @@ export const useCompanyDirectory = () => {
         queryFn: () =>
             getCompanyDirectoryUsers({
                 limit: pageSize,
-                offset: pageIndex * pageSize,
+                offset: debouncedSearch.length ? 0 : pageIndex * pageSize,
                 q: debouncedSearch,
                 status: 'ACTIVE', // Defaulting to ACTIVE as in Angular
                 sort: sortOrder,

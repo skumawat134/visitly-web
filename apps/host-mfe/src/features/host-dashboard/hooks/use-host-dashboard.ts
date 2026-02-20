@@ -33,7 +33,7 @@ export const useHostDashboard = () => {
     queryKey: ["upcomingVisitors"],
     queryFn: () =>
       getUpCommingVisitors({
-        userId: currentUser?.id,
+        //  userId: currentUser?.id,
         scheduleCheckinStartDate: new Date().toISOString().split("T")[0],
       }),
   });

@@ -688,7 +688,7 @@ export const HostDashboard: React.FC = () => {
           </div>
 
           <button
-            onClick={() => navigate("/host/upcoming-visitors")}
+            onClick={() => navigate("/host/upcoming-visitors?st=checkin")}
             className="tw:mt-4 tw:flex tw:items-center tw:gap-1 tw:text-[13px] tw:font-medium tw:text-indigo-600 hover:tw:opacity-75"
           >
             View all visitors <ArrowRight size={14} />
