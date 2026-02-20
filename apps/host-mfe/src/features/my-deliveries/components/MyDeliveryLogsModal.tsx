@@ -238,14 +238,14 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
           </div>
 
           {/* Bottom Save / Cancel */}
-          <div className="tw:flex tw:justify-end tw:gap-3 tw:pt-4 tw:border-t tw:border-gray-200">
+          {/* <div className="tw:flex tw:justify-end tw:gap-3 tw:pt-4 tw:border-t tw:border-gray-200">
             <Button onClick={onClose} variant="outline" data-testid="delivery-log-cancel-btn">
               Cancel
             </Button>
             <Button onClick={handleSave} variant="primary" data-testid="delivery-log-save-btn">
               Save
             </Button>
-          </div>
+          </div> */}
         </div>
       </RightSlide>
 

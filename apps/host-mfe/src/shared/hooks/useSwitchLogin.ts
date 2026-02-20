@@ -54,11 +54,17 @@ export function useSwitchLogin() {
     setToLocalStorageTemporarily();
 
     // redirect to switch page
-     window.open("/switch", "_blank");
+    window.open("/switch", "_blank");
+  }
+
+  function switchToHost(){
+    setToLocalStorageTemporarily();
+    window.open("/switch", "_blank");
   }
 
   return {
     switchToAnotherRole,
-    roles
+    roles,
+    switchToHost
   };
 }

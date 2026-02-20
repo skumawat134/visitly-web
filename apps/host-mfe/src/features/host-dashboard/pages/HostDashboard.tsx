@@ -389,7 +389,7 @@ export const HostDashboard: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="tw:px-9 tw:py-7 tw:max-w-[1400px] tw:relative tw:overflow-visible"
+      className="tw:px-9 tw:py-7 tw:max-w-full tw:relative tw:overflow-visible"
     >
       {/* Welcome Strip */}
       <div className="tw:flex tw:items-start tw:justify-between tw:flex-wrap tw:gap-4 tw:mb-6">
@@ -433,7 +433,7 @@ export const HostDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowInviteMenu(false);
-                    // navigate('/host/bulk-pre-register');
+                    navigate('/host/bulk-pre-register');
                   }}
                   className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:p-2.5 tw:rounded-lg hover:tw:bg-gray-50 tw:transition-colors tw:text-left"
                 >
