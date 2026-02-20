@@ -48,16 +48,16 @@ export function HostBanner({ onVersionChange }: VersionSwitcherProps) {
 
   if (!showBanner && isNewVersion) {
     return (
-      <div className="tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2 tw:bg-gradient-to-r tw:from-purple-50 tw:to-indigo-50 tw:border-b tw:border-purple-100">
-        <div className="tw:flex tw:items-center tw:gap-2 tw:text-sm">
+      <div className="tw:flex tw:items-center tw:justify-center tw:gap-3 tw:px-4 tw:py-2 tw:bg-gradient-to-r tw:from-purple-50 tw:to-indigo-50 tw:border-b tw:border-purple-100">
+        {/* <div className="tw:flex tw:items-center tw:gap-2 tw:text-sm">
           <Sparkles className="tw:w-4 tw:h-4 tw:text-purple-600" />
           <span className="tw:text-gray-700">New Version Available</span>
-        </div>
+        </div> */}
         <span
           onClick={() => navigate(resolveLanding())}
           className="tw:text-sm tw:text-gray-500 tw:border-1 tw:px-2 tw:rounded-lg tw:mr-2 tw:md:mr-4"
         >
-          Try Classic
+          Switch To Classic
         </span>
       </div>
     );
@@ -90,7 +90,7 @@ export function HostBanner({ onVersionChange }: VersionSwitcherProps) {
                 onClick={() => navigate(resolveLanding())}
                 className="tw:text-sm tw:font-medium tw:cursor-pointer"
               >
-                Try Classic
+                Switch To Classic
               </span>
             </div>
 
