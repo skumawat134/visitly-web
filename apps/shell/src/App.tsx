@@ -5,8 +5,7 @@ import { ToastProvider } from "./providers/ToastProvider";
 import { router } from "./router";
 
 const App = () => {
-  console.log("shell v3")
-  console.log("shell-v4")
+ 
   return (
     <QueryClient>
       <RouterProvider router={router} />
