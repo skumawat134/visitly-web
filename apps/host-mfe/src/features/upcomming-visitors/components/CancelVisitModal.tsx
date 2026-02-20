@@ -74,12 +74,14 @@ export const CancelVisitModal: React.FC<CancelVisitModalProps> = ({
               label="Notify Visitor"
               isActive={notifyVisitFlag}
               onClick={() => setNotifyVisitFlag((prev) => !prev)}
+              data-testid="cancel-visit-notify-visitor-toggle"
             />
 
             <RoundedToggleButton
               label="Notify Host"
               isActive={notifyHostFlag}
               onClick={() => setNotifyHostFlag((prev) => !prev)}
+              data-testid="cancel-visit-notify-host-toggle"
             />
           </div>
         </div>

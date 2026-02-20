@@ -42,14 +42,6 @@ const VisitorDetail = () => {
   const isPrefill = searchParams.get("isPrefill") === "true";
   const source = searchParams.get("source") || "unknown";
 
-  console.log(
-    "VisitorDetail rendered with id:",
-    id,
-    "isPrefill:",
-    isPrefill,
-    "source:",
-    source,
-  );
 
   const {
     visitor,

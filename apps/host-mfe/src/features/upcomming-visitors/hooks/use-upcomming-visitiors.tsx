@@ -186,7 +186,6 @@ export const useUpcomingVisitors = () => {
     const isVisible = (title: string) => {
       // Action and Name and Scheduled Check-in are always visible if it's in standard fields and is selected
       const field = standardFields.find((f: any) => f.columnTitle === title);
-      console.log('field',field)
       const isMandatory = field?.isDisabled;
       if (isMandatory) return true;
 
@@ -321,13 +320,11 @@ export const useUpcomingVisitors = () => {
 
   const checkIsRecurringVisit = useCallback((datas: any) => {
     const temp = datas.some((data: any) => data.recurrenceType && (data.recurrenceType !== 'NONE' || data.parentVisitId))
-    console.log('checkIsRecurringVisit', temp)
     return temp;
   }, [selectedRows.length])
 
   const checkIsPreRegisterVisit = useCallback((datas: any) => {
     const isAnyPrefill = datas.some((data: any) => data?.visitInfoModel && data?.visitInfoModel?.id)
-    console.log('checkIsRecurringVisit', isAnyPrefill)
     return isAnyPrefill;
   }, [selectedRows.length])
 

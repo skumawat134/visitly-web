@@ -39,7 +39,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             htmlFor={inputId}
             className="tw:block tw:text-sm tw:font-medium  tw:mb-1.5"
           >
-           {required && <span className="tw:text-red-500">*</span>} {label}
+            {required && <span className="tw:text-red-500">*</span>} {label}
           </label>
         )}
         <div className="tw:relative">
@@ -50,35 +50,38 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           <div className="tw:flex tw:flex-row">
             <input
-            ref={ref}
-            id={inputId}
-            className={cn(
-              "tw:block tw:w-full tw:rounded-md tw:border tw:px-3 tw:py-2 tw:text-sm",
-              "focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-offset-2",
-              "disabled:tw:cursor-not-allowed disabled:tw:opacity-50",
-              error
-                ? "tw:border-red-300 focus:tw:border-red-500 focus:tw:ring-red-500"
-                : "tw:border-gray-300 focus:tw:border-blue-500 focus:tw:ring-blue-500",
-              leftIcon && "tw:pl-10",
-              rightIcon && "tw:pr-10",
-              className
-            )}
-            {...props}
-          />
-          {rightIcon && (
-            <span 
+              ref={ref}
+              id={inputId}
+              disabled={props.disabled}
               className={cn(
-                "tw:flex tw:items-center tw:-ml-6",
-                !rightIconClickable && "tw:pointer-events-none"
+                "tw:block tw:w-full tw:rounded-md tw:border tw:px-3 tw:py-2 tw:text-sm tw:transition-colors",
+
+                props.disabled
+                  ? "tw:bg-gray-100 tw:border-gray-200 tw:text-gray-400 tw:placeholder-gray-400 tw:cursor-not-allowed focus:tw:outline-none focus:tw:ring-0"
+                  : error
+                    ? "tw:bg-white tw:border-red-300 focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-offset-2 focus:tw:border-red-500 focus:tw:ring-red-500"
+                    : "tw:bg-white tw:border-gray-300 focus:tw:outline-none focus:tw:ring-2 focus:tw:ring-offset-2 focus:tw:border-blue-500 focus:tw:ring-blue-500",
+
+                leftIcon && "tw:pl-10",
+                rightIcon && "tw:pr-10",
+                className
               )}
-              onClick={rightIconClickable && onRightIconClick ? onRightIconClick : undefined}
-            >
-              <span className={cn(
-                "tw:text-gray-400",
-                rightIconClickable && "tw:cursor-pointer hover:tw:text-gray-600"
-              )}>{rightIcon}</span>
-            </span>
-          )}
+              {...props}
+            />
+            {rightIcon && (
+              <span
+                className={cn(
+                  "tw:flex tw:items-center tw:-ml-6",
+                  !rightIconClickable && "tw:pointer-events-none"
+                )}
+                onClick={rightIconClickable && onRightIconClick ? onRightIconClick : undefined}
+              >
+                <span className={cn(
+                  "tw:text-gray-400",
+                  rightIconClickable && "tw:cursor-pointer hover:tw:text-gray-600"
+                )}>{rightIcon}</span>
+              </span>
+            )}
           </div>
         </div>
         {error && (

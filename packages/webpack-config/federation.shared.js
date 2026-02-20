@@ -9,7 +9,11 @@ const sharedDeps = {
         singleton: true,
         requiredVersion: "^5.90.17"
     },
-    "@visitly/api-client": { singleton: true }
+    "@visitly/api-client": { singleton: true },
+    "framer-motion":{
+         singleton: true,
+        requiredVersion: "^12.34.2"   
+     }
 };
 
 module.exports = {

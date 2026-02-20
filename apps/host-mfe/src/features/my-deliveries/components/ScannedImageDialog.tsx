@@ -23,6 +23,7 @@ export const ScannedImageDialog: React.FC<ScannedImageDialogProps> = ({
           <button
             onClick={onClose}
             className="tw:p-1.5 tw:rounded-full hover:tw:bg-gray-200"
+            data-testid="scanned-image-close-btn"
           >
             <X size={20} />
           </button>

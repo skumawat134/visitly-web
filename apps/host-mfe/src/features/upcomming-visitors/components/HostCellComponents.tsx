@@ -9,7 +9,6 @@ import { HelpCircle, X } from 'lucide-react';
 export const HostCellRenderer: React.FC<ICellRendererParams> = (params) => {
     const value = params.value;
     // debug: log each render so we can see what's being passed
-    console.log('[HostCellRenderer] render value=', value);
     if (!value) return null;
 
     // Fallback for string values (e.g. from CSV)
@@ -68,7 +67,6 @@ export const HostCellEditor = forwardRef((props: ICellEditorParams, ref) => {
     useImperativeHandle(ref, () => ({
         getValue: () => {
             // debug: log what ag-grid reads when editing ends
-            console.log('[HostCellEditor] getValue called, selectedHostRef=', selectedHostRef.current, 'search=', search);
             const val = selectedHostRef.current || search;
             // empty string should be treated as null for clearing
             return val === '' ? null : val;
@@ -106,7 +104,6 @@ export const HostCellEditor = forwardRef((props: ICellEditorParams, ref) => {
     };
 
     const handleSelect = (host: any) => {
-        console.log('[HostCellEditor] handleSelect', host);
         // update both ref (for immediate retrieval) and state (for render)
         selectedHostRef.current = host;
         setSelectedHost(host);

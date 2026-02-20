@@ -37,8 +37,6 @@ export default function SwitchRole() {
   }
 
  function resolveLanding(): string {
-  console.log("roles:", roles);
-  debugger;
   if (roles.includes("GLOBAL_INTERNAL_ADMIN")) {
     return "/admin/internalAdmin/org-list";
   }

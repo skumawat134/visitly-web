@@ -125,12 +125,14 @@ const ColumnSettingsModal: React.FC<{
             <Button onClick={onClose}
               className="tw:px-6 tw:py-2.5 tw:text-sm tw:font-bold tw:text-slate-500 tw:rounded-lg"
               variant='outline'
+              data-testid="column-settings-cancel-btn"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSave}
               className="tw:px-10 tw:py-2.5 tw:text-white tw:text-sm tw:font-bold tw:rounded-lg"
+              data-testid="column-settings-save-btn"
             >
               Save
             </Button>

@@ -3,7 +3,6 @@ import  type { VisitorVisitResponse, PastVisitorsResponse, MyDeliveryLogsRespons
 
 
 export async function getUpCommingVisitors(params : any) : Promise<VisitorVisitResponse>{
-    console.log('Fetching upcoming visitors with params:', params);
     const { data } = await  getApiClient().get<VisitorVisitResponse>("/v1/host/preregistrations", { params }); 
     return data;
  }

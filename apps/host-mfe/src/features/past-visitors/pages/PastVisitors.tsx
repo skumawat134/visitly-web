@@ -33,7 +33,6 @@ const PastVisitors: React.FC<PastVisitorsProps> = (props) => {
   } = usePastVisitors(props);
 
   const redirectToVisitorDetailPage = (data: any) => {
-    console.log("Row clicked with data:", data); // Debug log to check the data structure
     if (!data?.id) return;
     const url = `/host/visitor-detail/${data.id}?source=pastVisitors`;
     navigate(url);

@@ -30,7 +30,6 @@ export async function confirmEmailApi(
 export async function forgotPassword(
   payload: ForgotPasswordPayload
 ): Promise<ForgotPasswordResponse> {
-  console.log("forgotPassword called with payload:", payload);
   const { data } = await getApiClient().post<ForgotPasswordResponse>(
     "/v1/users/password/forgot",
     payload

@@ -45,6 +45,7 @@ export const CancelRecurrenceModal: React.FC<CancelRecurrenceModalProps> = ({
                                 className="tw:w-4 tw:h-4 tw:accent-indigo-600"
                                 checked={updateType === "SELECTED_VISIT"}
                                 onChange={() => setUpdateType("SELECTED_VISIT")}
+                                data-testid="cancel-recurrence-selected-radio"
                             />
                             <Label
                                 htmlFor="SELECTED_VISIT"
@@ -62,6 +63,7 @@ export const CancelRecurrenceModal: React.FC<CancelRecurrenceModalProps> = ({
                                 className="tw:w-4 tw:h-4 tw:accent-indigo-600"
                                 checked={updateType === "FUTURE_VISITS_ONLY"}
                                 onChange={() => setUpdateType("FUTURE_VISITS_ONLY")}
+                                data-testid="cancel-recurrence-future-radio"
                             />
                             <Label
                                 htmlFor="FUTURE_VISITS_ONLY"
@@ -79,6 +81,7 @@ export const CancelRecurrenceModal: React.FC<CancelRecurrenceModalProps> = ({
                                 className="tw:w-4 tw:h-4 tw:accent-indigo-600"
                                 checked={updateType === "ALL_VISITS"}
                                 onChange={() => setUpdateType("ALL_VISITS")}
+                                data-testid="cancel-recurrence-all-radio"
                             />
                             <Label
                                 htmlFor="ALL_VISITS"
@@ -95,6 +98,7 @@ export const CancelRecurrenceModal: React.FC<CancelRecurrenceModalProps> = ({
                         variant="outline"
                         onClick={onClose}
                         className="tw:min-w-[100px] tw:h-10"
+                        data-testid="cancel-recurrence-close-btn"
                     >
                         Cancel
                     </Button>
@@ -102,6 +106,7 @@ export const CancelRecurrenceModal: React.FC<CancelRecurrenceModalProps> = ({
                         variant="primary"
                         onClick={() => onNext(updateType)}
                         className="tw:min-w-[100px] tw:h-10"
+                        data-testid="cancel-recurrence-next-btn"
                     >
                         Next
                     </Button>

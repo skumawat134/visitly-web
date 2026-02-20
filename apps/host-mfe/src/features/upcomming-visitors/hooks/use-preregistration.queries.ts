@@ -18,11 +18,11 @@ export const useVisitorTypes = (siteId: string) => {
   });
 };
 
-export const usePointOfEntry = (siteId: string) => {
+export const usePointOfEntry = (siteId: string, isEntitled: boolean = true) => {
   return useQuery({
     queryKey: ['pointOfEntry', siteId],
     queryFn: () => getPointOfEntry(siteId),
-    enabled: !!siteId,
+    enabled: !!siteId && isEntitled,
   });
 };
 
@@ -56,21 +56,23 @@ export const useVisitorTypesFields = (visitorTypeId: string) => {
   });
 }
 
-export const useParkingLot = (siteId: string) => {
+export const useParkingLot = (siteId: string, isEntitled: boolean = true, date?: string) => {
   return useQuery({
-    queryKey: ['parkingLots', siteId],
-    queryFn: () => getParkingLots(siteId),
-    enabled: !!siteId,
+    queryKey: ['parkingLots', siteId, date],
+    queryFn: () => getParkingLots(siteId, date),
+    enabled: !!siteId && isEntitled,
   });
 };
 
-export const useDestination = (siteId: string) => {
+
+export const useDestination = (siteId: string, isEntitled: boolean = true) => {
   return useQuery({
     queryKey: ['destinations', siteId],
     queryFn: () => getDestinations(siteId),
-    enabled: !!siteId,
+    enabled: !!siteId && isEntitled,
   });
 };
+
 
 export const usePreregistration = (visitId: string) => {
   return useQuery({

@@ -248,7 +248,6 @@ export const Sidebar: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => 
   const user = useAuthStore((s) => s.user);
   const permissions = user?.roles?.map((r) => r.role) || [];
       const context = useSidebarPermissions();
-      console.log('context',context)
   return (
     <aside className={`
       tw:bg-white tw:border-r tw:border-gray-200 

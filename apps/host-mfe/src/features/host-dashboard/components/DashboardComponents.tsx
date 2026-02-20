@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, Package, MapPin, Search, XCircle, ChevronDown, LucideIcon } from 'lucide-react';
+import { Calendar, Users, Package, MapPin, Search, XCircle, ChevronDown, type LucideIcon } from 'lucide-react';
 import { cn } from '@visitly/ui';
 
 export interface MetricPillProps {
@@ -43,6 +43,7 @@ export const LocationFilter: React.FC<{ value: string; onChange: (v: string) => 
                         ? "tw:border-indigo-600 tw:bg-indigo-50 tw:text-indigo-600"
                         : "tw:border-gray-200 tw:bg-gray-50 tw:text-gray-600"
                 )}
+                data-testid="dashboard-location-filter"
             >
                 <option value="all">All Locations</option>
                 {sites.map((s) => (
@@ -73,11 +74,13 @@ export const CardSearch: React.FC<{ value: string; onChange: (v: string) => void
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 className="tw:pl-8 tw:pr-7 tw:py-1.5 tw:border tw:border-gray-200 tw:rounded-lg tw:text-[13px] tw:text-gray-700 tw:bg-gray-50 tw:outline-none tw:w-[200px] focus:tw:ring-1 focus:tw:ring-indigo-500"
+                data-testid="dashboard-card-search-input"
             />
             {value && (
                 <button
                     onClick={() => onChange('')}
                     className="tw:absolute tw:right-2 tw:top-1/2 tw:-translate-y-1/2 tw:text-gray-400 hover:tw:text-gray-600 tw:p-0"
+                    data-testid="dashboard-card-search-clear-btn"
                 >
                     <XCircle size={14} />
                 </button>

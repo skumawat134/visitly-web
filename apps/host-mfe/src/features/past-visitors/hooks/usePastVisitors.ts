@@ -101,7 +101,6 @@ export const usePastVisitors = ({
 
 
   const rowData = useMemo(() => {
-    console.log("viewAs",viewAs)
 
     if (!viewAs) return data?.results || []
 

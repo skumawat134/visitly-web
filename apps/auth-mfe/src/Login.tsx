@@ -25,7 +25,6 @@ const LoginForm = () => {
   const handleSubmit = async (values: { email: string; password: string }) => {
     setIsSubmitting(true);
     try {
-      console.log('Form data', values);
       // TODO: Integrate with auth store
       // await useAuthStore.getState().login(values.email, values.password);
     } catch (error) {
@@ -114,7 +113,6 @@ const LoginForm = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       // TODO: Implement forgot password flow
-                      console.log('Forgot password clicked');
                     }}
                   >
                     Forgot password?
@@ -140,8 +138,6 @@ const LoginForm = () => {
                     className="tw:block tw:text-sm tw:font-semibold tw:text-indigo-600 hover:tw:underline"
                     onClick={(e) => {
                       e.preventDefault();
-                      // TODO: Implement SSO flow
-                      console.log('SSO clicked');
                     }}
                   >
                     Use single sign-on instead
@@ -153,8 +149,6 @@ const LoginForm = () => {
                       className="tw:font-bold tw:text-indigo-600 hover:tw:underline"
                       onClick={(e) => {
                         e.preventDefault();
-                        // TODO: Navigate to signup
-                        console.log('Sign up clicked');
                       }}
                     >
                       Join Us
