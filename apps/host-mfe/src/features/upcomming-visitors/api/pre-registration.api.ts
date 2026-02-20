@@ -78,6 +78,6 @@ export async function preScreenBulk(payload: any): Promise<any> {
 }
 
 export async function preScreenSingle(payload: any): Promise<any> {
-    const { data } = await getApiClient().post("/v1/preregistrations/pre-screen/single", payload);
+    const { data } = await getApiClient().post("/v1/prescreen", payload);
     return data;
 }

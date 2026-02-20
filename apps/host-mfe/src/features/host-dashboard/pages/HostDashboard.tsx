@@ -416,7 +416,7 @@ export const HostDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowInviteMenu(false);
-                    navigate("/host/upcoming-visitors");
+                    navigate("/host/upcoming-visitors?type=single-invite&mode=add");
                   }}
                   className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:p-2.5 tw:rounded-lg hover:tw:bg-gray-50 tw:transition-colors tw:text-left"
                 >
@@ -672,7 +672,7 @@ export const HostDashboard: React.FC = () => {
           <div style={{ width: "100%" }} className="tw:ag-theme-quartz">
             <AgGridReact
               rowData={todaysVisitors}
-              columnDefs={checkedInColDefs}
+              columnDefs={checkedInColDefs as any}
               defaultColDef={defaultColDef}
               theme={myTheme}
               domLayout="autoHeight" // ✅ IMPORTANT

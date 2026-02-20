@@ -23,7 +23,7 @@ module.exports = (env) => {
           publicPath: "/",
         },
       ],
-      hot: true,
+      hot: false,
       historyApiFallback: true,
       port: 4201,
       open: true,

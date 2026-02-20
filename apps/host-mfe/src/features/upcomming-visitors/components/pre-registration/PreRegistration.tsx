@@ -11,9 +11,10 @@ import {
   Select,
 } from "@visitly/ui";
 import { getIn } from "formik";
-import { ArrowRight, MapPin, Calendar, Check, UserPlus, Info, Users, Settings, Clock, RefreshCw, FileText, User, ShieldCheck, CalendarDays } from "lucide-react";
+import { ArrowRight, MapPin, Calendar, Check, UserPlus, Info, Users, Settings, Clock, RefreshCw, FileText, User, ShieldCheck, CalendarDays, Cross, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEntitlements } from "@/features/visitor-detail/hooks/useEntitlement";
 
 interface PreRegistrationModalProps {
   isOpen: boolean;
@@ -54,7 +55,9 @@ export const PreRegistrationModal = ({
     poeData,
     parkingData,
     destData,
-    isFieldDisabled
+    isFieldDisabled,
+    matchedRule,
+    preScreenStatus
   } = usePreRegistrationForm(visitId, onClose, status);
 
 
@@ -422,6 +425,9 @@ export const PreRegistrationModal = ({
       </div>
     );
   };
+
+  const { isPreScreenCheckEntitled } = useEntitlements();
+
   const modalContent = (
     <div className="tw:fixed tw:inset-0 tw:z-50 tw:flex tw:items-center tw:justify-center tw:overflow-y-auto tw:overflow-x-hidden tw:backdrop-blur-sm tw:bg-black/40 tw:p-4">
       <motion.div
@@ -441,7 +447,7 @@ export const PreRegistrationModal = ({
             className="tw:p-2 tw:rounded-full tw:hover:bg-gray-100 tw:transition-colors"
             data-testid="modal-close-btn"
           >
-            <Check className="tw:rotate-45" size={20} />
+            <X className="tw:rotate-45" size={20} />
           </button>
         </div>
 
@@ -970,7 +976,15 @@ export const PreRegistrationModal = ({
               )}
             </div>
 
-            <div className="tw:flex tw:gap-4">
+            <div className="tw:flex tw:gap-4 tw:items-center">
+              {
+                preScreenStatus == "SAFE" && <span className="tw:text-green-700">No watchlist matches found</span>
+              }
+              {
+                matchedRule && <span className="tw:text-red-700"> Please review and edit {matchedRule}, it has triggered a watchlist hit. Click "Save Anyway" to
+                  proceed, or "Cancel" to close.</span>
+              }
+
               <button
                 type="button"
                 onClick={onClose}
@@ -991,16 +1005,18 @@ export const PreRegistrationModal = ({
                 </Button>
               ) : (
                 <div className="tw:flex tw:gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handlePreScreen}
-                    isLoading={isPreScreening}
-                    className="tw:rounded-xl tw:border-gray-300"
-                    data-testid="prescreen-btn"
-                  >
-                    Pre-screen
-                  </Button>
+                  {
+                    isPreScreenCheckEntitled && <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePreScreen}
+                      isLoading={isPreScreening}
+                      className="tw:rounded-xl tw:border-gray-300"
+                      data-testid="prescreen-btn"
+                    >
+                      Pre-screen
+                    </Button>
+                  }
                   <Button
                     type="submit"
                     isLoading={isSaving}
