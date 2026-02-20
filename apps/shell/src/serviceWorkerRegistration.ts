@@ -57,23 +57,40 @@ export function registerServiceWorker(): void {
  * and force-refresh the page immediately.
  */
 function setupUpdateDetection(registration: ServiceWorkerRegistration): void {
+    // 1. Check for a worker that is already waiting (e.g. from a previous tab/load)
+    if (registration.waiting) {
+        console.log('[SW] Waiting worker found. Activating...');
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+
+    // 2. Check for a worker that is currently installing
+    if (registration.installing) {
+        console.log('[SW] Installing worker found. Watching state...');
+        trackInstallation(registration.installing);
+    }
+
+    // 3. Listen for future updates discovered during this session
     registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (!newWorker) return;
+        console.log('[SW] Update found. State:', newWorker.state);
+        trackInstallation(newWorker);
+    });
 
-        newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed') {
+    function trackInstallation(worker: ServiceWorker) {
+        worker.addEventListener('statechange', () => {
+            console.log('[SW] Worker state changed to:', worker.state);
+            if (worker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                    // A new version was deployed — force refresh
-                    console.log('[SW] New version detected. Force refreshing...');
-                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    // A new version was deployed — force activation
+                    console.log('[SW] New version ready. Skipping waiting...');
+                    worker.postMessage({ type: 'SKIP_WAITING' });
                 } else {
-                    // First install — content cached for offline
                     console.log('[SW] Content cached for first time.');
                 }
             }
         });
-    });
+    }
 
     // When the new SW takes over via skipWaiting → clients.claim(),
     // reload the page so the user gets the latest version
@@ -82,7 +99,10 @@ function setupUpdateDetection(registration: ServiceWorkerRegistration): void {
         if (refreshing) return;
         refreshing = true;
         console.log('[SW] Controller changed. Reloading page...');
-        window.location.reload();
+        // Small delay to ensure activation completes fully across all tabs if needed
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
     });
 }
 

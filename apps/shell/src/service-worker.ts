@@ -2,7 +2,7 @@
 
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { CacheFirst, StaleWhileRevalidate, NetworkFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
@@ -32,12 +32,45 @@ registerRoute(
     })
 );
 
-// ─── Runtime Caching: CSS/JS not in precache (e.g. MFE remotes) ───
+// ─── Runtime Caching: MFE Remote Entries (Manifests) ───
+// These must be NetworkFirst to ensure we always point to the latest chunks
+// even if the Shell hasn't been redeployed.
 registerRoute(
-    ({ request }) =>
-        request.destination === 'script' || request.destination === 'style',
+    ({ url }) => url.pathname.endsWith('remoteEntry.js'),
+    new NetworkFirst({
+        cacheName: 'mfe-remote-entries',
+        plugins: [
+            new CacheableResponsePlugin({ statuses: [0, 200] }),
+        ],
+    })
+);
+
+// ─── Runtime Caching: ONLY Shell-owned CSS/JS ───
+// Never cache any JS coming from remote MFEs
+registerRoute(
+    ({ request, url }) => {
+
+        // Only handle scripts/styles
+        if (request.destination !== 'script' && request.destination !== 'style')
+            return false;
+
+        // ❌ Never cache remoteEntry
+        if (url.pathname.endsWith('remoteEntry.js'))
+            return false;
+
+        // ❌ Never cache federated chunks
+        if (/\.chunk\..*\.js$/.test(url.pathname))
+            return false;
+
+        // ❌ Never cache any script coming from another origin (MFEs)
+        if (url.origin !== self.location.origin)
+            return false;
+
+        // ✅ Cache only shell-owned static JS/CSS
+        return true;
+    },
     new StaleWhileRevalidate({
-        cacheName: 'static-resources',
+        cacheName: 'shell-static-resources',
         plugins: [
             new CacheableResponsePlugin({ statuses: [0, 200] }),
         ],
