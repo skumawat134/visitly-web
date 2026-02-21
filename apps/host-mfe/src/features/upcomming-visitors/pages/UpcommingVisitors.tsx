@@ -36,6 +36,7 @@ import { useDebounce } from "@/shared/hooks/useDebounce";
 import { PageDescription } from "@/shared/components/PageDescription";
 import { useDelegateOption } from '@visitly/shared-core';
 import { useSearchParams } from "react-router-dom";
+import { HoverCard } from "@/features/host-dashboard/components/HoverCard";
 
 // Custom styles for the premium switcher
 const viewPillActive = "tw:px-4 tw:py-1.5 tw:rounded-lg tw:text-sm tw:font-semibold tw:text-blue-600 tw:bg-white tw:shadow-sm tw:border-none tw:cursor-pointer tw:whitespace-nowrap";
@@ -110,6 +111,29 @@ const UpcommingVisitors: React.FC = () => {
   const delegates = useDelegateOption();
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const debouncedGroupName = useDebounce(groupFilter, 500);
+
+    const hoverTimerRef = useRef<any>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const inviteRef = useRef<HTMLDivElement>(null);
+    const [hoveredVisitor, setHoveredVisitor] = useState<any>(null);
+      const [hoverAnchor, setHoverAnchor] = useState<any>(null);
+      const [hoverIsUpcoming, setHoverIsUpcoming] = useState(false);
+     
+    const handleRowEnter = (visitor: any, e: any, isUpcoming: boolean) => {
+      clearTimeout(hoverTimerRef.current);
+      const anchor = { clientX: e.event.clientX, clientY: e.event.clientY };
+      hoverTimerRef.current = setTimeout(() => {
+        setHoveredVisitor(visitor);
+        setHoverAnchor(anchor);
+        setHoverIsUpcoming(isUpcoming);
+      }, 400);
+    };
+  
+    const handleRowLeave = () => {
+      clearTimeout(hoverTimerRef.current);
+      setHoveredVisitor(null);
+      setHoverAnchor(null);
+    };
  
   useEffect(() => {
     // show modal from other page
@@ -163,7 +187,7 @@ const UpcommingVisitors: React.FC = () => {
 
 
   return (
-    <div className="tw:p-4 tw:md:p-6 tw:bg-gray-50 tw:min-h-screen tw:font-sans">
+    <div ref={containerRef} className="tw:p-4 tw:md:p-6 tw:bg-gray-50 tw:min-h-screen tw:font-sans tw:relative tw:overflow-visible">
       <div className="tw:w-full tw:mx-auto">
 
         <div className="tw:w-full tw:flex tw:flex-col tw:md:flex-row tw:justify-between tw:items-center">
@@ -445,6 +469,13 @@ const UpcommingVisitors: React.FC = () => {
                     columnDefs={colDefs}
                     theme={myTheme}
                     defaultColDef={defaultColDef}
+                    onCellMouseOver={(e) => {
+                      // only show hover card when hovering the fullName column
+                      if (e.colDef && e.colDef.field === 'fullName') {
+                        handleRowEnter(e.data, e, true);
+                      }
+                    }}
+                    onCellMouseOut={handleRowLeave}
                     loading={isLoading}
                     onSortChanged={onSortChanged}
                     onSelectionChanged={onSelectionChanged}
@@ -526,6 +557,15 @@ const UpcommingVisitors: React.FC = () => {
           updateType={cancelUpdateType}
         />
       )}
+
+       {hoveredVisitor && hoverAnchor && (
+              <HoverCard
+                visitor={hoveredVisitor}
+                isUpcoming={hoverIsUpcoming}
+                anchorRect={hoverAnchor}
+                containerRef={containerRef}
+              />
+            )}
     </div>
 
   );
