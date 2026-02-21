@@ -13,7 +13,7 @@ class MiddlewareService {
     initialize(): void {
         if (!environment.middleware.enabled || this.initialized) return;
 
-        console.log('[Middleware] Initializing RUM with service:', environment.middleware.serviceName);
+        console.log('[Middleware] Initializing RUM with service:', environment);
 
         // Check if Middleware SDK is loaded via CDN script in index.html
         if (typeof window.Middleware === 'undefined') {
