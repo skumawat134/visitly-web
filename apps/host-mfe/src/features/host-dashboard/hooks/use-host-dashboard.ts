@@ -30,27 +30,34 @@ export const useHostDashboard = () => {
   const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const { data: upcomingVisitorsData = [] } = useQuery<any>({
-    queryKey: ["upcomingVisitors"],
+    queryKey: ["upcoming-visitors"],
     queryFn: () =>
       getUpCommingVisitors({
-        userId: currentUser?.id,
+        //  userId: currentUser?.id,
         scheduleCheckinStartDate: new Date().toISOString().split("T")[0],
+        sort : 'asc',
+        sortBy : 'scheduledCheckinDate'
       }),
+      refetchOnMount: "always",
   });
 
   const { data: pastVisitorsData = [] } = useQuery<any>({
-    queryKey: ["pastVisitors"],
+    queryKey: ["past-visitors"],
     queryFn: () =>
       getPastVisitors({
         visitStartDate: new Date().toISOString().split("T")[0],
         visitEndDate: new Date().toISOString().split("T")[0],
+        sort : 'asc',
+        sortBy : 'checkinTime'
       }),
+      refetchOnMount: "always",
   });
 
   const { data: deliveriesData = [] } = useQuery<any>({
     queryKey: ["deliveries"],
     queryFn: () => getMyDeliveryLogs({}),
     enabled: isDeliveryManagerEntitled,
+    refetchOnMount: "always",
   });
 
   const updateStatusMutation = useMutation({
@@ -81,6 +88,7 @@ export const useHostDashboard = () => {
       sort: "desc",
       sortBy: "checkinTime",
     }),
+    refetchOnMount: "always",
   select: (data) => {
     const updatedResults = data.results.map((item) => ({
       ...item,
@@ -132,10 +140,10 @@ export const useHostDashboard = () => {
       const q = upcomingSearch.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.fullName.toLowerCase().includes(q) ||
-          v.email.toLowerCase().includes(q) ||
-          (v.companyName || "").toLowerCase().includes(q) ||
-          (v.hostName || "").toLowerCase().includes(q),
+          v?.fullName?.toLowerCase()?.includes(q) ||
+          v?.email?.toLowerCase()?.includes(q) ||
+          (v?.companyName || "")?.toLowerCase()?.includes(q) ||
+          (v?.hostName || "")?.toLowerCase()?.includes(q),
       );
     }
     return filtered;
@@ -160,10 +168,10 @@ export const useHostDashboard = () => {
       const q = checkedInSearch.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.fullName.toLowerCase().includes(q) ||
-          v.email.toLowerCase().includes(q) ||
-          (v.companyName || "").toLowerCase().includes(q) ||
-          (v.hostName || "").toLowerCase().includes(q),
+          v?.fullName?.toLowerCase()?.includes(q) ||
+          v?.email?.toLowerCase()?.includes(q) ||
+          (v?.companyName || "")?.toLowerCase()?.includes(q) ||
+          (v?.hostName || "")?.toLowerCase()?.includes(q),
       );
     }
     // Sort: CHECKED_IN first, then CHECKED_OUT

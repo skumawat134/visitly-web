@@ -81,7 +81,7 @@ export const MyDeliveryLogsModal: React.FC<MyDeliveryLogsModalProps> = ({
             </div>
             <div className="tw:flex-1 tw:min-w-0">
               <div className="tw:text-base tw:font-semibold tw:text-gray-900">
-                {packageItem.carrier || "-"}
+                {packageItem.carrier || "Unknown Carrier"}
               </div>
               <div className="tw:text-xs tw:text-gray-500 tw:break-all">
                 {packageItem.trackingId || "-"}

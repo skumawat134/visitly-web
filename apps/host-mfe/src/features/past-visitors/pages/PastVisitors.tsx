@@ -10,6 +10,7 @@ import { usePastVisitors } from "../hooks/usePastVisitors";
 import type { VisitRecord } from "../hooks/usePastVisitors";
 import { GridFooter } from "../components/GridFooter";
 import { useNavigate } from "react-router-dom";
+import { NamedAvatar } from "@visitly/ui";
 
 interface PastVisitorsProps {
   searchTerm?: string;
@@ -42,29 +43,28 @@ const PastVisitors: React.FC<PastVisitorsProps> = (props) => {
   const colDefs = useMemo<ColDef<VisitRecord>[]>(
     () => [
       {
-        headerName: "Name",
-        field: "fullName",
-        flex: 2,
-        minWidth: 200,
-        cellRenderer: (params: ICellRendererParams<VisitRecord>) => {
-          const data = params.data;
-          if (!data) return null;
-          return (
-            <div className="tw:flex tw:items-center tw:gap-3" onClick={() => redirectToVisitorDetailPage(data)}>
-              <img
-                src={data.avatarUri || "/assets/images/defaultuser.jpg"}
-                alt={data.fullName}
-                className="tw:w-8 tw:h-8 tw:rounded-full tw:object-cover tw:border tw:border-gray-200"
-              />
-              <button
-                className="tw:text-blue-600 tw:hover:text-blue-800 tw:underline tw:font-medium tw:text-left tw:transition-colors"
-              >
-                {data.fullName}
-              </button>
-            </div>
-          );
-        },
-      },
+             headerName: "Full Name",
+             field: "fullName",
+             flex: 2,
+             minWidth: 200,
+             cellRenderer: (params: ICellRendererParams) => {
+               const data = params.data;
+               if (!data) return null;
+               return (
+                 <div className="tw:flex tw:items-center tw:gap-2.5 tw:h-full" onClick={() => redirectToVisitorDetailPage(data)}>
+                   <NamedAvatar url={data.visitPhotoURI} name={data.fullName} size={30} />
+                   <div className="tw:min-w-0 tw:leading-tight">
+                     <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
+                       {data.fullName}
+                     </div>
+                     <div className="tw:text-xs tw:text-gray-400 tw:truncate">
+                       {data.email}
+                     </div>
+                   </div>
+                 </div>
+               );
+             },
+           },
       {
         headerName: "Company",
         field: "companyName",

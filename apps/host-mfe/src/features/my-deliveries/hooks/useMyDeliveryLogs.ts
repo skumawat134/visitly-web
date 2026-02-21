@@ -88,6 +88,7 @@ export const useMyDeliveryLogs = () => {
           receivedStartDate: dateRange.startDate || "",
           receivedEndDate: dateRange.endDate || "",
         }),
+        staleTime : 0 
     });
 
   // Mutations
@@ -103,6 +104,7 @@ export const useMyDeliveryLogs = () => {
     }) => updateDeliveryStatus(id, { status, pickupD }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myDeliveryLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       setIsDetailsModalOpen(false);
       setIsPickupConfirmOpen(false);
       setIsNotMyDeliveryOpen(false);
@@ -113,6 +115,7 @@ export const useMyDeliveryLogs = () => {
     mutationFn: (payload: any[]) => updateDeliveryStatusBulk(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myDeliveryLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       setIsBulkPickupConfirmOpen(false);
     },
   });
@@ -127,6 +130,7 @@ export const useMyDeliveryLogs = () => {
     }) => updateDeliveryLog(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myDeliveryLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       setIsDetailsModalOpen(false);
     },
   });
@@ -135,6 +139,7 @@ export const useMyDeliveryLogs = () => {
     mutationFn: (payload: any[]) => updateDeliveryLogBulk(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myDeliveryLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       setIsMoveModalOpen(false);
     },
   });
@@ -144,6 +149,7 @@ export const useMyDeliveryLogs = () => {
       deleteDeliveryLogs(ids.map((id) => ({ deliveryLogId: id }))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myDeliveryLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       setIsDeleteModalOpen(false);
     },
   });

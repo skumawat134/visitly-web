@@ -64,12 +64,15 @@ export const usePastVisitors = ({
           limit: pageSize,
           offset: pageIndex * pageSize,
           q: searchTerm,
+          sort : 'ASC',
+          sortBy:'checkinTime',  
           siteId,
           visitorTypeId,
           groupName,
           visitStartDate: dateRange?.startDate || '',
           visitEndDate: dateRange?.endDate || '',
         }),
+        refetchOnMount: "always",
     });
 
   // Visitor detail query

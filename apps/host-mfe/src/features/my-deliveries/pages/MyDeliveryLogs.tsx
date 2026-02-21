@@ -165,8 +165,8 @@ const MyDeliveryLogs: React.FC = () => {
       {
         headerName: "Location",
         field: "siteName",
-        flex: 1.5,
-        minWidth: 150,
+        flex: 1,
+        minWidth: 100,
         cellRenderer: (params: ICellRendererParams) => (
           <span data-testid={`column-siteName-${params.node?.rowIndex ?? 0}`}>
             {params.value || "-"}
@@ -178,6 +178,7 @@ const MyDeliveryLogs: React.FC = () => {
         field: "status",
         flex: 1,
         minWidth: 120,
+        cellClass: "tw:flex tw:items-center tw:justify-center",
         cellRenderer: (params: ICellRendererParams<DeliveryLogRecord>) => {
           const status = params.value;
           let colorClass = "tw:bg-gray-100 tw:text-gray-700";
@@ -193,7 +194,7 @@ const MyDeliveryLogs: React.FC = () => {
 
           return (
             <div
-              className="tw:flex tw:items-center tw:h-full"
+              className="tw:flex tw:items-center tw:justify-center tw:h-full"
               data-testid={`status-${params.node?.rowIndex ?? 0}`}
             >
               <span
@@ -344,10 +345,11 @@ const MyDeliveryLogs: React.FC = () => {
       // sortable: true,
       // filter: true,
       resizable: true,
-      // suppressHeaderMenuButton: true,
+       suppressHeaderMenuButton: true,
       // suppressMultiSort: true,
       headerClass:
-        "tw:text-[11px] tw:uppercase tw:tracking-wider tw:font-semibold tw:text-gray-400",
+        "tw:text-[11px] tw:uppercase tw:tracking-wider tw:font-semibold tw:text-gray-400 tw:text-center",
+        
     }),
     [],
   );
@@ -396,7 +398,7 @@ const MyDeliveryLogs: React.FC = () => {
                   : "tw:text-gray-500 tw:font-medium",
               )}
             >
-              All
+              All Status
             </button>
             <button
               onClick={() => setViewAs("myself")}

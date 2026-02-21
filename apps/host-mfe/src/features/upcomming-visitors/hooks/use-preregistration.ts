@@ -289,6 +289,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
           });
         }
         queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+        queryClient.invalidateQueries({ queryKey: ['upcoming-visitors'] });
         formik.resetForm();
         onClose && onClose();
       } catch (err) {

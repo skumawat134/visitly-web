@@ -63,7 +63,6 @@ export const useUpcomingVisitors = () => {
     endDate: null
   });
 
-   // Default to All Time (null) so filtering is optional
   const [upcomingDateRange, setUpcomingDateRange] = useState<DateRangeValue>({
     startDate: format(new Date(), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd")
@@ -104,8 +103,9 @@ export const useUpcomingVisitors = () => {
 
     return {
       limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: sort.toUpperCase() as any,
+      offset: debounceSearchTerm.length > 0 ? 0 : pageIndex * pageSize,
+      sort: sort,
+      userId : currentUser?.id ,
       sortBy: sortBy,
       q: debounceSearchTerm,
       siteId: locationFilter,
@@ -120,6 +120,8 @@ export const useUpcomingVisitors = () => {
     queryKey: ['upcomingVisitors', pageIndex, pageSize, debounceSearchTerm, sort, sortBy, locationFilter, typeFilter, debounceGroupSearch, upcomingDateRange,activeTab],
     queryFn: () => getUpCommingVisitors(buildParams()),
     enabled: activeTab === 'upcoming',
+    refetchOnMount: "always",
+    staleTime: 0
   });
 
   const { mutate: triggerExport } = useMutation({
@@ -214,15 +216,15 @@ export const useUpcomingVisitors = () => {
       {
         headerName: "Name",
         field: "fullName",
-        flex: 2,
+        flex: 1.5,
         minWidth: 200,
         cellRenderer: (params: ICellRendererParams) => {
           const data = params.data;
           if (!data) return null;
           return (
             <div onClick={() => redirectToVisitorDetailPage(data)} className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
-              {(data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={16} />}
-              <NamedAvatar url={data.visitPhotoURI} name={data.fullName} size={30} />
+              {/* {(data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={14} className='tw:text-[#5E2CED]' />} */}
+              <NamedAvatar url={data.visitPhotoURI} name={data.fullName} size={35}  isRecurring={(data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId}/>
               <div className="tw:min-w-0 tw:leading-tight">
                 <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
                   {data.fullName}
@@ -235,9 +237,10 @@ export const useUpcomingVisitors = () => {
           );
         },
       },
-      { headerName: "Type", field: "visitorType", hide: !isVisible("Type") },
-      { headerName: "Host", field: "hostName", hide: !isVisible("Host") },
-      { headerName: "Location", field: "siteName", hide: !isVisible("Location") },
+      { headerName: "Scheduled Check-In", field: "scheduleCheckinDate", hide: !isVisible("Scheduled Check-In Date"), valueFormatter: (params) => params.value ? format(new Date(params.value), 'MMM dd, yyyy h:mm a') : '-' },
+      { headerName: "Type",  width: 100, field: "visitorType", hide: !isVisible("Type") },
+      { headerName: "Host", field: "hostName", width: 140 , hide: !isVisible("Host") },
+      { headerName: "Location", field: "siteName",  width: 140 , hide: !isVisible("Location") },
       { headerName: "Company", field: "companyName", hide: !isVisible("Company") },
       { headerName: "Group Name", field: "groupName", hide: !isVisible("Group Name") },
       { headerName: "Phone", field: "phoneNumber", hide: !isVisible("Phone") },
@@ -252,7 +255,6 @@ export const useUpcomingVisitors = () => {
       },
       { headerName: "Internal Note", field: "internalNote", hide: !isVisible("Internal Note") },
       { headerName: "Email", field: "email", hide: !isVisible("Email") },
-      { headerName: "Scheduled Check-In", field: "scheduleCheckinDate", hide: !isVisible("Scheduled Check-In Date"), valueFormatter: (params) => params.value ? format(new Date(params.value), 'MMM dd, yyyy h:mm a') : '-' },
       {
         headerName: "Action",
         field: "id",

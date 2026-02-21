@@ -27,6 +27,7 @@ export const useCancelPreRegistration = ({
 
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+            queryClient.invalidateQueries({ queryKey: ['upcoming-visitors'] });
 
             toast({
                 message: 'Cancelled Successfully!',

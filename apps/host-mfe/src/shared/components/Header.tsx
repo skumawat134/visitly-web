@@ -106,19 +106,19 @@ const UserProfileMenu: React.FC<Pick<AuthState, "user">> = ({ user }) => {
 
       {/* Actions */}
       <div className="tw:py-1">
-        <Link
+        {/* <Link
           className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600"
           to={"/host/profile"}
         >
           <User size={16} /> Profile
-        </Link>
+        </Link> */}
 
-        <Link
+        {/* <Link
           className="tw:w-full tw:flex tw:items-center tw:gap-3 tw:px-4 tw:py-2.5 tw:text-sm tw:text-slate-600 hover:tw:bg-indigo-50 hover:tw:text-indigo-600"
           to={"/host/change-password"}
         >
           <LockOpen size={16} /> Change Password
-        </Link>
+        </Link> */}
 
         <hr className="tw:my-1 tw:border-gray-100" />
 

@@ -30,7 +30,7 @@ import {
   LocationFilter,
   CardSearch,
 } from "../components/DashboardComponents";
-import { cn } from "@visitly/ui";
+import { cn, NamedAvatar } from "@visitly/ui";
 import { format } from "date-fns";
 import type { VisitorDetail } from "@/features/visitor-detail/api/visitorDetail.types";
 
@@ -172,7 +172,7 @@ export const HostDashboard: React.FC = () => {
           formatRelativeTime(params.value),
       },
       {
-        headerName: "Visitor",
+        headerName: "Full Name",
         field: "fullName",
         flex: 2,
         minWidth: 200,
@@ -194,6 +194,17 @@ export const HostDashboard: React.FC = () => {
           );
         },
       },
+       {
+        headerName: "Type",
+        field: "visitorType",
+        width: 100,
+        cellRenderer: (params: ICellRendererParams) => (
+          <span className="tw:bg-gray-100 tw:text-gray-600 tw:text-[11px] tw:font-medium tw:px-2 tw:py-0.5 tw:rounded-md">
+            {params.value}
+          </span>
+        ),
+      },
+      { headerName: "Host", field: "hostName", flex: 1.5, minWidth: 120 },
       {
         headerName: "Company",
         field: "companyName",
@@ -201,7 +212,6 @@ export const HostDashboard: React.FC = () => {
         minWidth: 120,
         valueFormatter: (params: any) => params.value || "—",
       },
-      { headerName: "Host", field: "hostName", flex: 1.5, minWidth: 120 },
       {
         headerName: "Pre-Fill Status",
         field: "prefill",
@@ -231,33 +241,24 @@ export const HostDashboard: React.FC = () => {
           </span>
         ),
       },
-      {
-        headerName: "Type",
-        field: "visitorType",
-        width: 100,
-        cellRenderer: (params: ICellRendererParams) => (
-          <span className="tw:bg-gray-100 tw:text-gray-600 tw:text-[11px] tw:font-medium tw:px-2 tw:py-0.5 tw:rounded-md">
-            {params.value}
-          </span>
-        ),
-      },
-      {
-        headerName: "",
-        width: 50,
-        sortable: false,
-        filter: false,
-        resizable: false,
-        cellRenderer: () => (
-          <div className="tw:flex tw:items-center tw:justify-center tw:h-full">
-            <ChevronRight size={15} className="tw:text-gray-300" />
-          </div>
-        ),
-      },
+       { headerName: "Group Name", field: "groupName", flex: 1.5, minWidth: 120 },
+      // {
+      //   headerName: "",
+      //   width: 50,
+      //   sortable: false,
+      //   filter: false,
+      //   resizable: false,
+      //   cellRenderer: () => (
+      //     <div className="tw:flex tw:items-center tw:justify-center tw:h-full">
+      //       <ChevronRight size={15} className="tw:text-gray-300" />
+      //     </div>
+      //   ),
+      // },
     ],
     [],
   );
 
-  const checkedInColDefs = useMemo(
+  const checkedInColDefs = useMemo<any>(
     () => [
       {
         headerName: "In",
@@ -268,7 +269,7 @@ export const HostDashboard: React.FC = () => {
           formatRelativeTime(params.value),
       },
       {
-        headerName: "Visitor",
+        headerName: "Full Name",
         field: "fullName",
         flex: 2,
         minWidth: 200,
@@ -277,7 +278,7 @@ export const HostDashboard: React.FC = () => {
           if (!data) return null;
           return (
             <div className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
-              <Avatar name={data.fullName} size={30} />
+              <NamedAvatar url={data.visitPhotoURI} name={data.fullName} size={35} />
               <div className="tw:min-w-0 tw:leading-tight">
                 <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
                   {data.fullName}
@@ -297,6 +298,16 @@ export const HostDashboard: React.FC = () => {
         minWidth: 120,
         valueFormatter: (params: ICellRendererParams) => params.value || "—",
       },
+      {
+        headerName: "Purpose",
+        field: "visitorType",
+        width: 100,
+        cellRenderer: (params: ICellRendererParams) => (
+          <span className="tw:bg-gray-100 tw:text-gray-600 tw:text-[11px] tw:font-medium tw:px-2 tw:py-0.5 tw:rounded-md">
+            {params.value}
+          </span>
+        ),
+      },
       { headerName: "Host", field: "hostName", flex: 1.5, minWidth: 120 },
       {
         headerName: "Location",
@@ -306,16 +317,6 @@ export const HostDashboard: React.FC = () => {
         cellRenderer: (params: ICellRendererParams) => (
           <span className="tw:flex tw:items-center tw:gap-1.5 tw:text-gray-500">
             <MapPin size={12} className="tw:text-gray-400" />
-            {params.value}
-          </span>
-        ),
-      },
-      {
-        headerName: "Type",
-        field: "visitorType",
-        width: 100,
-        cellRenderer: (params: ICellRendererParams) => (
-          <span className="tw:bg-gray-100 tw:text-gray-600 tw:text-[11px] tw:font-medium tw:px-2 tw:py-0.5 tw:rounded-md">
             {params.value}
           </span>
         ),
@@ -617,7 +618,7 @@ export const HostDashboard: React.FC = () => {
 
           <div style={{ width: "100%" }} className="tw:ag-theme-quartz">
             <AgGridReact
-              rowData={expectedToday}
+              rowData={expectedToday?.slice(0, 50) || []}
               columnDefs={upcomingColDefs}
               defaultColDef={defaultColDef}
               theme={myTheme}
@@ -671,7 +672,7 @@ export const HostDashboard: React.FC = () => {
 
           <div style={{ width: "100%" }} className="tw:ag-theme-quartz">
             <AgGridReact
-              rowData={todaysVisitors}
+              rowData={todaysVisitors?.slice(0, 50) || []}
               columnDefs={checkedInColDefs as any}
               defaultColDef={defaultColDef}
               theme={myTheme}
@@ -688,7 +689,7 @@ export const HostDashboard: React.FC = () => {
           </div>
 
           <button
-            onClick={() => navigate("/host/upcoming-visitors")}
+            onClick={() => navigate("/host/upcoming-visitors?st=checkin")}
             className="tw:mt-4 tw:flex tw:items-center tw:gap-1 tw:text-[13px] tw:font-medium tw:text-indigo-600 hover:tw:opacity-75"
           >
             View all visitors <ArrowRight size={14} />

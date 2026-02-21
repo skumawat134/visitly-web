@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { format, addDays } from "date-fns";
+import { format, addDays, isBefore, isAfter, isEqual } from "date-fns";
 import { Calendar, ChevronRight } from "lucide-react";
+// import { useToastStore } from '@visitly/app-store';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
 export type FutureDateRangePreset =
   | "today"
   | "tomorrow"
@@ -26,136 +26,182 @@ interface FutureDateRangeFilterProps {
 // ---------------------------------------------------------------------------
 // Presets
 // ---------------------------------------------------------------------------
-
 const PRESETS: { key: FutureDateRangePreset; label: string }[] = [
   { key: "today", label: "Today" },
   { key: "tomorrow", label: "Tomorrow" },
   { key: "7d", label: "Next 7 Days" },
-  { key: "all", label: "All Time" },
+  { key: "all", label: "All Future" },
   { key: "custom", label: "Custom" },
 ];
 
 // ---------------------------------------------------------------------------
+// Simple toast (you can replace with react-hot-toast, sonner, etc.)
+// ---------------------------------------------------------------------------
+const showToast = (message: string, type: "error" | "success" = "error") => {
+  // For production → use a real toast library
+  const bg = type === "error" ? "bg-red-500" : "bg-green-500";
+  const el = document.createElement("div");
+  el.className = `fixed bottom-4 right-4 ${bg} text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-bottom-5`;
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.classList.add("animate-out", "fade-out", "slide-out-to-bottom-5");
+    setTimeout(() => el.remove(), 300);
+  }, 3200);
+};
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
-
 const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
   value,
   onChange,
 }) => {
   const today = new Date();
+  const todayStr = format(today, "yyyy-MM-dd");
+
   const [selectedPreset, setSelectedPreset] =
     useState<FutureDateRangePreset>("all");
+
+  const [customRange, setCustomRange] = useState<DateRangeValue>({
+    startDate: null,
+    endDate: null,
+  });
+
+//   const toast = useToastStore((s)=>s.showToast)
 
   // -------------------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------------------
-
-  const getPresetRange = (
-    preset: FutureDateRangePreset
-  ): DateRangeValue => {
+  const getPresetRange = (preset: FutureDateRangePreset): DateRangeValue => {
     switch (preset) {
       case "today":
-        return {
-          startDate: format(today, "yyyy-MM-dd"),
-          endDate: format(today, "yyyy-MM-dd"),
-        };
-
+        return { startDate: todayStr, endDate: todayStr };
       case "tomorrow": {
         const t = addDays(today, 1);
-        return {
-          startDate: format(t, "yyyy-MM-dd"),
-          endDate: format(t, "yyyy-MM-dd"),
-        };
+        return { startDate: format(t, "yyyy-MM-dd"), endDate: format(t, "yyyy-MM-dd") };
       }
-
       case "7d":
         return {
-          startDate: format(today, "yyyy-MM-dd"),
+          startDate: todayStr,
           endDate: format(addDays(today, 6), "yyyy-MM-dd"),
         };
-
       case "all":
-        return {
-          startDate: null,
-          endDate: null,
-        };
-
+        return { startDate: todayStr, endDate: null };
       default:
-        return {
-          startDate: null,
-          endDate: null,
-        };
+        return { startDate: null, endDate: null };
     }
   };
 
-  // -------------------------------------------------------------------------
-  // Sync preset from external value
-  // -------------------------------------------------------------------------
+  const isValidRange = (start: string | null, end: string | null): boolean => {
+    if (!start || !end){
+    // toast({message: 'Start date must be smaller than end date!'})
+     return false;
+    }
+    const startD = new Date(start);
+    const endD = new Date(end);
+    return !isBefore(endD, startD) || isEqual(startD, endD);
+  };
 
+  // -------------------------------------------------------------------------
+  // Sync from external value → internal state
+  // -------------------------------------------------------------------------
   useEffect(() => {
     if (!value) return;
 
-    if (!value.startDate && !value.endDate) {
+    const { startDate, endDate } = value;
+
+    if (startDate === todayStr && endDate === null) {
       setSelectedPreset("all");
       return;
     }
-
-    for (const preset of PRESETS) {
-      if (preset.key === "custom" || preset.key === "all") continue;
-
-      const presetRange = getPresetRange(preset.key);
-
-      if (
-        presetRange.startDate === value.startDate &&
-        presetRange.endDate === value.endDate
-      ) {
-        setSelectedPreset(preset.key);
-        return;
-      }
+    if (startDate === todayStr && endDate === todayStr) {
+      setSelectedPreset("today");
+      return;
+    }
+    const tomorrowStr = format(addDays(today, 1), "yyyy-MM-dd");
+    if (startDate === tomorrowStr && endDate === tomorrowStr) {
+      setSelectedPreset("tomorrow");
+      return;
+    }
+    if (
+      startDate === todayStr &&
+      endDate === format(addDays(today, 6), "yyyy-MM-dd")
+    ) {
+      setSelectedPreset("7d");
+      return;
     }
 
+    // custom
     setSelectedPreset("custom");
-  }, [value]);
+    setCustomRange({ startDate, endDate });
+  }, [value, todayStr]);
 
   // -------------------------------------------------------------------------
   // Handlers
   // -------------------------------------------------------------------------
-
   const handlePresetClick = (key: FutureDateRangePreset) => {
     setSelectedPreset(key);
 
     if (key === "custom") {
-      onChange({
-        startDate: value?.startDate ?? null,
-        endDate: value?.endDate ?? null,
-      });
+      // Reset local state — wait for user input
+      setCustomRange({ startDate: null, endDate: null });
+      // Optionally: you can also call onChange({ startDate: null, endDate: null })
+      // but many UIs keep previous valid value until user confirms new range
       return;
     }
 
     onChange(getPresetRange(key));
   };
 
+  const handleStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStart = e.target.value || null;
+    setCustomRange((prev) => {
+      const updated = { ...prev, startDate: newStart };
+
+      // Only propagate if both dates are now present **and** valid
+      if (newStart && prev.endDate && isValidRange(newStart, prev.endDate)) {
+        onChange({ startDate: newStart, endDate: prev.endDate });
+      } else if (newStart && prev.endDate) {
+        showToast("Start date must be before or equal to end date");
+      }
+
+      return updated;
+    });
+  };
+
+  const handleEndChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEnd = e.target.value || null;
+    setCustomRange((prev) => {
+      const updated = { ...prev, endDate: newEnd };
+
+      // Only propagate if both dates are now present **and** valid
+      if (prev.startDate && newEnd && isValidRange(prev.startDate, newEnd)) {
+        onChange({ startDate: prev.startDate, endDate: newEnd });
+      } else if (prev.startDate && newEnd) {
+        showToast("End date must be after or equal to start date");
+      }
+
+      return updated;
+    });
+  };
+
   const isCustom = selectedPreset === "custom";
-  const rangeSelected =
-    isCustom && value?.startDate && value?.endDate;
+  const rangeSelected = isCustom && value?.startDate && value?.endDate;
 
   // -------------------------------------------------------------------------
   // UI
   // -------------------------------------------------------------------------
-
   return (
     <div className="tw:flex tw:flex-col tw:gap-4">
-      {/* Presets */}
+      {/* Preset Row */}
       <div className="tw:flex tw:items-center tw:gap-2.5 tw:flex-wrap">
         <div className="tw:p-2.5 tw:bg-slate-50 tw:rounded-xl tw:text-slate-400">
           <Calendar size={18} />
         </div>
-
         <div className="tw:flex tw:items-center tw:gap-1.5 tw:flex-wrap">
           {PRESETS.map((p) => {
             const isActive = selectedPreset === p.key;
-
             return (
               <button
                 key={p.key}
@@ -172,7 +218,6 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
             );
           })}
         </div>
-
         {rangeSelected && (
           <div className="tw:ml-2 tw:flex tw:items-center tw:gap-2 tw:text-indigo-600 tw:text-sm tw:font-bold">
             <ChevronRight size={14} />
@@ -181,7 +226,7 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
         )}
       </div>
 
-      {/* Custom */}
+      {/* Custom Date Inputs */}
       {isCustom && (
         <div className="tw:flex tw:items-center tw:gap-4 tw:pl-[44px] tw:animate-in tw:fade-in tw:slide-in-from-top-2">
           {/* FROM */}
@@ -189,18 +234,12 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
             <span className="tw:text-[11px] tw:font-bold tw:text-slate-400 tw:uppercase tw:tracking-widest">
               From
             </span>
-
             <input
               type="date"
-              value={value?.startDate || ""}
-              min={format(today, "yyyy-MM-dd")}
-              onChange={(e) =>
-                onChange({
-                  startDate: e.target.value || null,
-                  endDate: value?.endDate ?? null,
-                })
-              }
-              className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none tw:focus:ring-2 tw:focus:ring-indigo-500/20 tw:focus:border-indigo-500 tw:transition-all"
+              value={customRange.startDate || ""}
+            //   min={todayStr}
+              onChange={handleStartChange}
+              className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none focus:tw:ring-2 focus:tw:ring-indigo-500/20 focus:tw:border-indigo-500 tw:transition-all"
             />
           </div>
 
@@ -211,18 +250,12 @@ const FutureDateRangeFilter: React.FC<FutureDateRangeFilterProps> = ({
             <span className="tw:text-[11px] tw:font-bold tw:text-slate-400 tw:uppercase tw:tracking-widest">
               To
             </span>
-
             <input
               type="date"
-              value={value?.endDate || ""}
-              min={value?.startDate || format(today, "yyyy-MM-dd")}
-              onChange={(e) =>
-                onChange({
-                  startDate: value?.startDate ?? null,
-                  endDate: e.target.value || null,
-                })
-              }
-              className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none tw:focus:ring-2 tw:focus:ring-indigo-500/20 tw:focus:border-indigo-500 tw:transition-all"
+              value={customRange.endDate || ""}
+            //   min={customRange.startDate || todayStr}
+              onChange={handleEndChange}
+              className="tw:bg-white tw:border tw:border-slate-200 tw:rounded-xl tw:px-3 tw:py-2 tw:text-[13px] tw:font-bold tw:text-slate-700 tw:outline-none focus:tw:ring-2 focus:tw:ring-indigo-500/20 focus:tw:border-indigo-500 tw:transition-all"
             />
           </div>
         </div>
