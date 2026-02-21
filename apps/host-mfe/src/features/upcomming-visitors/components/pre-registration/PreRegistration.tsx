@@ -522,7 +522,7 @@ export const PreRegistrationModal = ({
                         />
                       </div>
                     </div>
-                    <div className="tw:col-span-2">
+                    {/* <div className="tw:col-span-2">
                       <Checkbox
                         label="Allow Visitor to submit information before Arrival"
                         checked={form.shouldPrefill}
@@ -531,7 +531,7 @@ export const PreRegistrationModal = ({
                         disabled={isFieldDisabled('shouldPrefill')}
                         aria-label="Allow Visitor to submit information before Arrival"
                       />
-                    </div>
+                    </div> */}
 
                     <div className="tw:grid tw:grid-cols-2 tw:gap-6">
                       <div className="tw:space-y-1.5">

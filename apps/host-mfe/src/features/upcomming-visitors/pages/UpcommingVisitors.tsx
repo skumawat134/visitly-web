@@ -259,7 +259,7 @@ const UpcommingVisitors: React.FC = () => {
               My Visitors
             </button>
           </div>
-          <div className="tw:relative">
+          {delegates.length > 0 && <div className="tw:relative">
             <select
               value={viewAs !== 'all' && viewAs !== 'myself' ? viewAs : ""}
               onChange={(e) => { if (e.target.value) setViewAs(e.target.value) }}
@@ -282,7 +282,7 @@ const UpcommingVisitors: React.FC = () => {
               "tw:absolute tw:right-3 tw:top-1/2 tw:-translate-y-1/2 tw:pointer-events-none",
               viewAs !== 'all' && viewAs !== 'myself' ? "tw:text-blue-500" : "tw:text-gray-400"
             )} />
-          </div>
+          </div>}
         </div>
 
         {/* Filter Bar Card */}

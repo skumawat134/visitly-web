@@ -36,7 +36,7 @@ export async function getCustomFields(): Promise<CustomFieldsApiResponse> {
 export async function exportVisitorsCSV(params: VisitorListParams): Promise<Blob> {
   // ... existing implementation
   const { data } = await getApiClient().get("/v1/visit/preregister/export", {
-    params: { ...params, limit: 10000 }, // Matching your 10k limit
+    params: { ...params, limit: 500 }, // Matching your 10k limit
     responseType: 'blob'
   });
   return data;
