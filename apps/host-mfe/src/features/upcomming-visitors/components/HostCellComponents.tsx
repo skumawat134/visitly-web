@@ -185,28 +185,30 @@ export const HostCellEditor = forwardRef((props: ICellEditorParams, ref) => {
                 onChange={handleSearchChange}
                 placeholder="Search host..."
             />
-            {showDropdown && results.length > 0 && portalRootRef.current && createPortal(
-                <div
-                    ref={dropdownRef}
-                    style={dropdownStyle}
-                    className="tw:bg-white tw:border tw:border-gray-200 tw:rounded-b-lg tw:shadow-xl tw:max-h-60 tw:overflow-y-auto"
-                >
-                    {results.map((host) => (
-                        <div
-                            key={host.id}
-                            className="tw:px-3 tw:py-2 hover:tw:bg-gray-50 tw:cursor-pointer tw:border-b tw:border-gray-50 last:tw:border-none"
-                            onMouseDown={(e) => e.preventDefault()} /* keep input focused */
-                            onClick={() => handleSelect(host)}
-                        >
-                            <div className="tw:text-[13px] tw:font-medium tw:text-gray-900">
-                                {host.firstName} {host.lastName}
-                            </div>
-                            <div className="tw:text-[11px] tw:text-gray-500">{host.email}</div>
-                        </div>
-                    ))}
-                </div>,
-                portalRootRef.current,
-            )}
+                        {showDropdown && results.length > 0 && portalRootRef.current
+                            ? (createPortal(
+                                    <div
+                                        ref={dropdownRef}
+                                        style={dropdownStyle}
+                                        className="tw:bg-white tw:border tw:border-gray-200 tw:rounded-b-lg tw:shadow-xl tw:max-h-60 tw:overflow-y-auto"
+                                    >
+                                        {results.map((host) => (
+                                            <div
+                                                key={host.id}
+                                                className="tw:px-3 tw:py-2 hover:tw:bg-gray-50 tw:cursor-pointer tw:border-b tw:border-gray-50 last:tw:border-none"
+                                                onMouseDown={(e) => e.preventDefault()} /* keep input focused */
+                                                onClick={() => handleSelect(host)}
+                                            >
+                                                <div className="tw:text-[13px] tw:font-medium tw:text-gray-900">
+                                                    {host.firstName} {host.lastName}
+                                                </div>
+                                                <div className="tw:text-[11px] tw:text-gray-500">{host.email}</div>
+                                            </div>
+                                        ))}
+                                    </div>,
+                                    portalRootRef.current,
+                                ) as unknown as React.ReactNode)
+                            : null}
             {isLoading && (
                 <div className="tw:absolute tw:right-2 tw:top-1/2 tw:translate-y-[-50%] tw:text-[10px] tw:text-gray-400">
                     ...
