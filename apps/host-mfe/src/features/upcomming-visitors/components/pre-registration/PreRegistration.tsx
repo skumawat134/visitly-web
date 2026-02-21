@@ -476,7 +476,7 @@ export const PreRegistrationModal = ({
                       <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
                       <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Where & When</h3>
                     </div>
-                    <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                    <div className="tw:grid tw:grid-cols-2 tw:gap-x-6">
                       <div className="tw:space-y-1.5">
                         <Label required>Location</Label>
                         <Select
@@ -697,6 +697,7 @@ export const PreRegistrationModal = ({
                           onChange={(e) => setFormField('groupName', e.target.value)}
                           placeholder="Team Alpha, Project X..."
                           data-testid="group-name-input"
+                          disabled={isFieldDisabled('Group Name')}
                         />
                         <Input
                           label="Internal Note"
@@ -704,6 +705,7 @@ export const PreRegistrationModal = ({
                           onChange={(e) => setFormField('internalNote', e.target.value)}
                           placeholder="Special instructions for reception..."
                           data-testid="internal-note-input"
+                          disabled={isFieldDisabled('Internal Note')}
                         />
                       </div>
 
@@ -727,7 +729,7 @@ export const PreRegistrationModal = ({
                       <div className="tw:w-14 tw:h-14 tw:rounded-full tw:bg-white/20 tw:backdrop-blur-md tw:flex tw:items-center tw:justify-center tw:text-xl tw:font-bold">
                         {(form.preregisterVisitCustomFieldModels.find(f => f.name === 'Full Name')?.value?.toUpperCase() || '?')[0]}
                       </div>
-                      <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                      <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-2">
                         <h4 className="tw:text-lg tw:font-bold">
                           {form.preregisterVisitCustomFieldModels.find(f => f.name === 'Full Name')?.value || 'N/A'}
                         </h4>

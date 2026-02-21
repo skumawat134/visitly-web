@@ -14,12 +14,12 @@ export interface PreRegistrationForm {
   id?: string;
   siteId: string;
   visitorTypeId: string;
-  scheduleCheckinDate: string | Date | null;
-  scheduleCheckoutDate: string | Date | null;
+  scheduleCheckinDate: Date | null;
+  scheduleCheckoutDate: Date | null;
   scheduleCheckinTimeOnly: string | null;
   scheduleCheckoutTimeOnly: string | null;
   recurrenceType: string;
-  recurrenceEndDateOnly: string | null;
+  recurrenceEndDateOnly: Date | null;
   checkoutTimeOnly: string | null;
   hostUserId: string | null;
   hostEmail?: string;
@@ -133,16 +133,32 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     }),
 
   }).test('checkin-before-checkout', 'Check-in time must be before check-out time', function (values) {
-    const { scheduleCheckinDate, scheduleCheckoutDate, recurrenceType, recurrenceEndDateOnly } = values;
+    const { scheduleCheckinDate, scheduleCheckinTimeOnly, scheduleCheckoutDate, scheduleCheckoutTimeOnly, recurrenceType, recurrenceEndDateOnly } = values;
 
-    // Single Visit: Check if Check-in is before Check-out
-    if (scheduleCheckinDate && scheduleCheckoutDate && scheduleCheckinDate > scheduleCheckoutDate) {
+    const combineDateTime = (date: Date | null | undefined, timeStr: string | null | undefined) => {
+      if (!date || !timeStr) return null;
+      const parts = timeStr.split(':');
+      const hStr = parts[0];
+      const mStr = parts[1];
+      if (hStr === undefined || mStr === undefined) return null;
+      const h = parseInt(hStr, 10);
+      const m = parseInt(mStr, 10);
+      const d = new Date(date);
+      d.setHours(h, m, 0, 0);
+      return d;
+    };
+
+    const fullCheckin = combineDateTime(scheduleCheckinDate, scheduleCheckinTimeOnly);
+    const fullCheckout = combineDateTime(scheduleCheckoutDate, scheduleCheckoutTimeOnly);
+
+    // Single Visit: Check if combined Check-in is before combined Check-out
+    if (fullCheckin && fullCheckout && fullCheckin > fullCheckout) {
       return this.createError({ path: 'scheduleCheckoutDate', message: 'Check-in time must be before check-out time' });
     }
 
     // Recurring Visit: Check if Check-in Date is before Recurrence End Date
     if (recurrenceType && recurrenceType !== 'NONE' && scheduleCheckinDate && recurrenceEndDateOnly) {
-      if (scheduleCheckinDate > recurrenceEndDateOnly) {
+      if (startOfDay(scheduleCheckinDate) > startOfDay(recurrenceEndDateOnly)) {
         return this.createError({ path: 'recurrenceEndDateOnly', message: 'Check-in date must be before the recurrence end date' });
       }
     }
@@ -363,15 +379,16 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     const extractedPoeId = getFieldValue('POINT_OF_ENTRY') || getFieldValue('Point of Entry') || values.poeId || null;
     const extractedBuildingId = getFieldValue('DESTINATION') || getFieldValue('Building') || values.buildingId || null;
     const extractedParkingLotId = getFieldValue('PARKING_LOT') || getFieldValue('Parking Lot') || values.parkingLotId || null;
-    const excludedFields = ['Full Name','Host','HOST', 'Email', 'Company Name', 'Phone Number', ...advancedLocationFields];
+    const excludedFields = ['Full Name', 'Host', 'HOST', 'Email', 'Company Name', 'Phone Number', ...advancedLocationFields];
     // Filter out advanced location fields from the custom fields array sent to the backend
     const filteredCustomFields = processedCustomFields.filter(f =>
       f.isPreregistrationOnly && !excludedFields.includes(f.name)
-    ).map((item)=> {
-       return {name : item.name,
-       orgCustomFieldId : item.orgCustomFieldId,
-       value : item.value,
-       visitTypeFieldId : item.visitTypeFieldId,
+    ).map((item) => {
+      return {
+        name: item.name,
+        orgCustomFieldId: item.orgCustomFieldId,
+        value: item.value,
+        visitTypeFieldId: item.visitTypeFieldId,
       }
     })
     // Construct base payload according to PreregisteredVisitInfoModel DTO
@@ -386,9 +403,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       hostName: values.hostUser?.label || '',
       visitorTypeId: values.visitorTypeId,
       siteId: values.siteId,
-      notifyHostFlag: !!values.notifyHostFlag,
-      notifyVisitFlag: !!values.notifyVisitFlag,
-      shouldPrefill: !!values.shouldPrefill,
       groupName: values.groupName,
       internalNote: values.internalNote,
       recurrenceType: values.recurrenceType || 'NONE',
@@ -396,16 +410,14 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       poeId: extractedPoeId,
       buildingId: extractedBuildingId,
       parkingLotId: extractedParkingLotId,
+      checkinMethod: 'WEB',
       cohostUserIds: (values.cohostUserIds || [])
-      // .map(cid => {
-      //   const cohostDetail = values.cohostUsers?.find(opt => opt.value === cid);
-      //   return {
-      //     cohostUserId: cid,
-      //     cohostEmail: cohostDetail?.email || '',
-      //     cohostName: cohostDetail?.label || ''
-      //   };
-      // })
     };
+
+    // Construct base flags as strings
+    payload.notifyHostFlag = String(!!values.notifyHostFlag);
+    payload.notifyVisitFlag = String(!!values.notifyVisitFlag);
+    payload.shouldPrefill = String(!!values.shouldPrefill);
 
     // Handle Dates
     if (values.recurrenceType && values.recurrenceType !== 'NONE') {
@@ -415,7 +427,8 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         if (isValid(d)) payload.scheduleCheckinDateOnly = format(d, 'yyyy-MM-dd');
       }
       payload.checkinTimeOnly = values.scheduleCheckinTimeOnly ? `${values.scheduleCheckinTimeOnly}:00` : null;
-      payload.checkoutTimeOnly = values.scheduleCheckoutTimeOnly ? `${values.scheduleCheckoutTimeOnly}:00` : null;
+      payload.checkoutTimeOnly = values.scheduleCheckoutTimeOnly || null; // Match Angular's HH:mm
+      payload.scheduleCheckinTimeOnly = values.scheduleCheckinTimeOnly || null; // Add missing field
 
       if (values.recurrenceEndDateOnly) {
         const d = new Date(values.recurrenceEndDateOnly);
@@ -588,7 +601,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         scheduleCheckoutDate: checkoutDate,
         scheduleCheckoutTimeOnly: checkoutTime || null,
         recurrenceType: existingVisit.recurrenceType || 'NONE',
-        recurrenceEndDateOnly: existingVisit.recurrenceEndDateOnly ? new Date(existingVisit.recurrenceEndDateOnly) : null,
+        recurrenceEndDateOnly: (existingVisit.recurrenceEndDateOnly || existingVisit.recurrenceEndDate) ? new Date(existingVisit.recurrenceEndDateOnly || existingVisit.recurrenceEndDate) : null,
         checkoutTimeOnly: existingVisit.checkoutTimeOnly || checkoutTime || null,
         notifyVisitFlag: existingVisit.notifyVisitFlag !== false && existingVisit.notifyVisitFlag !== 'false',
         notifyHostFlag: existingVisit.notifyHostFlag !== false && existingVisit.notifyHostFlag !== 'false',
