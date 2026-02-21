@@ -187,21 +187,28 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
       return true;
     }),
-    email: Yup.string().nullable().test('email-required', 'Email is required', function (value) {
-      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Email' || f.fid === 'EMAIL');
-      if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
-      return true;
-    }),
-    companyName: Yup.string().nullable().test('company-required', 'Company Name is required', function (value) {
-      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Company Name' || f.fid === 'COMPANY_NAME');
-      if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
-      return true;
-    }),
-    phoneNumber: Yup.string().nullable().test('phone-required', 'Phone Number is required', function (value) {
-      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Phone Number' || f.fid === 'PHONE_NUMBER');
-      if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
-      return true;
-    }),
+    email: Yup.string().nullable()
+    // test('email-required', 'Email is required', function (value) {
+    //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Email' || f.fid === 'EMAIL');
+    //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+    //   return true;
+    // }),
+    .required("Email is required."),
+    companyName: Yup.string().nullable()
+    .required("Company Name is required."),
+    // .test('company-required', 'Company Name is required', function (value) {
+    //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Company Name' || f.fid === 'COMPANY_NAME');
+    //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+    //   return true;
+    // }),
+
+    phoneNumber: Yup.string().nullable()
+    // .test('phone-required', 'Phone Number is required', function (value) {
+    //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Phone Number' || f.fid === 'PHONE_NUMBER');
+    //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+    //   return true;
+    // }),
+    .required("Phone Number is required"),
     poeId: Yup.string().nullable().test('poe-required', 'Point of Entry is required', function (value) {
       const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Point of Entry' || f.fid === 'POINT_OF_ENTRY');
       if (field && field.isMandatoryForPreregistration && !value) return false;

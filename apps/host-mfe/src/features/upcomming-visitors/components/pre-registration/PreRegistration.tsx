@@ -644,7 +644,7 @@ export const PreRegistrationModal = ({
                         if (f?.status === 'INACTIVE') return null;
                         return (
                           <div className="tw:space-y-1.5">
-                            <Label required={f?.isMandatoryForPreregistration}>{f?.name || "Full Name"}</Label>
+                            <Label required>{f?.name || "Full Name"}</Label>
                             <Input
                               placeholder={f?.displayText || 'Full Name'}
                               value={form.fullName}
@@ -663,7 +663,7 @@ export const PreRegistrationModal = ({
                         if (f?.status === 'INACTIVE') return null;
                         return (
                           <div className="tw:space-y-1.5">
-                            <Label required={f?.isMandatoryForPreregistration}>{f?.name || "Email"}</Label>
+                            <Label required>{f?.name || "Email"}</Label>
                             <Input
                               placeholder={f?.displayText || 'Email Address'}
                               value={form.email}
@@ -682,7 +682,7 @@ export const PreRegistrationModal = ({
                         if (f?.status === 'INACTIVE') return null;
                         return (
                           <div className="tw:space-y-1.5">
-                            <Label required={f?.isMandatoryForPreregistration}>{f?.name || "Company Name"}</Label>
+                            <Label required >{f?.name || "Company Name"}</Label>
                             <Input
                               placeholder={f?.displayText || 'Company Name'}
                               value={form.companyName}
