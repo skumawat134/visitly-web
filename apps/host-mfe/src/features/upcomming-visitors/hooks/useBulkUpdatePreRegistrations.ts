@@ -20,6 +20,7 @@ export const useBulkUpdatePreRegistrations = ({
     mutationFn: bulkUpdatePreRegistrations,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+       queryClient.invalidateQueries({ queryKey: ['upcoming-visitors'] });
 
       toast({
         message: 'Updated Successfully!',

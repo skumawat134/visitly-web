@@ -51,7 +51,7 @@ export interface VisitorListParams {
   sort: 'ASC' | 'DESC' | string;
   sortBy: string;
   q: string;
-  // userId: string;
+  userId: string | undefined;
   siteId: string;
   groupName: string;
   visitorTypeId: string;

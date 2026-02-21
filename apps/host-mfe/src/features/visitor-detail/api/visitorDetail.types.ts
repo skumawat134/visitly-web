@@ -37,6 +37,8 @@ export interface VisitorDetail {
     hostEmail?: string;
     checkinTime?: string;
     checkoutTime?: string;
+    scheduledCheckInTime? : string,
+    scheduledCheckOutTime? : string,
 }
 
 export interface VisitorWatchModel {
