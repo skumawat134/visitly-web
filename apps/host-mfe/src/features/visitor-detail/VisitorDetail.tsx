@@ -284,7 +284,7 @@ const VisitorDetail = () => {
                 {/* Custom Fields as part of Visit Info */}
                 {source !== 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-gray-10">
                   <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
-                    Custom Fields Information
+                    Additional Information
                   </div>
                   <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
                     {/* Header */}
@@ -366,7 +366,7 @@ const VisitorDetail = () => {
 
                 {source == 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-100">
                   <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
-                    Custom Fields
+                   Additional Information
                   </div>
                   <div className="tw:bg-white tw:rounded-xl tw:p-5">
                     {/* Header */}
@@ -384,7 +384,7 @@ const VisitorDetail = () => {
                       </div>
                     ) : (
                       <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
-                        No custom fields added.
+                        No Additional Information added.
                       </div>
                     )}
                   </div>
@@ -819,7 +819,7 @@ const VisitorDetail = () => {
                   </div>
                 ) : (
                   <p className="tw:text-sm tw:text-gray-400 tw:italic tw:text-center tw:py-4">
-                    No offender records found.
+                    Unable to Perform
                   </p>
                 )}
               </Accordion>
