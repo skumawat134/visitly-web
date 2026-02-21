@@ -234,21 +234,28 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
   const { data: parkingData } = useParkingLot(form.siteId, entitlements.isAdvancedMegaLocationEntitled, parkingDate);
   const { data: destData } = useDestination(form.siteId, entitlements.isAdvancedMegaLocationEntitled);
 
+  const isPrefilledVisit = !!existingVisit?.visitInfoModel?.id;
+
   const isFieldDisabled = useCallback((fieldName: string) => {
-    console.log("existingVisit>>>" ,existingVisit)
-    // Angular logic: Disable if in edit mode AND (is recurring OR is part of a group/parent visit OR is prefilled)
     const isEditMode = status === 'Update';
     const isRecurring = form.recurrenceType && form.recurrenceType !== 'NONE';
     const isParentVisit = !!form.parentVisitId;
-    const isPrefilledVisit = !!existingVisit?.visitInfoModel?.id || !!existingVisit?.id;
+
+    // Condition shared by most fields in Angular
+    const isLockedDown = (isEditMode && (isRecurring || isParentVisit)) || isPrefilledVisit;
+
     if (isEditMode) {
-      if(['siteId', 'visitorTypeId'].includes(fieldName)) {return true}
-      if (isRecurring || isParentVisit || isPrefilledVisit) {
-        return ['siteId', 'visitorTypeId', 'scheduleCheckinDate', 'scheduleCheckinTimeOnly', 'recurrenceType', 'scheduleCheckoutDate', 'recurrenceEndDateOnly', 'scheduleCheckoutTimeOnly'].includes(fieldName);
+      // Location and Visitor Type are always disabled in update mode
+      if (['siteId', 'visitorTypeId', 'shouldPrefill'].includes(fieldName)) {
+        return true;
       }
+
+      // Most other core visitor fields and custom fields are disabled if locked down
+      return isLockedDown;
     }
+
     return false;
-  }, [status, form.recurrenceType, form.parentVisitId, existingVisit, form.siteId, form.visitorTypeId, form.scheduleCheckinDate, form.scheduleCheckinTimeOnly]);
+  }, [status, form.recurrenceType, form.parentVisitId, isPrefilledVisit]);
 
 
   // // side effect: clear location fields when date/time changes (parity with Angular) moved to onchange
@@ -337,7 +344,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
   const preparePayload = () => {
     const values = formik.values;
     const pipe = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ss");
-
     // Process custom fields
     const processedCustomFields = values.preregisterVisitCustomFieldModels.map((f: any) => {
       let val = f.value || '';
@@ -357,15 +363,17 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     const extractedPoeId = getFieldValue('POINT_OF_ENTRY') || getFieldValue('Point of Entry') || values.poeId || null;
     const extractedBuildingId = getFieldValue('DESTINATION') || getFieldValue('Building') || values.buildingId || null;
     const extractedParkingLotId = getFieldValue('PARKING_LOT') || getFieldValue('Parking Lot') || values.parkingLotId || null;
-
+    const excludedFields = ['Full Name','Host','HOST', 'Email', 'Company Name', 'Phone Number', ...advancedLocationFields];
     // Filter out advanced location fields from the custom fields array sent to the backend
     const filteredCustomFields = processedCustomFields.filter(f =>
-      f.isPreregistrationOnly && !advancedLocationFields.includes(f.name)
-    );
-
-    // Lookup Host details
-    const selectedHost = hostOptions.find(opt => opt.value === values.hostUserId);
-
+      f.isPreregistrationOnly && !excludedFields.includes(f.name)
+    ).map((item)=> {
+       return {name : item.name,
+       orgCustomFieldId : item.orgCustomFieldId,
+       value : item.value,
+       visitTypeFieldId : item.visitTypeFieldId,
+      }
+    })
     // Construct base payload according to PreregisteredVisitInfoModel DTO
     let payload: any = {
       id: values.id || visitId,
@@ -388,14 +396,15 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       poeId: extractedPoeId,
       buildingId: extractedBuildingId,
       parkingLotId: extractedParkingLotId,
-      cohosts: (values.cohostUserIds || []).map(cid => {
-        const cohostDetail = values.cohostUsers?.find(opt => opt.value === cid);
-        return {
-          cohostUserId: cid,
-          cohostEmail: cohostDetail?.email || '',
-          cohostName: cohostDetail?.label || ''
-        };
-      })
+      cohostUserIds: (values.cohostUserIds || [])
+      // .map(cid => {
+      //   const cohostDetail = values.cohostUsers?.find(opt => opt.value === cid);
+      //   return {
+      //     cohostUserId: cid,
+      //     cohostEmail: cohostDetail?.email || '',
+      //     cohostName: cohostDetail?.label || ''
+      //   };
+      // })
     };
 
     // Handle Dates
@@ -478,6 +487,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
           );
 
           return {
+            ...f,
             name: f.name,
             orgCustomFieldId: f.orgCustomFieldId || f.id,
             visitTypeFieldId: f.id,
@@ -721,5 +731,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     wizardStep,
     setWizardStep,
     isFieldDisabled,
+    isPrefilledVisit,
   };
 };

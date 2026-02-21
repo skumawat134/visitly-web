@@ -22,6 +22,7 @@ export interface SearchUserSelectProps {
   noOptionsMessage?: (inputValue: string) => ReactNode;
   onSearch?: (inputValue: string) => void;
   multi?: boolean;
+  isClearable?: boolean;
 }
 
 export const SearchUserSelect = ({
@@ -39,6 +40,7 @@ export const SearchUserSelect = ({
       : <div className="tw:text-sm tw:text-gray-500">No users found</div>,
   onSearch,
   multi = false,
+  isClearable = true,
 }: SearchUserSelectProps) => {
 
   return (
@@ -53,7 +55,7 @@ export const SearchUserSelect = ({
         }}
         placeholder={placeholder}
         isDisabled={isDisabled || isLoading}
-        isClearable
+        isClearable={isClearable}
         isSearchable
         isMulti={multi}
         noOptionsMessage={({ inputValue }) => noOptionsMessage(inputValue)}

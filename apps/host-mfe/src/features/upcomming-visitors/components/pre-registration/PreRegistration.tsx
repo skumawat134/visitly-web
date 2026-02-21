@@ -9,6 +9,7 @@ import {
   Radio,
   SearchUserSelect,
   Select,
+  Checkbox,
 } from "@visitly/ui";
 import { getIn } from "formik";
 import { ArrowRight, MapPin, Calendar, Check, UserPlus, Info, Users, Settings, Clock, RefreshCw, FileText, User, ShieldCheck, CalendarDays, Cross, X } from "lucide-react";
@@ -57,7 +58,8 @@ export const PreRegistrationModal = ({
     destData,
     isFieldDisabled,
     matchedRule,
-    preScreenStatus
+    preScreenStatus,
+    isPrefilledVisit,
   } = usePreRegistrationForm(visitId, onClose, status);
 
 
@@ -212,6 +214,7 @@ export const PreRegistrationModal = ({
               formik.setFieldValue(fieldName, selected?.value || '');
             }}
             isDisabled={isFieldDisabled('hostUserId')}
+            isClearable={!isPrefilledVisit}
             placeholder="Search host"
             error={isTouched ? fieldError : undefined}
             data-testid="host-search-select"
@@ -503,6 +506,17 @@ export const PreRegistrationModal = ({
                         />
                       </div>
                     </div>
+                    <div className="tw:col-span-2">
+                      <Checkbox
+                        id="shouldPrefill"
+                        label="Allow Visitor to submit information before Arrival"
+                        checked={form.shouldPrefill}
+                        onChange={(e: any) => setFormField('shouldPrefill', e.target.checked)}
+                        data-testid="visitor-arrival-prefill-checkbox"
+                        disabled={isFieldDisabled('shouldPrefill')}
+                        aria-label="Allow Visitor to submit information before Arrival"
+                      />
+                    </div>
 
                     <div className="tw:grid tw:grid-cols-2 tw:gap-6">
                       <div className="tw:space-y-1.5">
@@ -657,6 +671,7 @@ export const PreRegistrationModal = ({
                             }
                           }}
                           isDisabled={isFieldDisabled('cohostUserIds')}
+                          isClearable={!isPrefilledVisit}
                           multi={true}
                           placeholder="Search co-hosts"
                           data-testid="co-host-search-select"
@@ -712,7 +727,7 @@ export const PreRegistrationModal = ({
                       <div className="tw:w-14 tw:h-14 tw:rounded-full tw:bg-white/20 tw:backdrop-blur-md tw:flex tw:items-center tw:justify-center tw:text-xl tw:font-bold">
                         {(form.preregisterVisitCustomFieldModels.find(f => f.name === 'Full Name')?.value?.toUpperCase() || '?')[0]}
                       </div>
-                      <div className="tw:grid tw:grid-cols-2">
+                      <div className="tw:grid tw:grid-cols-2 tw:gap-6">
                         <h4 className="tw:text-lg tw:font-bold">
                           {form.preregisterVisitCustomFieldModels.find(f => f.name === 'Full Name')?.value || 'N/A'}
                         </h4>
