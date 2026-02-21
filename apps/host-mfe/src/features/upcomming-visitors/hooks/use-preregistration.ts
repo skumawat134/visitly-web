@@ -28,6 +28,10 @@ export interface PreRegistrationForm {
   notifyVisitFlag: boolean;
   notifyHostFlag: boolean;
   parentVisitId?: string;
+  fullName: string;
+  email: string;
+  companyName: string;
+  phoneNumber: string;
   cohostUserIds: string[];
   preregisterVisitCustomFieldModels: Array<{
     name: string;
@@ -79,6 +83,10 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     notifyVisitFlag: true,
     notifyHostFlag: true,
     parentVisitId: undefined,
+    fullName: '',
+    email: '',
+    companyName: '',
+    phoneNumber: '',
     cohostUserIds: [],
     preregisterVisitCustomFieldModels: [],
     shouldPrefill: true,
@@ -167,6 +175,48 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
   });
 
   const step2Schema = Yup.object({
+    hostUserId: Yup.string().nullable().test('host-required', 'Host is required', function (value) {
+      const hostField = visitorTypeFields?.fields?.find((f: any) => f.name === 'Host' || f.fid === 'HOST');
+      if (hostField?.status === 'ACTIVE' && hostField?.isMandatoryForPreregistration && !value) {
+        return false;
+      }
+      return true;
+    }),
+    fullName: Yup.string().test('fullname-required', 'Full Name is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Full Name' || f.fid === 'FULL_NAME');
+      if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    email: Yup.string().nullable().test('email-required', 'Email is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Email' || f.fid === 'EMAIL');
+      if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    companyName: Yup.string().nullable().test('company-required', 'Company Name is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Company Name' || f.fid === 'COMPANY_NAME');
+      if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    phoneNumber: Yup.string().nullable().test('phone-required', 'Phone Number is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Phone Number' || f.fid === 'PHONE_NUMBER');
+      if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    poeId: Yup.string().nullable().test('poe-required', 'Point of Entry is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Point of Entry' || f.fid === 'POINT_OF_ENTRY');
+      if (field && field.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    buildingId: Yup.string().nullable().test('building-required', 'Building is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Building' || f.fid === 'DESTINATION');
+      if (field && field.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    parkingLotId: Yup.string().nullable().test('parking-required', 'Parking Lot is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Parking Lot' || f.fid === 'PARKING_LOT');
+      if (field && field.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
     preregisterVisitCustomFieldModels: Yup.array().of(
       Yup.object().shape({
         fid: Yup.string(),
@@ -174,7 +224,12 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         value: Yup.mixed().test('dynamic-validation', function (value) {
           const { isMandatoryForPreregistration, name, fid } = this.parent as any;
 
-          // 1. Mandatory Check (Sync with Angular's fid !== 'HOST' check)
+          // Skip validation for fields handled at top level
+          if (['Host', 'CoHost', 'Building', 'Parking Lot', 'Point of Entry', 'Full Name', 'Email', 'Company Name', 'Phone Number', 'POINT_OF_ENTRY', 'DESTINATION', 'PARKING_LOT'].includes(name)) {
+            return true;
+          }
+
+          // 1. Mandatory Check
           if (isMandatoryForPreregistration && (value === null || value === undefined || value === '')) {
             return this.createError({ message: `${name || 'Field'} is required` });
           }
@@ -394,10 +449,10 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     // Construct base payload according to PreregisteredVisitInfoModel DTO
     let payload: any = {
       id: values.id || visitId,
-      fullName: getFieldValue('Full Name'),
-      email: getFieldValue('Email'),
-      companyName: getFieldValue('Company Name'),
-      phoneNumber: String(getFieldValue('Phone Number') || ''),
+      fullName: values.fullName || getFieldValue('Full Name'),
+      email: values.email || getFieldValue('Email'),
+      companyName: values.companyName || getFieldValue('Company Name'),
+      phoneNumber: values.phoneNumber || String(getFieldValue('Phone Number') || ''),
       hostUserId: values.hostUserId,
       hostEmail: values.hostUser?.email || values.hostEmail,
       hostName: values.hostUser?.label || '',
@@ -419,13 +474,12 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     payload.notifyVisitFlag = String(!!values.notifyVisitFlag);
     payload.shouldPrefill = String(!!values.shouldPrefill);
 
+    const checkinDate = new Date(values.scheduleCheckinDate || new Date());
+
     // Handle Dates
     if (values.recurrenceType && values.recurrenceType !== 'NONE') {
       // Recurring Visit Structure
-      if (values.scheduleCheckinDate) {
-        const d = new Date(values.scheduleCheckinDate);
-        if (isValid(d)) payload.scheduleCheckinDateOnly = format(d, 'yyyy-MM-dd');
-      }
+      payload.scheduleCheckinDateOnly = format(checkinDate, 'yyyy-MM-dd');
       payload.checkinTimeOnly = values.scheduleCheckinTimeOnly ? `${values.scheduleCheckinTimeOnly}:00` : null;
       payload.checkoutTimeOnly = values.scheduleCheckoutTimeOnly || null; // Match Angular's HH:mm
       payload.scheduleCheckinTimeOnly = values.scheduleCheckinTimeOnly || null; // Add missing field
@@ -436,15 +490,12 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       }
     } else {
       // Single Visit Structure
-      if (values.scheduleCheckinDate) {
-        const checkinDate = new Date(values.scheduleCheckinDate);
-        if (isValid(checkinDate)) {
-          if (values.scheduleCheckinTimeOnly) {
-            const [h, m] = values.scheduleCheckinTimeOnly.split(':');
-            checkinDate.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
-          }
-          payload.scheduleCheckinDate = pipe(checkinDate);
+      if (isValid(checkinDate)) {
+        if (values.scheduleCheckinTimeOnly) {
+          const [h, m] = values.scheduleCheckinTimeOnly.split(':');
+          checkinDate.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
         }
+        payload.scheduleCheckinDate = pipe(checkinDate);
       }
 
       if (values.scheduleCheckoutDate) {
@@ -493,7 +544,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
 
       const currentFields = formik.values.preregisterVisitCustomFieldModels;
       const newFields = visitorTypeFields.fields
-        .filter((f: any) => f.isPreregistrationOnly)
+        .filter((f: any) => f.isPreregistrationOnly && f.status === 'ACTIVE')
         .map((f: any) => {
           const existing = currentFields.find(
             (curr) => (curr.orgCustomFieldId && curr.orgCustomFieldId === (f.orgCustomFieldId || f.id)) || curr.name === f.name
@@ -525,53 +576,20 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
   const lastLoadedId = React.useRef<string | undefined>(undefined);
   useEffect(() => {
     if (existingVisit && lastLoadedId.current !== visitId) {
-      const mappedCustomFields = existingVisit.preregisterVisitCustomFieldModels?.map((cf: any) => ({
-        name: cf.name,
-        orgCustomFieldId: cf.orgCustomFieldId,
-        visitTypeFieldId: cf.visitTypeFieldId,
-        value: cf.value,
-        isMandatoryForPreregistration: false,
-        type: cf.type,
-        options: cf.options,
-        displayText: cf.displayText
-      })) || [];
+      // Map existing fields to custom models for rendering
+      let mappedCustomFields = (existingVisit.preregisterVisitCustomFieldModels || []).map((cf: any) => ({
+        ...cf,
+        fid: cf.orgCustomFieldId,
+        isPreregistrationOnly: true
+      }));
 
-      // Extract Advanced Location Values from Custom Fields (with multiple name variations)
-      const findCFValue = (names: string[]) => mappedCustomFields.find((f: any) => names.includes(f.name) || names.includes(f.orgCustomFieldId))?.value;
+      // Top-level fields to exclude from dynamic rendering
+      const EXCLUDED_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number', 'Building', 'Parking Lot', 'Point of Entry', 'Host', 'CoHost', 'POINT_OF_ENTRY', 'DESTINATION', 'PARKING_LOT'];
 
+      // Filter out top-level fields from dynamic array to prevent duplication
+      mappedCustomFields = mappedCustomFields.filter((f: any) => !EXCLUDED_FIELDS.includes(f.name));
 
-      const prefilledPoeId = findCFValue(['POINT_OF_ENTRY', 'Point of Entry', 'poeId']) || existingVisit.poeId;
-      const prefilledBuildingId = findCFValue(['DESTINATION', 'Building', 'buildingId']) || existingVisit.buildingId;
-      const prefilledParkingLotId = findCFValue(['PARKING_LOT', 'Parking Lot', 'parkingLotId']) || existingVisit.parkingLotId;
-
-      // Ensure TOP_LEVEL fields are present in the custom field models for the UI to render them
-      const TOP_LEVEL_FIELDS_MAP: Record<string, any> = {
-        'Full Name': existingVisit.fullName,
-        'Email': existingVisit.email,
-        'Company Name': existingVisit.companyName,
-        'Phone Number': existingVisit.phoneNumber,
-        'POINT_OF_ENTRY': prefilledPoeId,
-        'DESTINATION': prefilledBuildingId,
-        'PARKING_LOT': prefilledParkingLotId
-      };
-
-      Object.entries(TOP_LEVEL_FIELDS_MAP).forEach(([name, value]) => {
-        if (value !== undefined && value !== null) {
-          const existingIdx = mappedCustomFields.findIndex((f: any) => f.name === name || f.fid === name);
-          if (existingIdx >= 0) {
-            mappedCustomFields[existingIdx].value = value;
-          } else {
-            mappedCustomFields.push({
-              name: name,
-              value: value,
-              orgCustomFieldId: name,
-              visitTypeFieldId: name
-            });
-          }
-        }
-      });
-
-      // Recurrent/Date Prefill logic (Angular parity)
+      // Recurrent/Date Prefill logic
       const checkinDate = existingVisit.scheduleCheckinDate ? new Date(existingVisit.scheduleCheckinDate) :
         (existingVisit.scheduleCheckinDateOnly ? new Date(existingVisit.scheduleCheckinDateOnly) : new Date());
 
@@ -602,14 +620,19 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         scheduleCheckoutTimeOnly: checkoutTime || null,
         recurrenceType: existingVisit.recurrenceType || 'NONE',
         recurrenceEndDateOnly: (existingVisit.recurrenceEndDateOnly || existingVisit.recurrenceEndDate) ? new Date(existingVisit.recurrenceEndDateOnly || existingVisit.recurrenceEndDate) : null,
+        fullName: existingVisit.fullName || '',
+        email: existingVisit.email || '',
+        companyName: existingVisit.companyName || '',
+        phoneNumber: existingVisit.phoneNumber || '',
         checkoutTimeOnly: existingVisit.checkoutTimeOnly || checkoutTime || null,
-        notifyVisitFlag: existingVisit.notifyVisitFlag !== false && existingVisit.notifyVisitFlag !== 'false',
-        notifyHostFlag: existingVisit.notifyHostFlag !== false && existingVisit.notifyHostFlag !== 'false',
+        notifyVisitFlag: existingVisit.notifyVisitFlag !== false && String(existingVisit.notifyVisitFlag) !== 'false',
+        notifyHostFlag: existingVisit.notifyHostFlag !== false && String(existingVisit.notifyHostFlag) !== 'false',
         cohostUserIds: existingVisit.cohosts?.map((c: any) => c.cohostUserId) || [],
         preregisterVisitCustomFieldModels: mappedCustomFields,
-        poeId: prefilledPoeId || '',
-        buildingId: prefilledBuildingId || '',
-        parkingLotId: prefilledParkingLotId || '',
+        poeId: existingVisit.poeId || '',
+        buildingId: existingVisit.buildingId || '',
+        parkingLotId: existingVisit.parkingLotId || '',
+        hostUserId: existingVisit.hostUserId || null,
         hostUser: existingVisit.hostUserId ? {
           value: existingVisit.hostUserId,
           label: existingVisit.hostName || '',
@@ -619,7 +642,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
           value: c.cohostUserId,
           label: c.cohostName || '',
           email: c.cohostEmail || ''
-        })) || [],
+        })) || []
       });
       lastLoadedId.current = visitId;
     }
@@ -704,14 +727,16 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     if (!schema) return { isValid: true, errors: {} };
 
     try {
-      await schema.validate(formik.values, { abortEarly: false });
+      await schema.validate(formik.values, { abortEarly: false, context: { visitorTypeFields } });
       return { isValid: true, errors: {} };
     } catch (err: any) {
       const errors: Record<string, string> = {};
-      if (err.inner) {
+      if (err.inner && err.inner.length > 0) {
         err.inner.forEach((error: any) => {
           if (error.path) errors[error.path] = error.message;
         });
+      } else if (err.path && err.message) {
+        errors[err.path] = err.message;
       }
       return { isValid: false, errors };
     }
@@ -745,5 +770,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     setWizardStep,
     isFieldDisabled,
     isPrefilledVisit,
+    entitlements
   };
 };
