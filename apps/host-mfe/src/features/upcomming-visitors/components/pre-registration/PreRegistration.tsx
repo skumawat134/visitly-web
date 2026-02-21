@@ -9,6 +9,7 @@ import {
   Radio,
   SearchUserSelect,
   Select,
+  Checkbox,
 } from "@visitly/ui";
 import { getIn } from "formik";
 import { ArrowRight, MapPin, Calendar, Check, UserPlus, Info, Users, Settings, Clock, RefreshCw, FileText, User, ShieldCheck, CalendarDays, Cross, X } from "lucide-react";
@@ -57,9 +58,25 @@ export const PreRegistrationModal = ({
     destData,
     isFieldDisabled,
     matchedRule,
-    preScreenStatus
+    preScreenStatus,
+    visitorTypeFields,
+    isPrefilledVisit,
+    entitlements
   } = usePreRegistrationForm(visitId, onClose, status);
 
+  const getFieldDef = (name: string) => {
+    return visitorTypeFields?.fields?.find((f: any) => f.name === name || f.fid === name);
+  };
+
+  const formatTimeAMPM = (time: string | null | undefined): string => {
+    if (!time) return 'Not specified';
+    const [hStr, mStr] = time.split(':');
+    const h = parseInt(hStr || '0', 10);
+    const m = parseInt(mStr || '0', 10);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+  };
 
   const [timeOptions, setTimeOptions] = useState<{ label: string; value: string }[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -116,8 +133,10 @@ export const PreRegistrationModal = ({
     if (result.isValid) {
       setWizardStep(prev => prev + 1);
     } else {
+      // Force Formik to recognize the errors for this step
+      formik.setErrors(result.errors);
       // Mark fields as touched to show errors
-      Object.keys(result.errors).forEach(key => formik.setFieldTouched(key, true));
+      Object.keys(result.errors).forEach(key => formik.setFieldTouched(key, true, false));
     }
   };
 
@@ -203,14 +222,16 @@ export const PreRegistrationModal = ({
           <SearchUserSelect
             options={hostOptions}
             onSearch={setHostSearch}
-            value={hostOptions.filter(opt => opt.value === form.hostUserId)}
+            value={form.hostUser}
             onChange={(opt) => {
               const selected = Array.isArray(opt) ? opt[0] : opt;
               setFormField('hostUserId', selected?.value || null);
               setFormField('hostEmail', selected?.email || '');
+              setFormField('hostUser', selected || null);
               formik.setFieldValue(fieldName, selected?.value || '');
             }}
             isDisabled={isFieldDisabled('hostUserId')}
+            isClearable={!isPrefilledVisit}
             placeholder="Search host"
             error={isTouched ? fieldError : undefined}
             data-testid="host-search-select"
@@ -447,7 +468,7 @@ export const PreRegistrationModal = ({
             className="tw:p-2 tw:rounded-full tw:hover:bg-gray-100 tw:transition-colors"
             data-testid="modal-close-btn"
           >
-            <X  size={20} />
+            <X size={20} />
           </button>
         </div>
 
@@ -472,7 +493,7 @@ export const PreRegistrationModal = ({
                       <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
                       <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Where & When</h3>
                     </div>
-                    <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                    <div className="tw:grid tw:grid-cols-2 tw:gap-x-6">
                       <div className="tw:space-y-1.5">
                         <Label required>Location</Label>
                         <Select
@@ -482,9 +503,7 @@ export const PreRegistrationModal = ({
                             setFormField('siteId', e.target.value);
                             setFormField('visitorTypeId', '');
                           }}
-                          onBlur={(e) => {
-                            formik.setTouched({ ...formik.touched, siteId: true })
-                          }}
+                          onBlur={() => formik.setFieldTouched('siteId', true)}
                           disabled={isFieldDisabled('siteId')}
                           error={formik.touched.siteId && formik.errors.siteId ? String(formik.errors.siteId) : undefined}
                           data-testid="location-select"
@@ -497,10 +516,21 @@ export const PreRegistrationModal = ({
                           options={visitorTypeOptions}
                           onChange={(e) => setFormField('visitorTypeId', e.target.value)}
                           disabled={!form.siteId || isFieldDisabled('visitorTypeId')}
+                          onBlur={() => formik.setFieldTouched('visitorTypeId', true)}
                           error={formik.touched.visitorTypeId && formik.errors.visitorTypeId ? String(formik.errors.visitorTypeId) : undefined}
                           data-testid="visitor-type-select"
                         />
                       </div>
+                    </div>
+                    <div className="tw:col-span-2">
+                      <Checkbox
+                        label="Allow Visitor to submit information before Arrival"
+                        checked={form.shouldPrefill}
+                        onChange={(e: any) => setFormField('shouldPrefill', e.target.checked)}
+                        data-testid="visitor-arrival-prefill-checkbox"
+                        disabled={isFieldDisabled('shouldPrefill')}
+                        aria-label="Allow Visitor to submit information before Arrival"
+                      />
                     </div>
 
                     <div className="tw:grid tw:grid-cols-2 tw:gap-6">
@@ -511,14 +541,11 @@ export const PreRegistrationModal = ({
                           value={form.scheduleCheckinDate ? format(new Date(form.scheduleCheckinDate), 'yyyy-MM-dd') : ''}
                           onChange={(e) => {
                             setFormField('scheduleCheckinDate', e.target.value ? new Date(e.target.value) : null)
-                            formik.setFieldValue('poeId', '');
-                            formik.setFieldValue('buildingId', '');
-                            formik.setFieldValue('parkingLotId', '');
-
                           }}
+                          onBlur={() => formik.setFieldTouched('scheduleCheckinDate', true)}
                           disabled={isFieldDisabled('scheduleCheckinDate')}
                           error={formik.touched.scheduleCheckinDate && formik.errors.scheduleCheckinDate ? String(formik.errors.scheduleCheckinDate) : undefined}
-                          data-testid="checkin-date-input"
+                          data-testid="schedule-checkin-date-input"
                         />
                       </div>
                       <div className="tw:space-y-1.5">
@@ -526,15 +553,11 @@ export const PreRegistrationModal = ({
                         <Select
                           value={form.scheduleCheckinTimeOnly || ''}
                           options={timeOptions}
-                          onChange={(e) => {
-                            setFormField('scheduleCheckinTimeOnly', e.target.value)
-                            formik.setFieldValue('poeId', '');
-                            formik.setFieldValue('buildingId', '');
-                            formik.setFieldValue('parkingLotId', '');
-                          }}
+                          onChange={(e) => setFormField('scheduleCheckinTimeOnly', e.target.value)}
+                          onBlur={() => formik.setFieldTouched('scheduleCheckinTimeOnly', true)}
                           disabled={isFieldDisabled('scheduleCheckinTimeOnly')}
                           error={formik.touched.scheduleCheckinTimeOnly && formik.errors.scheduleCheckinTimeOnly ? String(formik.errors.scheduleCheckinTimeOnly) : undefined}
-                          data-testid="checkin-time-select"
+                          data-testid="schedule-checkin-time-select"
                         />
                       </div>
                     </div>
@@ -546,44 +569,49 @@ export const PreRegistrationModal = ({
                           value={form.recurrenceType}
                           options={repeatOptions}
                           onChange={(e) => setFormField('recurrenceType', e.target.value)}
+                          onBlur={() => formik.setFieldTouched('recurrenceType', true)}
+                          error={formik.touched.recurrenceType && formik.errors.recurrenceType ? String(formik.errors.recurrenceType) : undefined}
                           disabled={isFieldDisabled('recurrenceType')}
                           data-testid="recurrence-select"
                         />
-
                       </div>
                       {form.recurrenceType === 'NONE' ? (
-                        <div className="tw:space-y-1.5">
-                          <Label>Check-out Date (Optional)</Label>
-                          <Input
-                            type="date"
-                            value={form.scheduleCheckoutDate ? format(form.scheduleCheckoutDate, 'yyyy-MM-dd') : ''}
-                            onChange={(e) => setFormField('scheduleCheckoutDate', e.target.value ? format(e.target.value, 'yyyy-MM-dd') : null)}
-                            error={formik.touched.scheduleCheckoutDate && formik.errors.scheduleCheckoutDate ? String(formik.errors.scheduleCheckoutDate) : undefined}
-                            disabled={isFieldDisabled('scheduleCheckoutDate')}
-                            data-testid="checkout-date-input"
-                          />
-                        </div>
+                        <>
+                          <div className="tw:space-y-1.5">
+                            <Label>Check-out Date (Optional)</Label>
+                            <Input
+                              type="date"
+                              value={form.scheduleCheckoutDate ? format(new Date(form.scheduleCheckoutDate), 'yyyy-MM-dd') : ''}
+                              onChange={(e) => setFormField('scheduleCheckoutDate', e.target.value ? new Date(e.target.value) : null)}
+                              onBlur={() => formik.setFieldTouched('scheduleCheckoutDate', true)}
+                              disabled={isFieldDisabled('scheduleCheckoutDate')}
+                              error={formik.touched.scheduleCheckoutDate && formik.errors.scheduleCheckoutDate ? String(formik.errors.scheduleCheckoutDate) : undefined}
+                              data-testid="schedule-checkout-date-input"
+                            />
+                          </div>
+                        </>
                       ) : (
                         <div className="tw:space-y-1.5">
                           <Label className="tw:required" required>Ends On</Label>
                           <Input
                             type="date"
-                            value={form.recurrenceEndDateOnly ? format(form.recurrenceEndDateOnly, 'yyyy-MM-dd') : ''}
-                            onChange={(e) => setFormField('recurrenceEndDateOnly', e.target.value ? format(e.target.value, 'yyyy-MM-dd') : null)}
+                            value={form.recurrenceEndDateOnly ? format(new Date(form.recurrenceEndDateOnly), 'yyyy-MM-dd') : ''}
+                            onChange={(e) => setFormField('recurrenceEndDateOnly', e.target.value ? new Date(e.target.value) : null)}
                             error={formik.touched.recurrenceEndDateOnly && formik.errors.recurrenceEndDateOnly ? String(formik.errors.recurrenceEndDateOnly) : undefined}
                             disabled={isFieldDisabled('recurrenceEndDateOnly')}
-                            data-testid="recurrence-end-date-input"
+                            data-testid="schedule-recurrence-end-date-input"
                           />
                         </div>
                       )}
                     </div>
                     <div className="tw:grid tw:grid-cols-2 tw:gap-6">
                       <div className="tw:space-y-1.5">
-                        <Label required={form.recurrenceType !== 'NONE'}>Check-out Time</Label>
+                        <Label required={!!form.scheduleCheckoutDate || form.recurrenceType !== 'NONE'}>Check-out Time</Label>
                         <Select
                           value={form.scheduleCheckoutTimeOnly || ''}
                           options={timeOptions}
                           onChange={(e) => setFormField('scheduleCheckoutTimeOnly', e.target.value)}
+                          onBlur={() => formik.setFieldTouched('scheduleCheckoutTimeOnly', true)}
                           error={formik.touched.scheduleCheckoutTimeOnly && formik.errors.scheduleCheckoutTimeOnly ? String(formik.errors.scheduleCheckoutTimeOnly) : undefined}
                           disabled={isFieldDisabled('scheduleCheckoutTimeOnly')}
                           data-testid="checkout-time-select"
@@ -610,53 +638,217 @@ export const PreRegistrationModal = ({
                       <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Who and Whom?</h3>
                     </div>
                     <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-                      {/* Identity Fields First */}
-                      {form.preregisterVisitCustomFieldModels
-                        .filter(f => IDENTITY_FIELDS.includes(f.name))
-                        .map(f => {
-                          const idx = form.preregisterVisitCustomFieldModels.findIndex(orig => orig.name === f.name);
-                          return renderDynamicField(f, idx);
-                        })
-                      }
+                      {/* 1. Identity Fields First (Statically rendered) */}
+                      {(() => {
+                        const f = getFieldDef('Full Name');
+                        if (f?.status === 'INACTIVE') return null;
+                        return (
+                          <div className="tw:space-y-1.5">
+                            <Label required>{f?.name || "Full Name"}</Label>
+                            <Input
+                              placeholder={f?.displayText || 'Full Name'}
+                              value={form.fullName}
+                              onChange={(e) => setFormField('fullName', e.target.value)}
+                              onBlur={() => formik.setFieldTouched('fullName', true)}
+                              disabled={isFieldDisabled('Full Name')}
+                              error={formik.touched.fullName && formik.errors.fullName ? String(formik.errors.fullName) : undefined}
+                              data-testid="full-name-input"
+                            />
+                          </div>
+                        );
+                      })()}
+
+                      {(() => {
+                        const f = getFieldDef('Email');
+                        if (f?.status === 'INACTIVE') return null;
+                        return (
+                          <div className="tw:space-y-1.5">
+                            <Label required>{f?.name || "Email"}</Label>
+                            <Input
+                              placeholder={f?.displayText || 'Email Address'}
+                              value={form.email}
+                              onChange={(e) => setFormField('email', e.target.value)}
+                              onBlur={() => formik.setFieldTouched('email', true)}
+                              disabled={isFieldDisabled('Email')}
+                              error={formik.touched.email && formik.errors.email ? String(formik.errors.email) : undefined}
+                              data-testid="email-input"
+                            />
+                          </div>
+                        );
+                      })()}
+
+                      {(() => {
+                        const f = getFieldDef('Company Name');
+                        if (f?.status === 'INACTIVE') return null;
+                        return (
+                          <div className="tw:space-y-1.5">
+                            <Label required >{f?.name || "Company Name"}</Label>
+                            <Input
+                              placeholder={f?.displayText || 'Company Name'}
+                              value={form.companyName}
+                              onChange={(e) => setFormField('companyName', e.target.value)}
+                              onBlur={() => formik.setFieldTouched('companyName', true)}
+                              disabled={isFieldDisabled('Company Name')}
+                              error={formik.touched.companyName && formik.errors.companyName ? String(formik.errors.companyName) : undefined}
+                              data-testid="company-name-input"
+                            />
+                          </div>
+                        );
+                      })()}
+
+                      {(() => {
+                        const f = getFieldDef('Phone Number');
+                        if (f?.status === 'INACTIVE') return null;
+                        return (
+                          <div className="tw:space-y-1.5">
+                            <Label required={f?.isMandatoryForPreregistration}>{f?.name || "Phone Number"}</Label>
+                            <Input
+                              placeholder={f?.displayText || 'Phone Number'}
+                              value={form.phoneNumber}
+                              onChange={(e) => setFormField('phoneNumber', e.target.value)}
+                              onBlur={() => formik.setFieldTouched('phoneNumber', true)}
+                              disabled={isFieldDisabled('Phone Number')}
+                              error={formik.touched.phoneNumber && formik.errors.phoneNumber ? String(formik.errors.phoneNumber) : undefined}
+                              data-testid="phone-number-input"
+                            />
+                          </div>
+                        );
+                      })()}
+
+                      {/* Where Section - Conditionally rendered if any location field exists in metadata */}
+                      {(() => {
+                        const poeDef = getFieldDef('Point of Entry');
+                        const buildingDef = getFieldDef('Building');
+                        const parkingDef = getFieldDef('Parking Lot');
+
+                        // Show section if any location field exists in the visitor type metadata
+                        if (!poeDef && !buildingDef && !parkingDef) {
+                          return null;
+                        }
+
+                        return (
+                          <>
+                            {poeDef && (
+                              <Select
+                                label="Point of Entry"
+                                options={poeOptions}
+                                value={form.poeId || ''}
+                                required={poeDef.isMandatoryForPreregistration || poeDef.setting === 'MANDATORY'}
+                                onChange={(e: any) => {
+                                  setFormField('poeId', e.target.value);
+                                  formik.setFieldValue('poeId', e.target.value);
+                                }}
+                                onBlur={() => formik.setFieldTouched('poeId', true)}
+                                error={formik.touched.poeId && formik.errors.poeId ? String(formik.errors.poeId) : undefined}
+                                disabled={isFieldDisabled('Point of Entry')}
+                                data-testid="custom-field-select-poe"
+                              />
+                            )}
+                            {buildingDef && (
+                              <Select
+                                label="Building"
+                                options={destOptions}
+                                value={form.buildingId || ''}
+                                required={buildingDef.isMandatoryForPreregistration || buildingDef.setting === 'MANDATORY'}
+                                onChange={(e: any) => {
+                                  setFormField('buildingId', e.target.value);
+                                  formik.setFieldValue('buildingId', e.target.value);
+                                }}
+                                onBlur={() => formik.setFieldTouched('buildingId', true)}
+                                error={formik.touched.buildingId && formik.errors.buildingId ? String(formik.errors.buildingId) : undefined}
+                                disabled={isFieldDisabled('Building')}
+                                data-testid="custom-field-select-building"
+                              />
+                            )}
+                            {parkingDef && (
+                              <Select
+                                label="Parking Lot"
+                                options={parkingOptions}
+                                value={form.parkingLotId || ''}
+                                required={parkingDef.isMandatoryForPreregistration || parkingDef.setting === 'MANDATORY'}
+                                onChange={(e: any) => {
+                                  setFormField('parkingLotId', e.target.value);
+                                  formik.setFieldValue('parkingLotId', e.target.value);
+                                }}
+                                onBlur={() => formik.setFieldTouched('parkingLotId', true)}
+                                error={formik.touched.parkingLotId && formik.errors.parkingLotId ? String(formik.errors.parkingLotId) : undefined}
+                                disabled={isFieldDisabled('Parking Lot')}
+                                data-testid="custom-field-select-parking-lot"
+                              />
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
+
                     <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
                       <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
                       <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Whom?</h3>
                     </div>
                     <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-
-                      {/* Identity Fields First */}
-                      {form.preregisterVisitCustomFieldModels
-                        .filter(f => WHOM_FIELDS.includes(f.name))
-                        .map(f => {
-                          const idx = form.preregisterVisitCustomFieldModels.findIndex(orig => orig.name === f.name);
-                          return renderDynamicField(f, idx);
-                        })
-                      }
-                      <div className="tw:space-y-1.5">
-                        <Label>Co-Host(s)</Label>
-                        <SearchUserSelect
-                          options={coHostOptions}
-                          onSearch={setCoHostSearch}
-                          value={coHostOptions.filter(opt => (form.cohostUserIds || []).includes(opt.value))}
-                          onChange={(opt) => {
-                            if (Array.isArray(opt)) {
-                              setFormField('cohostUserIds', opt.map(o => o.value));
-                            } else if (opt) {
-                              const current = form.cohostUserIds || [];
-                              if (!current.includes(opt.value)) {
-                                setFormField('cohostUserIds', [...current, opt.value]);
+                      {/* 2. Whom Fields (Statically rendered) */}
+                      {(() => {
+                        const f = getFieldDef('Host');
+                        if (f?.status === 'INACTIVE') return null;
+                        const isMandatory = f?.isMandatoryForPreregistration;
+                        return (
+                          <div className="tw:space-y-1.5">
+                            <Label required={isMandatory}>Host</Label>
+                            <SearchUserSelect
+                              options={hostOptions}
+                              onSearch={setHostSearch}
+                              value={form.hostUser}
+                              onChange={(opt) => {
+                                const selected = Array.isArray(opt) ? opt[0] : opt;
+                                setFormField('hostUserId', selected?.value || null);
+                                setFormField('hostEmail', selected?.email || '');
+                                setFormField('hostUser', selected || null);
+                                formik.setFieldValue('hostUserId', selected?.value || '');
+                              }}
+                              isDisabled={isFieldDisabled('hostUserId')}
+                              isClearable={!isPrefilledVisit}
+                              placeholder={f?.displayText || "Search host"}
+                              error={formik.touched.hostUserId && formik.errors.hostUserId ? String(formik.errors.hostUserId) : undefined}
+                              data-testid="host-search-select"
+                            />
+                          </div>
+                        );
+                      })()}
+                      {
+                        entitlements.isCoHostsEntitled && <div className="tw:space-y-1.5">
+                          <Label>Co-Host(s)</Label>
+                          <SearchUserSelect
+                            options={coHostOptions}
+                            onSearch={setCoHostSearch}
+                            value={form.cohostUsers || []}
+                            onChange={(opt) => {
+                              if (Array.isArray(opt)) {
+                                setFormField('cohostUserIds', opt.map(o => o.value));
+                                setFormField('cohostUsers', opt);
+                              } else if (opt) {
+                                const currentIds = form.cohostUserIds || [];
+                                const currentUsers = form.cohostUsers || [];
+                                if (!currentIds.includes(opt.value)) {
+                                  setFormField('cohostUserIds', [...currentIds, opt.value]);
+                                  setFormField('cohostUsers', [...currentUsers, opt as any]);
+                                }
+                              } else {
+                                setFormField('cohostUserIds', []);
+                                setFormField('cohostUsers', []);
                               }
-                            }
-                          }}
-                          isDisabled={isFieldDisabled('cohostUserIds')}
-                          multi={true}
-                          placeholder="Search co-hosts"
-                          data-testid="co-host-search-select"
-                        />
+                            }}
+                            isDisabled={isFieldDisabled('cohostUserIds')}
+                            isClearable={!isPrefilledVisit}
+                            multi={true}
+                            placeholder="Search co-hosts"
+                            data-testid="co-host-search-select"
+                          />
+                        </div>
+                      }
 
-                      </div>
                     </div>
+
+
                     {/* Other Dynamic Fields */}
                     <div className="tw:pt-4 tw:border-t tw:border-gray-50">
                       <div className="tw:text-xs tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-widest tw:mb-4">Additional Information</div>
@@ -675,6 +867,7 @@ export const PreRegistrationModal = ({
                           onChange={(e) => setFormField('groupName', e.target.value)}
                           placeholder="Team Alpha, Project X..."
                           data-testid="group-name-input"
+                          disabled={isFieldDisabled('Group Name')}
                         />
                         <Input
                           label="Internal Note"
@@ -682,6 +875,7 @@ export const PreRegistrationModal = ({
                           onChange={(e) => setFormField('internalNote', e.target.value)}
                           placeholder="Special instructions for reception..."
                           data-testid="internal-note-input"
+                          disabled={isFieldDisabled('Internal Note')}
                         />
                       </div>
 
@@ -703,20 +897,20 @@ export const PreRegistrationModal = ({
                   <div className="tw:bg-[#EEF2FF] tw:rounded-2xl tw:p-6 tw:text-gray-700 tw:shadow-lg">
                     <div className="tw:flex tw:items-center tw:gap-4">
                       <div className="tw:w-14 tw:h-14 tw:rounded-full tw:bg-white/20 tw:backdrop-blur-md tw:flex tw:items-center tw:justify-center tw:text-xl tw:font-bold">
-                        {(form.preregisterVisitCustomFieldModels.find(f => f.name === 'Full Name')?.value?.toUpperCase() || '?')[0]}
+                        {(form.fullName?.toUpperCase() || '?')[0]}
                       </div>
-                      <div className="tw:grid tw:grid-cols-2">
+                      <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-2">
                         <h4 className="tw:text-lg tw:font-bold">
-                          {form.preregisterVisitCustomFieldModels.find(f => f.name === 'Full Name')?.value || 'N/A'}
+                          {form.fullName || 'N/A'}
                         </h4>
                         <p className="tw:text-sm">
-                          {form.preregisterVisitCustomFieldModels.find(f => f.name === 'Email')?.value || 'No email provided'}
+                          {form.email || 'No email provided'}
                         </p>
                         <p className="tw:text-sm">
-                          {form.preregisterVisitCustomFieldModels.find(f => f.name === 'Company Name')?.value || ''}
+                          {form.companyName || ''}
                         </p>
                         <p className="tw:text-sm">
-                          {form.preregisterVisitCustomFieldModels.find(f => f.name === 'Phone Number')?.value || ''}
+                          {form.phoneNumber || ''}
                         </p>
                       </div>
                     </div>
@@ -752,7 +946,7 @@ export const PreRegistrationModal = ({
                         <SummaryField
                           icon={Clock}
                           label="Check-in Time"
-                          value={form.scheduleCheckinTimeOnly}
+                          value={formatTimeAMPM(form.scheduleCheckinTimeOnly)}
                         />
 
                         {form.recurrenceType !== 'NONE' && (
@@ -777,50 +971,47 @@ export const PreRegistrationModal = ({
                         <SummaryField
                           icon={Clock}
                           label="Check-out Time"
-                          value={form.scheduleCheckoutTimeOnly || 'Not specified'}
+                          value={formatTimeAMPM(form.scheduleCheckoutTimeOnly)}
                         />
                         <SummaryField
                           label="Host"
-                          value={hostOptions.find(h => h.value === form.hostUserId)?.label}
+                          value={form.hostUser?.label || 'Not specified'}
                           icon={ShieldCheck}
                         />
                         <SummaryField
                           label="Co-hosts"
                           value={
-                            form.cohostUserIds && form.cohostUserIds.length > 0
-                              ? coHostOptions
-                                .filter(opt => form.cohostUserIds.includes(opt.value))
-                                .map(opt => opt.label)
-                                .join(', ')
+                            form.cohostUsers && form.cohostUsers.length > 0
+                              ? form.cohostUsers.map(u => u.label).join(', ')
                               : null
                           }
-                          icon={Users} // Changed to Users icon to represent a group
+                          icon={Users}
                         />
-                        {form.preregisterVisitCustomFieldModels.map((field: any) => {
-                          // Skip common fields already shown in the Hero Card
-                          if (!['Building', 'Parking Lot', 'Point of Entry'].includes(field.name)) return null;
-                          // Resolve Value (Handling Selects/IDs)
-                          let displayValue = field.value;
-
-                          if (field.name === 'Building')
-                            displayValue = destOptions.find(o => o.value === form.buildingId)?.label;
-                          if (field.name === 'Parking Lot')
-                            displayValue = parkingOptions.find(o => o.value === form.parkingLotId)?.label;
-                          if (field.name === 'Point of Entry')
-                            displayValue = poeOptions.find(o => o.value === form.poeId)?.label;
-                          if (field.type == "DATEPICKER")
-                            displayValue = format(new Date(field.value), 'MMM dd, yyyy');
-                          // Fallback for empty values
-                          if (!displayValue) return null;
-                          return (
-                            <SummaryField
-                              key={field.orgCustomFieldId}
-                              label={field.name}
-                              value={displayValue}
-                              icon={Info}
-                            />
-                          );
-                        })}
+                        {/* Location fields from top-level form state */}
+                        {form.poeId && (
+                          <SummaryField
+                            key="poe"
+                            label="Point of Entry"
+                            value={poeOptions.find(o => o.value === form.poeId)?.label || form.poeId}
+                            icon={Info}
+                          />
+                        )}
+                        {form.buildingId && (
+                          <SummaryField
+                            key="building"
+                            label="Building"
+                            value={destOptions.find(o => o.value === form.buildingId)?.label || form.buildingId}
+                            icon={Info}
+                          />
+                        )}
+                        {form.parkingLotId && (
+                          <SummaryField
+                            key="parking"
+                            label="Parking Lot"
+                            value={parkingOptions.find(o => o.value === form.parkingLotId)?.label || form.parkingLotId}
+                            icon={Info}
+                          />
+                        )}
                       </div>
                     </div>
                     {/* Dynamic Fields Summary (Remaining fields) */}
@@ -830,32 +1021,24 @@ export const PreRegistrationModal = ({
                       </h5>
                       <div className="tw:space-y-4 tw:grid tw:grid-cols-2">
                         {/* DYNAMIC FIELDS MAPPING */}
-                        {form.preregisterVisitCustomFieldModels.map((field: any) => {
-                          // Skip common fields already shown in the Hero Card
-                          if (EXCLUDED_DYNAMIC_FIELDS.includes(field.name)) return null;
-
-                          // Resolve Value (Handling Selects/IDs)
-                          let displayValue = field.value;
-
-                          if (field.name === 'Building')
-                            displayValue = destOptions.find(o => o.value === form.buildingId)?.label;
-                          if (field.name === 'Parking Lot')
-                            displayValue = parkingOptions.find(o => o.value === form.parkingLotId)?.label;
-                          if (field.name === 'Point of Entry')
-                            displayValue = poeOptions.find(o => o.value === form.poeId)?.label;
-                          if (field.type == "DATEPICKER")
-                            displayValue = format(new Date(field.value), 'MMM dd, yyyy');
-                          // Fallback for empty values
-                          if (!displayValue) return null;
-                          return (
-                            <SummaryField
-                              key={field.orgCustomFieldId}
-                              label={field.name}
-                              value={displayValue}
-                              icon={Info}
-                            />
-                          );
-                        })}
+                        {form.preregisterVisitCustomFieldModels
+                          .filter((field: any) => !EXCLUDED_DYNAMIC_FIELDS.includes(field.name))
+                          .map((field: any) => {
+                            let displayValue = field.value;
+                            if (field.type === 'DATEPICKER' && displayValue) {
+                              try { displayValue = format(new Date(displayValue), 'MMM dd, yyyy'); } catch (_) { }
+                            }
+                            if (!displayValue) return null;
+                            return (
+                              <SummaryField
+                                key={field.orgCustomFieldId}
+                                label={field.name}
+                                value={displayValue}
+                                icon={Info}
+                              />
+                            );
+                          })
+                        }
 
                         {/* ADDITIONAL FIELDS */}
                         <SummaryField label="Group Name" value={form.groupName} icon={Users} />
@@ -1024,7 +1207,7 @@ export const PreRegistrationModal = ({
                     data-testid="submit-btn"
                   >
                     <UserPlus size={18} className="tw:mr-2" />
-                    {status === 'Update' ? 'Update Visit' : 'Create Visit'}
+                    {status === 'Update' ? 'Update Invite' : 'Create Invite'}
                   </Button>
                 </div>
               )}

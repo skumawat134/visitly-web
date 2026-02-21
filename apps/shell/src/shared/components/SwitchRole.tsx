@@ -2,13 +2,13 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSwitchLogin } from "../hooks/useSwitchLogin";
+import { useFetchUserInfo } from "../hooks/useFetchUserInfo";
 
 const SESSION_TO_LOCAL_KEYS = "__session_backup_keys__";
 
 export default function SwitchRole() {
   const navigate = useNavigate();
-  const { roles } = useSwitchLogin(); 
-
+  const { roles } = useSwitchLogin();
   function restoreSessionStorageFromLocal() {
     const keysJson = localStorage.getItem(SESSION_TO_LOCAL_KEYS);
     if (!keysJson) return;
@@ -36,26 +36,26 @@ export default function SwitchRole() {
     localStorage.removeItem(SESSION_TO_LOCAL_KEYS);
   }
 
- function resolveLanding(): string {
-  if (roles.includes("GLOBAL_INTERNAL_ADMIN")) {
-    return "/admin/internalAdmin/org-list";
-  }
+  function resolveLanding(): string {
+    if (roles.includes("GLOBAL_INTERNAL_ADMIN")) {
+      return "/admin/internalAdmin/org-list";
+    }
 
-  if (roles.some(r => ["GLOBAL_ORG_ADMIN", "FRONTDESK_ADMIN", "SITE_ADMIN"].includes(r))) {
-    return "/admin/work_area/dashboard";
-  }
+    if (roles.some(r => ["GLOBAL_ORG_ADMIN", "FRONTDESK_ADMIN", "SITE_ADMIN"].includes(r))) {
+      return "/admin/work_area/dashboard";
+    }
 
-  if (roles.includes("DELIVERY_MANAGER")) {
-    return "/admin/work_area/delivery-manager/dashboard";
-  }
+    if (roles.includes("DELIVERY_MANAGER")) {
+      return "/admin/work_area/delivery-manager/dashboard";
+    }
 
-  if (roles.some(r => ["EVAC_MANAGER"].includes(r))) {
-    return "/admin/work_area/evacuation/past-visitors";
-  }
-  
-  return "/admin";
-}
+    if (roles.some(r => ["EVAC_MANAGER"].includes(r))) {
+      return "/admin/work_area/evacuation/past-visitors";
+    }
 
+    return "/admin";
+  }
+  useFetchUserInfo(); // fetch the user info
 
   useEffect(() => {
     restoreSessionStorageFromLocal();
@@ -63,11 +63,11 @@ export default function SwitchRole() {
 
     // redirect to dashboard or role page
     const redirectFrom = localStorage.getItem('redirectFrom')
-    if(redirectFrom == 'ADMIN'){
-    navigate("/host/dashboard", { replace: true });
-    }else{
-     const url =  resolveLanding();
-     navigate(url, { replace: true });
+    if (redirectFrom == 'ADMIN') {
+      navigate("/host/dashboard", { replace: true });
+    } else {
+      const url = resolveLanding();
+      navigate(url, { replace: true });
     }
     localStorage.removeItem('redirectFrom')
   }, []);
