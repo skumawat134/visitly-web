@@ -88,6 +88,7 @@ export const useMyDeliveryLogs = () => {
           receivedStartDate: dateRange.startDate || "",
           receivedEndDate: dateRange.endDate || "",
         }),
+        staleTime : 0 
     });
 
   // Mutations

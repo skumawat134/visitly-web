@@ -127,7 +127,7 @@ export const standardFields: ColumnSetting[] = [
   {
     columnTitle: 'Group Name',
     prop: 'groupName',
-    isSelected: true,
+    isSelected: false,
     isDisabled: false,
     isSortable: true,
     type: 'Standard'
@@ -135,7 +135,7 @@ export const standardFields: ColumnSetting[] = [
   {
     columnTitle: 'Phone',
     prop: 'phoneNumber',
-    isSelected: true,
+    isSelected: false,
     isDisabled: false,
     isSortable: true,
     type: 'Standard',

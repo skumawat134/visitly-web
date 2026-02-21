@@ -35,6 +35,8 @@ export const useHostDashboard = () => {
       getUpCommingVisitors({
         //  userId: currentUser?.id,
         scheduleCheckinStartDate: new Date().toISOString().split("T")[0],
+        sort : 'asc',
+        sortBy : 'scheduledCheckinDate'
       }),
       refetchOnMount: "always",
   });
@@ -45,6 +47,8 @@ export const useHostDashboard = () => {
       getPastVisitors({
         visitStartDate: new Date().toISOString().split("T")[0],
         visitEndDate: new Date().toISOString().split("T")[0],
+        sort : 'asc',
+        sortBy : 'checkinTime'
       }),
       refetchOnMount: "always",
   });
@@ -164,10 +168,10 @@ export const useHostDashboard = () => {
       const q = checkedInSearch.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.fullName.toLowerCase().includes(q) ||
-          v.email.toLowerCase().includes(q) ||
-          (v.companyName || "").toLowerCase().includes(q) ||
-          (v.hostName || "").toLowerCase().includes(q),
+          v?.fullName?.toLowerCase()?.includes(q) ||
+          v?.email?.toLowerCase()?.includes(q) ||
+          (v?.companyName || "")?.toLowerCase()?.includes(q) ||
+          (v?.hostName || "")?.toLowerCase()?.includes(q),
       );
     }
     // Sort: CHECKED_IN first, then CHECKED_OUT

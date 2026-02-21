@@ -1,11 +1,13 @@
 import React, { useMemo } from "react";
-import { cn } from './utils' // adjust import path
+import { RefreshCw } from "lucide-react";
+import { cn } from "./utils"; // adjust import path
 
 export interface AvatarProps {
   name?: string;
   url?: string | null | undefined;
   size?: number; // px
   className?: string;
+  isRecurring?: boolean; // ✅ new prop
 }
 
 /** Generate initials */
@@ -13,7 +15,6 @@ function getInitials(name?: string): string {
   if (!name) return "?";
 
   const parts = name.trim().split(/\s+/).filter(Boolean);
-
   const first = parts[0];
   const second = parts[1];
 
@@ -22,8 +23,6 @@ function getInitials(name?: string): string {
 
   return (first.charAt(0) + second.charAt(0)).toUpperCase();
 }
-
-
 
 /** Generate deterministic random color based on name */
 function stringToColor(str: string) {
@@ -41,32 +40,51 @@ export const NamedAvatar: React.FC<AvatarProps> = ({
   url,
   size = 40,
   className,
+  isRecurring = false, // ✅ default false
 }) => {
   const initials = useMemo(() => getInitials(name), [name]);
   const bgColor = useMemo(() => stringToColor(name || "default"), [name]);
 
   return (
-    <div
-      className={cn(
-        "tw:flex tw:items-center tw:justify-center tw:font-semibold tw:text-white tw:rounded-full tw:overflow-hidden tw:select-none",
-        className
-      )}
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: url ? undefined : bgColor,
-        fontSize: size * 0.42,
-      }}
-    >
-      {url ? (
-        <img
-          src={url}
-          alt={name}
-          className="tw:w-full tw:h-full tw:object-cover"
-          loading="lazy"
-        />
-      ) : (
-        initials
+    <div className="tw:relative tw:inline-block">
+      <div
+        className={cn(
+          "tw:flex tw:items-center tw:justify-center tw:font-semibold tw:text-white tw:rounded-full tw:overflow-hidden tw:select-none",
+          className
+        )}
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: url ? undefined : bgColor,
+          fontSize: size * 0.42,
+        }}
+      >
+        {url ? (
+          <img
+            src={url}
+            alt={name}
+            className="tw:w-full tw:h-full tw:object-cover"
+            loading="lazy"
+          />
+        ) : (
+          initials
+        )}
+      </div>
+
+      {/* ✅ Recurring badge */}
+      {isRecurring && (
+        <div
+          className="tw:absolute tw:bottom-0 tw:right-0 tw:flex tw:items-center tw:justify-center tw:bg-white tw:rounded-full tw:shadow-md"
+          style={{
+            width: size * 0.4,
+            height: size * 0.4,
+          }}
+        >
+          <RefreshCw
+            size={size * 0.30}
+            className="tw:text-gray-600 tw:text-bold"
+          />
+        </div>
       )}
     </div>
   );
