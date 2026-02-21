@@ -22,6 +22,7 @@ export interface SearchUserSelectProps {
   noOptionsMessage?: (inputValue: string) => ReactNode;
   onSearch?: (inputValue: string) => void;
   multi?: boolean;
+  isClearable?: boolean;
 }
 
 export const SearchUserSelect = ({
@@ -39,6 +40,7 @@ export const SearchUserSelect = ({
       : <div className="tw:text-sm tw:text-gray-500">No users found</div>,
   onSearch,
   multi = false,
+  isClearable = true,
 }: SearchUserSelectProps) => {
 
   return (
@@ -53,7 +55,7 @@ export const SearchUserSelect = ({
         }}
         placeholder={placeholder}
         isDisabled={isDisabled || isLoading}
-        isClearable
+        isClearable={isClearable}
         isSearchable
         isMulti={multi}
         noOptionsMessage={({ inputValue }) => noOptionsMessage(inputValue)}
@@ -73,14 +75,14 @@ export const SearchUserSelect = ({
             borderColor: error
               ? '#fca5a5'
               : state.isDisabled
-              ? '#e5e7eb'
-              : '#d1d5db',
+                ? '#e5e7eb'
+                : '#d1d5db',
             '&:hover': {
               borderColor: state.isDisabled
                 ? '#e5e7eb'
                 : error
-                ? '#f87171'
-                : '#9ca3af',
+                  ? '#f87171'
+                  : '#9ca3af',
             },
           }),
 
@@ -143,8 +145,8 @@ export const SearchUserSelect = ({
             backgroundColor: state.isSelected
               ? '#3b82f6'
               : state.isFocused
-              ? '#eff6ff'
-              : 'white',
+                ? '#eff6ff'
+                : 'white',
             color: state.isSelected ? 'white' : '#1f2937',
             padding: '8px 12px',
             cursor: 'pointer',
@@ -168,6 +170,14 @@ export const SearchUserSelect = ({
             onSearch?.(inputValue);
           }
         }}
+        formatOptionLabel={(option, { context }) => (
+          <div className="tw:flex tw:flex-col">
+            <div className="tw:font-medium">{option.label}</div>
+            {context === 'menu' && option.email && (
+              <div className="tw:text-xs tw:text-gray-500">{option.email}</div>
+            )}
+          </div>
+        )}
 
         filterOption={(candidate, input) => {
           if (input) {
