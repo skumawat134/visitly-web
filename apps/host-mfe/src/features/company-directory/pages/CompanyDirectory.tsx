@@ -52,7 +52,7 @@ const CompanyDirectory: React.FC = () => {
 
       <div className="tw:max-w-full tw:mx-auto tw:px-4">
         {/* Controls Section - Floating Style */}
-        <div className="tw:bg-white tw:p-2 tw:shadow-[0_8px_30px_rgb(0,0,0,0.04)] tw:border tw:border-slate-200/50 tw:mb-4">
+        <div className="tw:bg-white tw:p-2 tw:border tw:border-slate-200/50 tw:mb-4">
           <div className="tw:flex tw:flex-col tw:lg:flex-row tw:justify-between tw:items-center tw:gap-6">
             <div className="tw:relative tw:w-full tw:lg:max-w-md">
               <Search

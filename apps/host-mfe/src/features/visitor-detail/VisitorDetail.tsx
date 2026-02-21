@@ -35,6 +35,7 @@ import { useEntitlements } from "./hooks/useEntitlement";
 import { useCancelVisit } from "./hooks/use-cancel-visit";
 import { CancelVisitModal } from "./components/CancelVisitModal";
 import { formatDate } from "@/shared/services/host-service";
+import { getVerificationColor } from "@/shared/services/host-service";
 
 const VisitorDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +44,6 @@ const VisitorDetail = () => {
   const entitlements = useEntitlements();
   const isPrefill = searchParams.get("isPrefill") === "true";
   const source = searchParams.get("source") || "unknown";
-
 
   const {
     visitor,
@@ -66,7 +66,7 @@ const VisitorDetail = () => {
     internalNotes: true,
     visitNotes: true,
     guestWifi: true,
-    document:true
+    document: true,
   });
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -89,7 +89,6 @@ const VisitorDetail = () => {
 
   const isAllOpen = Object.values(expandedAccordions).every((v) => v);
 
-
   if (isLoading) {
     return (
       <div className="tw:flex tw:items-center tw:justify-center tw:h-screen">
@@ -105,7 +104,7 @@ const VisitorDetail = () => {
           Error loading visitor details
         </h2>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/host/upcoming-visitors")}
           className="tw:mt-4 tw:text-indigo-600 tw:hover:underline"
         >
           Go back
@@ -124,7 +123,7 @@ const VisitorDetail = () => {
         {/* Breadcrumb */}
         <div className="tw:flex tw:items-center tw:gap-1.5 tw:text-[13px] tw:text-gray-400 tw:mb-5">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/host/upcoming-visitors")}
             className="tw:text-indigo-600 tw:font-medium hover:tw:underline tw:transition-all"
           >
             Back
@@ -151,9 +150,15 @@ const VisitorDetail = () => {
             <div>
               <div className="tw:flex tw:gap-4">
                 <h1 className="tw:flex tw:text-2xl tw:font-bold tw:text-gray-900 tw:tracking-[-0.3px] tw:leading-tight">
-                {v.fullName}
-              </h1> 
-             { ((v.recurrenceType && v.recurrenceType !== "NONE") || v.parentVisitId) && <span className="tw:px-3 tw:py-1 tw:rounded-full tw:text-[#5E2CED] tw:flex tw:gap-2 tw:justify-center tw:items-center tw:bg-[#E5E9FF]"> <Repeat size={16} /> Recurring Visit </span>}
+                  {v.fullName}
+                </h1>
+                {((v.recurrenceType && v.recurrenceType !== "NONE") ||
+                  v.parentVisitId) && (
+                  <span className="tw:px-3 tw:py-1 tw:rounded-full tw:text-[#5E2CED] tw:flex tw:gap-2 tw:justify-center tw:items-center tw:bg-[#E5E9FF]">
+                    {" "}
+                    <Repeat size={16} /> Recurring Visit{" "}
+                  </span>
+                )}
               </div>
               <div className="tw:flex tw:items-center tw:gap-3 tw:mt-2 tw:flex-wrap">
                 {v.email && (
@@ -163,7 +168,8 @@ const VisitorDetail = () => {
                   <>
                     <span className="tw:text-gray-200">|</span>
                     <span className="tw:text-sm tw:text-gray-500 tw:flex">
-                     <Building2 size={16} /> <span className="tw:block tw:px-2">{v.companyName}</span>
+                      <Building2 size={16} />{" "}
+                      <span className="tw:block tw:px-2">{v.companyName}</span>
                     </span>
                   </>
                 )}
@@ -179,7 +185,7 @@ const VisitorDetail = () => {
 
           {/* Right: action buttons */}
           <div className="tw:flex tw:items-center tw:gap-2.5 tw:shrink-0">
-            {source != 'pastVisitors' && (
+            {source != "pastVisitors" && (
               <button
                 onClick={() => setIsCancelModalOpen(true)}
                 className="tw:inline-flex tw:items-center tw:gap-2 tw:px-4.5 tw:py-2.5 tw:bg-white tw:border tw:border-red-200 tw:rounded-xl tw:text-red-600 tw:text-sm tw:font-medium hover:tw:border-red-300 hover:tw:bg-red-50 tw:transition-all"
@@ -213,185 +219,191 @@ const VisitorDetail = () => {
               onToggle={() => toggleAccordion("visitInfo")}
             >
               <div className="tw:flex tw:flex-col">
-                {
-                  source !== 'pastVisitors' && (<>
-                    <DetailRow label="Location" value={v.siteName} icon={MapPin} />
+                {source !== "pastVisitors" && (
+                  <>
+                    <DetailRow
+                      label="Location"
+                      value={v.siteName}
+                      icon={MapPin}
+                    />
                     <DetailRow
                       label="Scheduled Check-In"
-                      value={formatDate(isPrefill ? v.scheduledCheckInTime : v.scheduleCheckinDate)}
+                      value={formatDate(
+                        isPrefill
+                          ? v.scheduledCheckInTime
+                          : v.scheduleCheckinDate,
+                      )}
                     />
                     <DetailRow
                       label="Scheduled Check-Out"
                       value={formatDate(v.scheduleCheckoutDate)}
                     />
-                    {v.recurrenceType && v.recurrenceType !== "NONE" && <DetailRow
-                      label="Recurrence"
-                      value={
-                        v.recurrenceType
-                      }
-                    />}
+                    {v.recurrenceType && v.recurrenceType !== "NONE" && (
+                      <DetailRow label="Recurrence" value={v.recurrenceType} />
+                    )}
                     <DetailRow
                       label="Prefill Status"
-                      value={
-                        isPrefill ? 'Yes' : "NO"
-                      }
+                      value={isPrefill ? "Yes" : "NO"}
                     />
                     <DetailRow
                       label="Phone Number"
                       icon={PhoneCall}
-                      value={
-                        v.phoneNumber
-                      }
+                      value={v.phoneNumber}
                     />
-                    {v.groupName && <DetailRow label="Group" value={v.groupName} />}
-                  </>)
-                }
-
-                {
-                  source === 'pastVisitors' && (
-                    <>
-                      <DetailRow label="Signed-In" value={formatDate(v?.checkinTime)} />
-                      <DetailRow label="Signed-Out" value={formatDate(v?.checkoutTime)} />
-                    </>
-                  )
-                }
-
-                { entitlements.isAdvancedMegaLocationEntitled &&
-                  <>
-                 { v.parkingLotName && <DetailRow
-                      label="Parking Lot"
-                      value={
-                        v.parkingLotName
-                      }
-                    />}
-                   { v.poeName && <DetailRow
-                      label="Point of Entry"
-                      value={
-                        v.poeName
-                      }
-                    />}
-                    {  v.buildingName && <DetailRow
-                      label="Building"
-                      value={
-                        v.buildingName
-                      }
-                    />}
+                    {v.groupName && (
+                      <DetailRow label="Group" value={v.groupName} />
+                    )}
                   </>
-                    
-                }
+                )}
 
+                {source === "pastVisitors" && (
+                  <>
+                    <DetailRow
+                      label="Signed-In"
+                      value={formatDate(v?.checkinTime)}
+                    />
+                    <DetailRow
+                      label="Signed-Out"
+                      value={formatDate(v?.checkoutTime)}
+                    />
+                    <DetailRow
+                      label="Phone Number"
+                      icon={PhoneCall}
+                      value={v.phoneNumber}
+                    />
+                  </>
+                )}
+
+                {entitlements.isAdvancedMegaLocationEntitled && (
+                  <>
+                    {v.parkingLotName && (
+                      <DetailRow label="Parking Lot" value={v.parkingLotName} />
+                    )}
+                    {v.poeName && (
+                      <DetailRow label="Point of Entry" value={v.poeName} />
+                    )}
+                    {v.buildingName && (
+                      <DetailRow label="Building" value={v.buildingName} />
+                    )}
+                  </>
+                )}
 
                 {/* Custom Fields as part of Visit Info */}
-                {source !== 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-gray-10">
-                  <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
-                    Additional Information
-                  </div>
-                  <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
-                    {/* Header */}
-                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
-                      <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
-                        Sign In
-                      </h3>
+                {source !== "pastVisitors" && (
+                  <div className="tw:mt-6 tw:pt-6 tw:border-gray-10">
+                    <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
+                      Additional Information
                     </div>
+                    <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
+                      {/* Header */}
+                      <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
+                        <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
+                          Sign In
+                        </h3>
+                      </div>
 
-                    {/* Content */}
-                    {v.visitCustomFields && v.visitCustomFields.length > 0 ? (
-                      <div className="tw:flex tw:flex-col tw:gap-2">
-                        {v.visitCustomFields.map((cf, i) => (
-                          <DetailRow
-                            key={i}
-                            label={cf.name}
-                            value={cf.value}
-                            isLast={i === v.visitCustomFields!.length - 1}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
-                        No custom Sign-In fields added.
-                      </div>
-                    )}
-                  </div>
-                  <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
-                    {/* Header */}
-                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
-                      <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
-                        Sign Out
-                      </h3>
+                      {/* Content */}
+                      {v.visitCustomFields && v.visitCustomFields.length > 0 ? (
+                        <div className="tw:flex tw:flex-col tw:gap-2">
+                          {v.visitCustomFields.map((cf, i) => (
+                            <DetailRow
+                              key={i}
+                              label={cf.name}
+                              value={cf.value}
+                              isLast={i === v.visitCustomFields!.length - 1}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
+                          No custom Sign-In fields added.
+                        </div>
+                      )}
                     </div>
+                    <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
+                      {/* Header */}
+                      <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
+                        <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
+                          Sign Out
+                        </h3>
+                      </div>
 
-                    {/* Content */}
-                    {v.visitSignoutCustomFields &&
+                      {/* Content */}
+                      {v.visitSignoutCustomFields &&
                       v.visitSignoutCustomFields.length > 0 ? (
-                      <div className="tw:flex tw:flex-col tw:gap-2">
-                        {v.visitSignoutCustomFields.map((cf, i) => (
-                          <DetailRow
-                            key={i}
-                            label={cf.name}
-                            value={cf.value}
-                            isLast={
-                              i === v.visitSignoutCustomFields!.length - 1
-                            }
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
-                        No custom Sign-Out fields added.
-                      </div>
-                    )}
-                  </div>
-                  <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
-                    {/* Header */}
-                    <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
-                      <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
-                        Internal
-                      </h3>
+                        <div className="tw:flex tw:flex-col tw:gap-2">
+                          {v.visitSignoutCustomFields.map((cf, i) => (
+                            <DetailRow
+                              key={i}
+                              label={cf.name}
+                              value={cf.value}
+                              isLast={
+                                i === v.visitSignoutCustomFields!.length - 1
+                              }
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
+                          No custom Sign-Out fields added.
+                        </div>
+                      )}
                     </div>
+                    <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
+                      {/* Header */}
+                      <div className="tw:flex tw:items-center tw:justify-between tw:mb-4">
+                        <h3 className="tw:text-sm tw:font-semibold tw:text-gray-900">
+                          Internal
+                        </h3>
+                      </div>
 
-                    {/* Content */}
-                    {false ? (
-                      <div className="tw:flex tw:flex-col tw:gap-2">
-                        {(v?.visitCustomFields as any[])?.map((cf, i) => (
-                          <DetailRow key={i} label={cf.name} value={cf.value} />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
-                        No custom Internal fields added.
-                      </div>
-                    )}
+                      {/* Content */}
+                      {false ? (
+                        <div className="tw:flex tw:flex-col tw:gap-2">
+                          {(v?.visitCustomFields as any[])?.map((cf, i) => (
+                            <DetailRow
+                              key={i}
+                              label={cf.name}
+                              value={cf.value}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
+                          No custom Internal fields added.
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>}
+                )}
 
-                {source == 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-100">
-                  <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
-                   Additional Information
+                {source == "pastVisitors" && (
+                  <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-100">
+                    <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
+                      Additional Information
+                    </div>
+                    <div className="tw:bg-white tw:rounded-xl tw:p-5">
+                      {/* Header */}
+                      {/* Content */}
+                      {v.visitCustomFields && v.visitCustomFields.length > 0 ? (
+                        <div className="tw:flex tw:flex-col tw:gap-2">
+                          {v.visitCustomFields.map((cf, i) => (
+                            <DetailRow
+                              key={i}
+                              label={cf.name}
+                              value={cf.value}
+                              isLast={i === v.visitCustomFields!.length - 1}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
+                          No Additional Information added.
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="tw:bg-white tw:rounded-xl tw:p-5">
-                    {/* Header */}
-                    {/* Content */}
-                    {v.visitCustomFields && v.visitCustomFields.length > 0 ? (
-                      <div className="tw:flex tw:flex-col tw:gap-2">
-                        {v.visitCustomFields.map((cf, i) => (
-                          <DetailRow
-                            key={i}
-                            label={cf.name}
-                            value={cf.value}
-                            isLast={i === v.visitCustomFields!.length - 1}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
-                        No Additional Information added.
-                      </div>
-                    )}
-                  </div>
-
-                </div>}
-
-
+                )}
               </div>
             </Accordion>
 
@@ -502,8 +514,6 @@ const VisitorDetail = () => {
                 </div>
               </Accordion>
             )}
-
-            
           </div>
 
           {/* ============ RIGHT COLUMN (40%) ============ */}
@@ -577,11 +587,20 @@ const VisitorDetail = () => {
                             ID Verification
                           </span>
                         </div>
-                        <StatusBadge
-                          status={v.idVerificationStatus || "Skipped"}
-                        />
+
+                        <span
+                          style={{
+                            color: getVerificationColor(
+                              v.idVerificationStatus || "Skipped",
+                            ),
+                          }}
+                          className="tw:text-sm tw:font-semibold"
+                        >
+                          {v.idVerificationStatus || "Skipped"}
+                        </span>
                       </div>
                     )}
+
                     {entitlements.offenderCheckEntitled && (
                       <div className="tw:flex tw:items-center tw:justify-between tw:p-1">
                         <div className="tw:flex tw:items-center tw:gap-2.5">
@@ -590,9 +609,17 @@ const VisitorDetail = () => {
                             Offender Check
                           </span>
                         </div>
-                        <StatusBadge
-                          status={v.offenderCheckStatus || "Skipped"}
-                        />
+
+                        <span
+                          style={{
+                            color: getVerificationColor(
+                              v.offenderCheckStatus || "Skipped",
+                            ),
+                          }}
+                          className="tw:text-sm tw:font-semibold"
+                        >
+                          {v.offenderCheckStatus || "Skipped"}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -625,22 +652,24 @@ const VisitorDetail = () => {
                           )}
                         </div>
                       </div>
-                      {idValidation?.idBackImgUri && <div>
-                        <p className="tw:text-[10px] tw:font-bold tw:text-gray-400 tw:uppercase tw:mb-2 text-center">
-                          Back Side
-                        </p>
-                        <div className="tw:aspect-[1.6/1] tw:bg-gray-50 tw:rounded-lg tw:border tw:border-gray-100 tw:overflow-hidden tw:flex tw:items-center tw:justify-center">
-                          {idValidation?.idBackImgUri ? (
-                            <img
-                              src={idValidation?.idBackImgUri}
-                              alt="ID Back"
-                              className="tw:w-full tw:h-full tw:object-contain"
-                            />
-                          ) : (
-                            <Shield className="tw:text-gray-200" size={32} />
-                          )}
+                      {idValidation?.idBackImgUri && (
+                        <div>
+                          <p className="tw:text-[10px] tw:font-bold tw:text-gray-400 tw:uppercase tw:mb-2 text-center">
+                            Back Side
+                          </p>
+                          <div className="tw:aspect-[1.6/1] tw:bg-gray-50 tw:rounded-lg tw:border tw:border-gray-100 tw:overflow-hidden tw:flex tw:items-center tw:justify-center">
+                            {idValidation?.idBackImgUri ? (
+                              <img
+                                src={idValidation?.idBackImgUri}
+                                alt="ID Back"
+                                className="tw:w-full tw:h-full tw:object-contain"
+                              />
+                            ) : (
+                              <Shield className="tw:text-gray-200" size={32} />
+                            )}
+                          </div>
                         </div>
-                      </div>}
+                      )}
                     </div>
                     <div className="tw:flex tw:flex-col tw:border-t tw:border-gray-50 tw:pt-4">
                       <DetailRow
@@ -651,7 +680,10 @@ const VisitorDetail = () => {
                         label="Last Name"
                         value={idValidation?.lastName}
                       />
-                      <DetailRow label="DOB" value={idValidation?.dateOfBirth} />
+                      <DetailRow
+                        label="DOB"
+                        value={idValidation?.dateOfBirth}
+                      />
                       <DetailRow
                         label="Expiry"
                         value={idValidation?.expiryDate}
@@ -671,21 +703,22 @@ const VisitorDetail = () => {
               </Accordion>
             )}
 
-                            {/* Documents as part of Visit Info or separate section */}
+            {/* Documents as part of Visit Info or separate section */}
 
-                { source !== 'pastVisitors' &&
-                 <Accordion
-                 title="Documents"
+            {source !== "pastVisitors" && (
+              <Accordion
+                title="Documents"
                 icon={StickyNote}
                 isOpen={!!expandedAccordions.document}
                 onToggle={() => toggleAccordion("document")}
-                className="tw:bg-[#FFFBEB] tw:border-[#FEF3C7]">
-                 <div className="tw:mt-1 tw:pt-1 tw:border-gray-100">
+                className="tw:bg-[#FFFBEB] tw:border-[#FEF3C7]"
+              >
+                <div className="tw:mt-1 tw:pt-1 tw:border-gray-100">
                   {/* <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
                     Documents
                   </div> */}
                   {v.visitSignedDocsInfos &&
-                    v.visitSignedDocsInfos.length > 0 ? (
+                  v.visitSignedDocsInfos.length > 0 ? (
                     <div className="tw:flex tw:flex-col tw:gap-2.5">
                       {v.visitSignedDocsInfos.map((doc, i) => (
                         <a
@@ -711,10 +744,10 @@ const VisitorDetail = () => {
                     </div>
                   )}
                 </div>
-                 </Accordion>
-                }
+              </Accordion>
+            )}
 
-            {(
+            {
               <Accordion
                 title="Internal Notes"
                 icon={StickyNote}
@@ -726,7 +759,7 @@ const VisitorDetail = () => {
                   {v.internalNote}
                 </div>
               </Accordion>
-            )}
+            }
 
             {false && notes && notes.length > 0 && (
               <Accordion
@@ -831,9 +864,14 @@ const VisitorDetail = () => {
       <CancelVisitModal
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
-        isRecurring={!!((v.recurrenceType && v.recurrenceType !== "NONE") || v.parentVisitId)}
+        isRecurring={
+          !!(
+            (v.recurrenceType && v.recurrenceType !== "NONE") ||
+            v.parentVisitId
+          )
+        }
         visitDate={formatDate(v.scheduleCheckinDate)}
-        onConfirm={(params : any) => {
+        onConfirm={(params: any) => {
           cancelMutation.mutate(
             { id: id || "", params },
             {
@@ -842,7 +880,7 @@ const VisitorDetail = () => {
                 // Optionally navigate back after cancellation
                 // navigate(-1);
               },
-            }
+            },
           );
         }}
       />
