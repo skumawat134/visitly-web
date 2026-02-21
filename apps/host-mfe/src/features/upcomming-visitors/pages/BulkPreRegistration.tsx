@@ -1011,7 +1011,7 @@ export const BulkPreRegistration: React.FC = () => {
                             <SearchUserSelect
                                 options={hostOptions}
                                 onSearch={setHostSearch}
-                                value={host ? [{ label: host.name, value: host.id, email: host.email }] : []}
+                                value={host ? { label: host.name, value: host.id, email: host.email } : null}
                                 onChange={(opt: any) => {
                                     const selected = Array.isArray(opt) ? opt[0] : opt;
                                     setHost(selected ? { name: selected.label, email: selected.email, id: selected.value } : null);

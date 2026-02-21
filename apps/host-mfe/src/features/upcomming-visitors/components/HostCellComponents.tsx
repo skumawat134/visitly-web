@@ -1,4 +1,5 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { ICellEditorParams, IHeaderParams, ICellRendererParams } from 'ag-grid-community';
 import { getHosts } from '../api/pre-registration.api';
 import { HelpCircle, X } from 'lucide-react';
@@ -63,6 +64,8 @@ export const HostCellEditor = forwardRef((props: ICellEditorParams, ref) => {
     const [showDropdown, setShowDropdown] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const portalRootRef = useRef<HTMLDivElement | null>(null);
+    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
@@ -129,13 +132,41 @@ export const HostCellEditor = forwardRef((props: ICellEditorParams, ref) => {
     // Close dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            const inInput = inputRef.current && inputRef.current.contains(target);
+            const inDropdown = portalRootRef.current && portalRootRef.current.contains(target);
+            if (!inInput && !inDropdown) {
                 setShowDropdown(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // create portal root for dropdown to escape grid overflow
+    useEffect(() => {
+        const el = document.createElement('div');
+        document.body.appendChild(el);
+        portalRootRef.current = el;
+        return () => {
+            if (portalRootRef.current) document.body.removeChild(portalRootRef.current);
+            portalRootRef.current = null;
+        };
+    }, []);
+
+    // position dropdown when shown
+    useEffect(() => {
+        if (!showDropdown || !inputRef.current || !portalRootRef.current) return;
+        const rect = inputRef.current.getBoundingClientRect();
+        const style: React.CSSProperties = {
+            position: 'fixed',
+            top: rect.bottom + window.scrollY,
+            left: rect.left + window.scrollX,
+            width: rect.width,
+            zIndex: 9999,
+        };
+        setDropdownStyle(style);
+    }, [showDropdown, results]);
 
     return (
         <div className="tw:relative tw:w-full tw:h-full tw:bg-white" ref={dropdownRef}>
@@ -154,9 +185,11 @@ export const HostCellEditor = forwardRef((props: ICellEditorParams, ref) => {
                 onChange={handleSearchChange}
                 placeholder="Search host..."
             />
-            {showDropdown && results.length > 0 && (
+            {showDropdown && results.length > 0 && portalRootRef.current && createPortal(
                 <div
-                    className="tw:absolute tw:top-full tw:left-0 tw:w-full tw:bg-white tw:border tw:border-gray-200 tw:rounded-b-lg tw:shadow-xl tw:z-50 tw:max-h-60 tw:overflow-y-auto"
+                    ref={dropdownRef}
+                    style={dropdownStyle}
+                    className="tw:bg-white tw:border tw:border-gray-200 tw:rounded-b-lg tw:shadow-xl tw:max-h-60 tw:overflow-y-auto"
                 >
                     {results.map((host) => (
                         <div
@@ -171,7 +204,8 @@ export const HostCellEditor = forwardRef((props: ICellEditorParams, ref) => {
                             <div className="tw:text-[11px] tw:text-gray-500">{host.email}</div>
                         </div>
                     ))}
-                </div>
+                </div>,
+                portalRootRef.current,
             )}
             {isLoading && (
                 <div className="tw:absolute tw:right-2 tw:top-1/2 tw:translate-y-[-50%] tw:text-[10px] tw:text-gray-400">
