@@ -59,7 +59,7 @@ const isAdmin = roles.some(role => ADMIN_ROLES.includes(role));
       {/* Right Side Actions */}
       <div className="tw:flex tw:items-center tw:gap-4">
        {isAdmin && (
-  <Button variant="primary" onClick={switchToAnotherRole}>
+  <Button variant="outline" onClick={switchToAnotherRole}>
     Return to Admin
   </Button>
 )}

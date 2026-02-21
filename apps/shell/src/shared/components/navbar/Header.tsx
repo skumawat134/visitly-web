@@ -173,7 +173,7 @@ const isHost = !isAdmin
                         Upgrade Plan
                     </Button>
                 )}
-                { isAdmin && <Button variant="primary" className='tw:rounded-lg!' onClick={switchToHost} data-testid="upgrade-plan-button">
+                { isAdmin && <Button variant="outline" className='tw:rounded-lg!' onClick={switchToHost} data-testid="upgrade-plan-button">
                    Launch My Visitly
                 </Button>}
                 {/* Help Dropdown */}

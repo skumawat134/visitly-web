@@ -181,7 +181,7 @@ export const HostDashboard: React.FC = () => {
           if (!data) return null;
           return (
             <div className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
-              <Avatar name={data.fullName} size={30} />
+              <NamedAvatar url={data?.visitInfoModel?.visitPhotoURI} name={data.fullName} size={30} />
               <div className="tw:min-w-0 tw:leading-tight">
                 <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">
                   {data.fullName}
@@ -623,7 +623,13 @@ export const HostDashboard: React.FC = () => {
               defaultColDef={defaultColDef}
               theme={myTheme}
               domLayout="autoHeight" // ✅ IMPORTANT
-              onCellMouseOver={(e) => handleRowEnter(e.data, e, true)}
+               onCellMouseOver={(e) => {
+                      // only show hover card when hovering the fullName column
+                      if (e.colDef && e.colDef.field === 'fullName') {
+                        handleRowEnter(e.data, e, true);
+                      }
+                    }}
+              // onCellMouseOver={(e) => handleRowEnter(e.data, e, true)}
               onCellMouseOut={handleRowLeave}
               onRowClicked={(e) =>
                 redirectToVisitorDetailPage(e.data, "upcomingVisitors")
@@ -677,7 +683,13 @@ export const HostDashboard: React.FC = () => {
               defaultColDef={defaultColDef}
               theme={myTheme}
               domLayout="autoHeight" // ✅ IMPORTANT
-              onCellMouseOver={(e) => handleRowEnter(e.data, e, false)}
+               onCellMouseOver={(e) => {
+                      // only show hover card when hovering the fullName column
+                      if (e.colDef && e.colDef.field === 'fullName') {
+                        handleRowEnter(e.data, e, false);
+                      }
+                    }}
+              // onCellMouseOver={(e) => handleRowEnter(e.data, e, false)}
               onCellMouseOut={handleRowLeave}
               onRowClicked={(e) =>
                 redirectToVisitorDetailPage(e.data, "pastVisitors")
