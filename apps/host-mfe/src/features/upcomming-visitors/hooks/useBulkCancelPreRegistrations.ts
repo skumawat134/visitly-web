@@ -25,6 +25,7 @@ const mutation = useMutation({
 
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: ['upcomingVisitors'] });
+     queryClient.invalidateQueries({ queryKey: ['upcoming-visitors'] });
 
     toast({
       message: 'Cancelled Successfully!',

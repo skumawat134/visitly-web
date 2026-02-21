@@ -8,7 +8,9 @@ import {
   User,
   ArrowUpDown,
   Filter,
-  Users
+  Users,
+  SearchCheck,
+  SearchX
 } from "lucide-react";
 import { useCompanyDirectory } from "../hooks/useCompanyDirectory";
 import { Input, cn } from "@visitly/ui";
@@ -59,6 +61,7 @@ const CompanyDirectory: React.FC = () => {
               />
               <Input
                 type="text"
+                leftIcon={<Search />  }
                 placeholder="Search colleagues by name, email, department..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -67,7 +70,7 @@ const CompanyDirectory: React.FC = () => {
             </div>
 
             <div className="tw:flex tw:items-center tw:gap-4 tw:w-full tw:lg:w-auto">
-              <div className="tw:flex tw:items-center tw:gap-2 tw:p-1.5 tw:bg-slate-50 tw:rounded-xl tw:border tw:border-slate-200/60">
+              {/* <div className="tw:flex tw:items-center tw:gap-2 tw:p-1.5 tw:bg-slate-50 tw:rounded-xl tw:border tw:border-slate-200/60">
                 <div className="tw:px-3 tw:py-1.5 tw:text-xs tw:font-bold tw:text-slate-400 tw:uppercase tw:tracking-wider">
                   Sort
                 </div>
@@ -86,7 +89,7 @@ const CompanyDirectory: React.FC = () => {
                 >
                   <ArrowUpDown size={16} />
                 </button>
-              </div>
+              </div> */}
 
               <div className="tw:h-8 tw:w-px tw:bg-slate-200/60 tw:hidden tw:lg:block" />
 

@@ -14,6 +14,11 @@ interface CancelVisitModalProps {
     visitDate?: string;
 }
 
+type UpdateType =
+  | "SELECTED_VISIT"
+  | "FUTURE_VISITS_ONLY"
+  | "ALL_VISITS";
+
 export const CancelVisitModal: React.FC<CancelVisitModalProps> = ({
     isOpen,
     onClose,
@@ -23,9 +28,7 @@ export const CancelVisitModal: React.FC<CancelVisitModalProps> = ({
 }) => {
     const [notifyVisit, setNotifyVisit] = useState(true);
     const [notifyHost, setNotifyHost] = useState(true);
-    const [updateType, setUpdateType] = useState<
-        "SELECTED_VISIT" | "FUTURE_VISITS_ONLY" | "ALL_VISITS"
-    >("SELECTED_VISIT");
+   const [updateType, setUpdateType] = useState<UpdateType>("SELECTED_VISIT");
 
     if (!isOpen) return null;
 
@@ -71,7 +74,7 @@ export const CancelVisitModal: React.FC<CancelVisitModalProps> = ({
                                         name="updateType"
                                         value="SELECTED_VISIT"
                                         checked={updateType === "SELECTED_VISIT"}
-                                        onChange={(e) => setUpdateType(e.target.value as any)}
+                                        onChange={(e) => setUpdateType(e.target.value as UpdateType)}
                                         className="tw:w-4 tw:h-4 tw:text-indigo-600"
                                     />
                                     <div className="tw:flex tw:flex-col">
@@ -91,7 +94,7 @@ export const CancelVisitModal: React.FC<CancelVisitModalProps> = ({
                                         name="updateType"
                                         value="FUTURE_VISITS_ONLY"
                                         checked={updateType === "FUTURE_VISITS_ONLY"}
-                                        onChange={(e) => setUpdateType(e.target.value as any)}
+                                        onChange={(e) => setUpdateType(e.target.value as UpdateType)}
                                         className="tw:w-4 tw:h-4 tw:text-indigo-600"
                                     />
                                     <span className="tw:text-sm tw:font-medium tw:text-gray-900">
@@ -104,7 +107,7 @@ export const CancelVisitModal: React.FC<CancelVisitModalProps> = ({
                                         name="updateType"
                                         value="ALL_VISITS"
                                         checked={updateType === "ALL_VISITS"}
-                                        onChange={(e) => setUpdateType(e.target.value as any)}
+                                        onChange={(e) => setUpdateType(e.target.value as UpdateType)}
                                         className="tw:w-4 tw:h-4 tw:text-indigo-600"
                                     />
                                     <span className="tw:text-sm tw:font-medium tw:text-gray-900">

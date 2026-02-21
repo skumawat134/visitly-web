@@ -72,6 +72,7 @@ export const usePastVisitors = ({
           visitStartDate: dateRange?.startDate || '',
           visitEndDate: dateRange?.endDate || '',
         }),
+        refetchOnMount: "always",
     });
 
   // Visitor detail query

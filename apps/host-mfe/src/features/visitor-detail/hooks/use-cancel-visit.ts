@@ -3,6 +3,8 @@ import { cancelPreRegistration } from "../api/visitorDetail.api";
 import { useToastStore } from "@visitly/app-store";
 import { useNavigate } from "react-router-dom";
 
+
+
 export const useCancelVisit = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -17,13 +19,13 @@ export const useCancelVisit = () => {
             params: {
                 notifyVisitFlag: boolean;
                 notifyHostFlag: boolean;
-                updateType: "SELECTED_VISIT";
+                updateType: "SELECTED_VISIT" | "FUTURE_VISITS_ONLY" | "ALL_VISITS";
             };
         }) => cancelPreRegistration(id, params),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["visitorDetail"] });
+            queryClient.invalidateQueries({ queryKey: ["upcomingVisitors"] });
             // Also invalidate the list of visitors if there's any
-            queryClient.invalidateQueries({ queryKey: ["upcommingVisitors"] });
+            queryClient.invalidateQueries({ queryKey: ["upcoming-visitors"] });
              navigate("/host/dashboard");
             showToast({
                 message: "Visit has been cancelled successfully.",

@@ -63,7 +63,6 @@ export const useUpcomingVisitors = () => {
     endDate: null
   });
 
-   // Default to All Time (null) so filtering is optional
   const [upcomingDateRange, setUpcomingDateRange] = useState<DateRangeValue>({
     startDate: format(new Date(), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd")
@@ -104,8 +103,9 @@ export const useUpcomingVisitors = () => {
 
     return {
       limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: sort.toUpperCase() as any,
+      offset: debounceSearchTerm.length > 0 ? 0 : pageIndex * pageSize,
+      sort: sort,
+      userId : currentUser?.id ,
       sortBy: sortBy,
       q: debounceSearchTerm,
       siteId: locationFilter,
@@ -120,6 +120,8 @@ export const useUpcomingVisitors = () => {
     queryKey: ['upcomingVisitors', pageIndex, pageSize, debounceSearchTerm, sort, sortBy, locationFilter, typeFilter, debounceGroupSearch, upcomingDateRange,activeTab],
     queryFn: () => getUpCommingVisitors(buildParams()),
     enabled: activeTab === 'upcoming',
+    refetchOnMount: "always",
+    staleTime: 0
   });
 
   const { mutate: triggerExport } = useMutation({
@@ -221,7 +223,7 @@ export const useUpcomingVisitors = () => {
           if (!data) return null;
           return (
             <div onClick={() => redirectToVisitorDetailPage(data)} className="tw:flex tw:items-center tw:gap-2.5 tw:h-full">
-              {(data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={16} />}
+              {(data.recurrenceType && data.recurrenceType != 'NONE') || data.parentVisitId && <Repeat size={14} className='tw:text-[#5E2CED]' />}
               <NamedAvatar url={data.visitPhotoURI} name={data.fullName} size={30} />
               <div className="tw:min-w-0 tw:leading-tight">
                 <div className="tw:text-sm tw:font-medium tw:text-gray-800 tw:truncate">

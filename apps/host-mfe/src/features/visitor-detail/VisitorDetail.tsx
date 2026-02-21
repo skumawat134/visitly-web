@@ -24,6 +24,8 @@ import {
   StickyNote,
   Calendar,
   Building2,
+  PhoneCall,
+  Repeat,
 } from "lucide-react";
 import { useVisitorDetail } from "./hooks/use-visitor-detail";
 import { Avatar } from "../host-dashboard/components/Avatar";
@@ -64,6 +66,7 @@ const VisitorDetail = () => {
     internalNotes: true,
     visitNotes: true,
     guestWifi: true,
+    document:true
   });
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -146,9 +149,12 @@ const VisitorDetail = () => {
               )}
             </div>
             <div>
-              <h1 className="tw:text-2xl tw:font-bold tw:text-gray-900 tw:tracking-[-0.3px] tw:leading-tight">
+              <div className="tw:flex tw:gap-4">
+                <h1 className="tw:flex tw:text-2xl tw:font-bold tw:text-gray-900 tw:tracking-[-0.3px] tw:leading-tight">
                 {v.fullName}
-              </h1>
+              </h1> 
+             { ((v.recurrenceType && v.recurrenceType !== "NONE") || v.parentVisitId) && <span className="tw:px-3 tw:py-1 tw:rounded-full tw:text-[#5E2CED] tw:flex tw:gap-2 tw:justify-center tw:items-center tw:bg-[#E5E9FF]"> <Repeat size={16} /> Recurring Visit </span>}
+              </div>
               <div className="tw:flex tw:items-center tw:gap-3 tw:mt-2 tw:flex-wrap">
                 {v.email && (
                   <span className="tw:text-sm tw:text-gray-500">{v.email}</span>
@@ -212,7 +218,7 @@ const VisitorDetail = () => {
                     <DetailRow label="Location" value={v.siteName} icon={MapPin} />
                     <DetailRow
                       label="Scheduled Check-In"
-                      value={formatDate(v.scheduleCheckinDate)}
+                      value={formatDate(isPrefill ? v.scheduledCheckInTime : v.scheduleCheckinDate)}
                     />
                     <DetailRow
                       label="Scheduled Check-Out"
@@ -221,13 +227,20 @@ const VisitorDetail = () => {
                     {v.recurrenceType && v.recurrenceType !== "NONE" && <DetailRow
                       label="Recurrence"
                       value={
-                        'Recurring Visit'
+                        v.recurrenceType
                       }
                     />}
                     <DetailRow
                       label="Prefill Status"
                       value={
                         isPrefill ? 'Yes' : "NO"
+                      }
+                    />
+                    <DetailRow
+                      label="Phone Number"
+                      icon={PhoneCall}
+                      value={
+                        v.phoneNumber
                       }
                     />
                     {v.groupName && <DetailRow label="Group" value={v.groupName} />}
@@ -269,9 +282,9 @@ const VisitorDetail = () => {
 
 
                 {/* Custom Fields as part of Visit Info */}
-                {source !== 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-10">
+                {source !== 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-gray-10">
                   <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
-                    Custom Fields
+                    Additional Information
                   </div>
                   <div className="tw:bg-white tw:rounded-xl tw:border tw:border-gray-100 tw:p-5 tw:mb-2 tw:shadow-sm">
                     {/* Header */}
@@ -353,7 +366,7 @@ const VisitorDetail = () => {
 
                 {source == 'pastVisitors' && <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-100">
                   <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
-                    Custom Fields
+                   Additional Information
                   </div>
                   <div className="tw:bg-white tw:rounded-xl tw:p-5">
                     {/* Header */}
@@ -371,46 +384,14 @@ const VisitorDetail = () => {
                       </div>
                     ) : (
                       <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
-                        No custom fields added.
+                        No Additional Information added.
                       </div>
                     )}
                   </div>
 
                 </div>}
 
-                {/* Documents as part of Visit Info or separate section */}
 
-                <div className="tw:mt-6 tw:pt-6 tw:border-t tw:border-gray-100">
-                  <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
-                    Documents
-                  </div>
-                  {v.visitSignedDocsInfos &&
-                    v.visitSignedDocsInfos.length > 0 ? (
-                    <div className="tw:flex tw:flex-col tw:gap-2.5">
-                      {v.visitSignedDocsInfos.map((doc, i) => (
-                        <a
-                          key={i}
-                          href={doc.signedDocUri}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="tw:flex tw:items-center tw:gap-3 tw:p-3.5 tw:bg-indigo-50 tw:rounded-xl tw:text-sm tw:text-indigo-600 tw:font-medium tw:transition-all hover:tw:bg-indigo-100"
-                        >
-                          <FileText size={18} />
-                          <span>{doc.orgDocTemplateName}</span>
-
-                          <ArrowRight
-                            size={14}
-                            className="tw:ml-auto tw:opacity-60"
-                          />
-                        </a>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
-                      No documents
-                    </div>
-                  )}
-                </div>
               </div>
             </Accordion>
 
@@ -522,66 +503,7 @@ const VisitorDetail = () => {
               </Accordion>
             )}
 
-            {isPrefill && entitlements.offenderCheckEntitled && (
-              <Accordion
-                title="Offender Check (Detail)"
-                icon={ShieldX}
-                isOpen={!!expandedAccordions.offenderCheck}
-                onToggle={() => toggleAccordion("offenderCheck")}
-              >
-                {offenders?.offenderInformationCheckDetails?.length ? (
-                  <div className="tw:overflow-hidden tw:border tw:border-gray-100 tw:rounded-xl">
-                    <table className="tw:w-full tw:text-left">
-                      <thead className="tw:bg-gray-50/50 tw:border-b tw:border-gray-100">
-                        <tr>
-                          <th className="tw:px-4 tw:py-3 tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider">
-                            Photo
-                          </th>
-                          <th className="tw:px-4 tw:py-3 tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider">
-                            Name
-                          </th>
-                          {/* <th className="tw:px-4 tw:py-3 tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider">
-                            Details
-                          </th> */}
-                        </tr>
-                      </thead>
-                      <tbody className="tw:divide-y tw:divide-gray-50">
-                        {offenders.offenderInformationCheckDetails.map(
-                          (o, i) => (
-                            <tr
-                              key={i}
-                              className="hover:tw:bg-gray-50/30 tw:transition-colors"
-                            >
-                              <td className="tw:px-4 tw:py-3">
-                                <img
-                                  src={
-                                    o.photo || "/assets/images/defaultuser.jpg"
-                                  }
-                                  alt="Offender"
-                                  className="tw:w-10 tw:h-10 tw:rounded-full tw:object-cover"
-                                />
-                              </td>
-                              <td className="tw:px-4 tw:py-3 tw:text-sm tw:font-medium tw:text-gray-900">
-                                {o.firstname} {o.lastname}
-                              </td>
-                              {/* <td className="tw:px-4 tw:py-3">
-                                <button className="tw:text-xs tw:font-semibold tw:text-indigo-600 hover:tw:underline">
-                                  View Record
-                                </button>
-                              </td> */}
-                            </tr>
-                          ),
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="tw:text-sm tw:text-gray-400 tw:italic tw:text-center tw:py-4">
-                    No offender records found.
-                  </p>
-                )}
-              </Accordion>
-            )}
+            
           </div>
 
           {/* ============ RIGHT COLUMN (40%) ============ */}
@@ -605,7 +527,7 @@ const VisitorDetail = () => {
               </div>
 
               {v.cohosts && v.cohosts.length > 0 && (
-                <div className="tw:mt-4 tw:pt-4 tw:border-t tw:border-gray-100">
+                <div className="tw:mt-4 tw:pt-4 tw:border-gray-100">
                   <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
                     Co-hosts
                   </div>
@@ -692,9 +614,9 @@ const VisitorDetail = () => {
                           Front Side
                         </p>
                         <div className="tw:aspect-[1.6/1] tw:bg-gray-50 tw:rounded-lg tw:border tw:border-gray-100 tw:overflow-hidden tw:flex tw:items-center tw:justify-center">
-                          {idValidation.idFrontImgUri ? (
+                          {idValidation?.idFrontImgUri ? (
                             <img
-                              src={idValidation.idFrontImgUri}
+                              src={idValidation?.idFrontImgUri}
                               alt="ID Front"
                               className="tw:w-full tw:h-full tw:object-contain"
                             />
@@ -703,14 +625,14 @@ const VisitorDetail = () => {
                           )}
                         </div>
                       </div>
-                      <div>
+                      {idValidation?.idBackImgUri && <div>
                         <p className="tw:text-[10px] tw:font-bold tw:text-gray-400 tw:uppercase tw:mb-2 text-center">
                           Back Side
                         </p>
                         <div className="tw:aspect-[1.6/1] tw:bg-gray-50 tw:rounded-lg tw:border tw:border-gray-100 tw:overflow-hidden tw:flex tw:items-center tw:justify-center">
-                          {idValidation.idBackImgUri ? (
+                          {idValidation?.idBackImgUri ? (
                             <img
-                              src={idValidation.idBackImgUri}
+                              src={idValidation?.idBackImgUri}
                               alt="ID Back"
                               className="tw:w-full tw:h-full tw:object-contain"
                             />
@@ -718,25 +640,25 @@ const VisitorDetail = () => {
                             <Shield className="tw:text-gray-200" size={32} />
                           )}
                         </div>
-                      </div>
+                      </div>}
                     </div>
                     <div className="tw:flex tw:flex-col tw:border-t tw:border-gray-50 tw:pt-4">
                       <DetailRow
                         label="First Name"
-                        value={idValidation.firstName}
+                        value={idValidation?.firstName}
                       />
                       <DetailRow
                         label="Last Name"
-                        value={idValidation.lastName}
+                        value={idValidation?.lastName}
                       />
-                      <DetailRow label="DOB" value={idValidation.dateOfBirth} />
+                      <DetailRow label="DOB" value={idValidation?.dateOfBirth} />
                       <DetailRow
                         label="Expiry"
-                        value={idValidation.expiryDate}
+                        value={idValidation?.expiryDate}
                       />
                       <DetailRow
                         label="ID Type"
-                        value={idValidation.idType}
+                        value={idValidation?.idType}
                         isLast
                       />
                     </div>
@@ -748,6 +670,49 @@ const VisitorDetail = () => {
                 )}
               </Accordion>
             )}
+
+                            {/* Documents as part of Visit Info or separate section */}
+
+                { source !== 'pastVisitors' &&
+                 <Accordion
+                 title="Documents"
+                icon={StickyNote}
+                isOpen={!!expandedAccordions.document}
+                onToggle={() => toggleAccordion("document")}
+                className="tw:bg-[#FFFBEB] tw:border-[#FEF3C7]">
+                 <div className="tw:mt-1 tw:pt-1 tw:border-gray-100">
+                  {/* <div className="tw:text-[12px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider tw:mb-4">
+                    Documents
+                  </div> */}
+                  {v.visitSignedDocsInfos &&
+                    v.visitSignedDocsInfos.length > 0 ? (
+                    <div className="tw:flex tw:flex-col tw:gap-2.5">
+                      {v.visitSignedDocsInfos.map((doc, i) => (
+                        <a
+                          key={i}
+                          href={doc.signedDocUri}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tw:flex tw:items-center tw:gap-3 tw:p-3.5 tw:bg-indigo-50 tw:rounded-xl tw:text-sm tw:text-indigo-600 tw:font-medium tw:transition-all hover:tw:bg-indigo-100"
+                        >
+                          <FileText size={18} />
+                          <span>{doc.orgDocTemplateName}</span>
+
+                          <ArrowRight
+                            size={14}
+                            className="tw:ml-auto tw:opacity-60"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="tw:text-sm tw:text-gray-400 tw:italic tw:py-2">
+                      No documents
+                    </div>
+                  )}
+                </div>
+                 </Accordion>
+                }
 
             {(
               <Accordion
@@ -798,6 +763,67 @@ const VisitorDetail = () => {
                 )}
               </Accordion>
             )}
+
+            {isPrefill && entitlements.offenderCheckEntitled && (
+              <Accordion
+                title="Offender Check (Detail)"
+                icon={ShieldX}
+                isOpen={!!expandedAccordions.offenderCheck}
+                onToggle={() => toggleAccordion("offenderCheck")}
+              >
+                {offenders?.offenderInformationCheckDetails?.length ? (
+                  <div className="tw:overflow-hidden tw:border tw:border-gray-100 tw:rounded-xl">
+                    <table className="tw:w-full tw:text-left">
+                      <thead className="tw:bg-gray-50/50 tw:border-b tw:border-gray-100">
+                        <tr>
+                          <th className="tw:px-4 tw:py-3 tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider">
+                            Photo
+                          </th>
+                          <th className="tw:px-4 tw:py-3 tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider">
+                            Name
+                          </th>
+                          {/* <th className="tw:px-4 tw:py-3 tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-wider">
+                            Details
+                          </th> */}
+                        </tr>
+                      </thead>
+                      <tbody className="tw:divide-y tw:divide-gray-50">
+                        {offenders.offenderInformationCheckDetails.map(
+                          (o, i) => (
+                            <tr
+                              key={i}
+                              className="hover:tw:bg-gray-50/30 tw:transition-colors"
+                            >
+                              <td className="tw:px-4 tw:py-3">
+                                <img
+                                  src={
+                                    o.photo || "/assets/images/defaultuser.jpg"
+                                  }
+                                  alt="Offender"
+                                  className="tw:w-10 tw:h-10 tw:rounded-full tw:object-cover"
+                                />
+                              </td>
+                              <td className="tw:px-4 tw:py-3 tw:text-sm tw:font-medium tw:text-gray-900">
+                                {o.firstname} {o.lastname}
+                              </td>
+                              {/* <td className="tw:px-4 tw:py-3">
+                                <button className="tw:text-xs tw:font-semibold tw:text-indigo-600 hover:tw:underline">
+                                  View Record
+                                </button>
+                              </td> */}
+                            </tr>
+                          ),
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="tw:text-sm tw:text-gray-400 tw:italic tw:text-center tw:py-4">
+                    Unable to Perform
+                  </p>
+                )}
+              </Accordion>
+            )}
           </div>
         </div>
       </div>
@@ -805,9 +831,9 @@ const VisitorDetail = () => {
       <CancelVisitModal
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
-        isRecurring={!!(v.recurrenceType && v.recurrenceType !== "NONE")}
+        isRecurring={!!((v.recurrenceType && v.recurrenceType !== "NONE") || v.parentVisitId)}
         visitDate={formatDate(v.scheduleCheckinDate)}
-        onConfirm={(params) => {
+        onConfirm={(params : any) => {
           cancelMutation.mutate(
             { id: id || "", params },
             {

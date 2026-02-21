@@ -78,13 +78,17 @@ export async function getVisitNotes(visitId: string): Promise<VisitNote[]> {
   }
 }
 
+export type CancelUpdateType =
+  | "SELECTED_VISIT"
+  | "FUTURE_VISITS_ONLY"
+  | "ALL_VISITS";
 
 export async function cancelPreRegistration(
   id: string,
   params: {
     notifyVisitFlag: boolean;
     notifyHostFlag: boolean;
-    updateType: "SELECTED_VISIT";
+    updateType: CancelUpdateType
   }
 ): Promise<void> {
   const { updateType, ...body } = params;

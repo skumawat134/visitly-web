@@ -9,7 +9,8 @@ import {
   Filter, Plus, UserPlus, Upload, Pencil, X, Calendar,
   MapPin, Clock, ChevronDown, ChevronUp, Users,
   ChevronRight, ChevronLeft, ArrowRight, ArrowUpDown, Download,
-  RotateCw, ArrowUpFromLine, Menu, Search as SearchIcon
+  RotateCw, ArrowUpFromLine, Menu, Search as SearchIcon,
+  Logs
 } from 'lucide-react';
 import { cn, Button, Input, Search, Select as VisitlySelect, FutureDateRangeFilter } from "@visitly/ui";
 import { format } from "date-fns";
@@ -94,6 +95,7 @@ const UpcommingVisitors: React.FC = () => {
    const [searchParams] = useSearchParams();
    const type = searchParams.get("type");
    const mode = searchParams.get("mode");
+   const openTab = searchParams.get("st");
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const { searchTerm, setSearchTerm } = search;
   const { pageSize, pageIndex } = pagination;
@@ -114,7 +116,10 @@ const UpcommingVisitors: React.FC = () => {
      if(type =="single-invite"){
          setshowPreRegistrationModal(true)
      }
-  }, [type])
+     if(openTab === 'checkin'){
+      setActiveTab('checkedin')
+     }
+  }, [type])  
   
 
   // Customizing the Theme for AG Grid
@@ -426,7 +431,7 @@ const UpcommingVisitors: React.FC = () => {
                 className="tw:text-gray-400 tw:hover:text-gray-600"
                 onClick={settingModalClickHander}
               >
-                <Menu size={18} />
+                <Logs  size={18} />
               </Button>
             </div>}
           </div>
