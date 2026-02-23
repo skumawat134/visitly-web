@@ -376,52 +376,6 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     ...((destData as any)?.results?.map((d: any) => ({ label: d.name, value: d.id })) || [])
   ];
 
-
-  // const preparePayload = () => {
-  //   const checkin = new Date(form.scheduleCheckinDate || new Date());
-  //   if (form.scheduleCheckinTimeOnly) {
-  //     const [h, m] = (form.scheduleCheckinTimeOnly ?? '').split(':');
-  //     checkin.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
-  //   }
-
-  //   let checkout = null;
-  //   if (form.scheduleCheckoutDate && form.scheduleCheckoutTimeOnly) {
-  //     checkout = new Date(form.scheduleCheckoutDate);
-  //     const [h, m] = (form.scheduleCheckoutTimeOnly ?? '').split(':');
-  //     checkout.setHours(parseInt(h || '0'), parseInt(m || '0'), 0, 0);
-  //   }
-
-  //   const TOP_LEVEL_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number', 'Host', 'Point of Entry', 'Building', 'Parking Lot'];
-  //   const customFields = form.preregisterVisitCustomFieldModels
-  //     .filter((f: any) => !TOP_LEVEL_FIELDS.includes(f.name))
-  //     .map((f: any) => ({
-  //       name: f.name,
-  //       orgCustomFieldId: f.orgCustomFieldId,
-  //       visitTypeFieldId: f.visitTypeFieldId,
-  //       value: f.value
-  //     })) || [];
-
-  //   const getValueByFieldName = (fieldName: string) => {
-  //     return (
-  //       form.preregisterVisitCustomFieldModels.find(
-  //         cm => cm.name === fieldName
-  //       )?.value
-  //     );
-  //   };
-
-  //   return {
-  //     ...form,
-  //     fullName: getValueByFieldName('Full Name'),
-  //     email: getValueByFieldName('Email'),
-  //     companyName: getValueByFieldName('Company Name'),
-  //     phoneNumber: String(getValueByFieldName('Phone Number') || ''),
-  //     scheduleCheckinDate: format(checkin, "yyyy-MM-dd'T'HH:mm:ss"),
-  //     scheduleCheckoutDate: checkout ? format(checkout, "yyyy-MM-dd'T'HH:mm:ss") : null,
-  //     preregisterVisitCustomFieldModels: customFields,
-  //     checkinMethod: 'WEB',
-  //   };
-  // };
-
   const preparePayload = () => {
     const values = formik.values;
     const pipe = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ss");

@@ -11,7 +11,7 @@ import {
   Checkbox,
 } from "@visitly/ui";
 import { getIn } from "formik";
-import { ArrowRight, MapPin, Calendar, Check, UserPlus, Info, Users, Settings, Clock, RefreshCw, FileText, User, ShieldCheck, CalendarDays, Cross, X } from "lucide-react";
+import { ArrowRight, MapPin, Calendar, Check, UserPlus, Info, Users, Settings, Clock, RefreshCw, FileText, User, ShieldCheck, CalendarDays, Cross, X, Mail, Phone, Building2 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEntitlements } from "@/features/visitor-detail/hooks/useEntitlement";
@@ -354,14 +354,12 @@ export const PreRegistration = ({
     const progress = ((wizardStep - 1) / (totalSteps - 1)) * 100;
 
     return (
-      <div className="tw:relative">
+      <div className="tw:relative tw:px-4 tw:pt-1 tw:pb-3">
 
         {/* TRACK aligned with step centers */}
-        <div className="tw:absolute tw:top-[22px] tw:left-0 tw:right-0 tw:mx-[50px] tw:h-[1.5px] tw:mr-[60px]">
-
+        <div className="tw:absolute tw:top-[28px] tw:left-0 tw:right-0 tw:mx-[60px] tw:h-[1.5px]">
           {/* Background */}
           <div className="tw:w-full tw:h-full tw:bg-gray-200 tw:rounded-full" />
-
           {/* Active */}
           <div
             className="tw:absolute tw:top-0 tw:left-0 tw:h-full tw:bg-blue-600 tw:rounded-full tw:transition-all tw:duration-500"
@@ -370,35 +368,35 @@ export const PreRegistration = ({
         </div>
 
         {/* STEPS */}
-        <div className="tw:flex tw:justify-between tw:relative tw:px-4 tw:py-2">
+        <div className="tw:flex tw:justify-between tw:relative">
           {steps.map((s) => {
             const isCompleted = wizardStep > s.step;
             const isActive = wizardStep === s.step;
 
             return (
-              <div key={s.step} className="tw:flex tw:flex-col tw:items-center tw:gap-2 tw:z-10">
+              <div key={s.step} className="tw:flex tw:flex-col tw:items-center tw:gap-1.5 tw:z-10">
 
                 {/* CIRCLE */}
                 <div
                   className={cn(
-                    "tw:w-9 tw:h-9 tw:rounded-full tw:flex tw:items-center tw:justify-center tw:text-sm tw:font-bold tw:transition-all tw:duration-300",
+                    "tw:w-8 tw:h-8 tw:rounded-full tw:flex tw:items-center tw:justify-center tw:text-sm tw:font-bold tw:transition-all tw:duration-300",
                     isActive
-                      ? "tw:bg-blue-600 tw:text-white tw:shadow-[0_0_0_4px_rgba(37,99,235,0.1)]"
+                      ? "tw:bg-blue-600 tw:text-white tw:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
                       : isCompleted
                         ? "tw:bg-blue-600 tw:text-white"
                         : "tw:bg-white tw:border-2 tw:border-gray-200 tw:text-gray-400"
                   )}
                   data-testid={`step-${s.step}-indicator`}
                 >
-                  {isCompleted ? <Check size={18} /> : s.step}
+                  {isCompleted ? <Check size={15} /> : s.step}
                 </div>
 
                 {/* LABEL */}
                 <span
                   className={cn(
-                    "tw:text-[11px] tw:font-bold tw:uppercase tw:tracking-wider",
+                    "tw:text-[10px] tw:font-semibold tw:uppercase tw:tracking-wide",
                     isActive || isCompleted
-                      ? "tw:text-gray-900"
+                      ? "tw:text-gray-800"
                       : "tw:text-gray-400"
                   )}
                 >
@@ -446,16 +444,16 @@ export const PreRegistration = ({
   const { isPreScreenCheckEntitled } = useEntitlements();
 
   const modalContent = (
-    <div className="tw:p-6 tw:py-0 tw:w-full tw:rounded-2xl tw:shadow-sm tw:border tw:border-gray-100 tw:flex tw:flex-col tw:overflow-hidden">
+    <div className="tw:w-full tw:rounded-2xl tw:shadow-sm tw:border tw:border-gray-100 tw:flex tw:flex-col tw:overflow-hidden">
       {/* Header */}
-      <div className="tw:flex tw:items-center tw:justify-between tw:px-8 tw:py-4  tw:border-gray-100">
-        <h3 className="tw:text-xl tw:font-bold tw:text-gray-900">{modalTitle}</h3>
+      <div className="tw:flex tw:items-center tw:justify-between tw:px-6 tw:py-3 tw:border-b tw:border-gray-100">
+        <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">{modalTitle}</h3>
       </div>
 
       {/* Progress Bar */}
       <WizardProgress wizardStep={wizardStep} />
       <form onSubmit={formik.handleSubmit} className="tw:flex-1 tw:flex tw:flex-col tw:overflow-hidden">
-        <div className="tw:flex-1 tw:overflow-y-auto tw:px-8 tw:py-3">
+        <div className="tw:flex-1 tw:overflow-y-auto tw:px-6 tw:py-2">
           <AnimatePresence mode="wait">
             {wizardStep === 1 && (
               <motion.div
@@ -464,14 +462,14 @@ export const PreRegistration = ({
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -20, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="tw:space-y-8"
+                className="tw:space-y-4"
               >
-                <div className="tw:space-y-4">
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
-                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Where</h3>
+                <div className="tw:space-y-3">
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <div className="tw:w-0.5 tw:h-4 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-sm tw:font-bold tw:text-gray-700 tw:uppercase tw:tracking-wide">Where</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-3 tw:gap-x-6">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-y-3 tw:gap-x-4">
                     <div className="tw:space-y-1.5">
                       <Label required>Location</Label>
                       <Select
@@ -577,11 +575,11 @@ export const PreRegistration = ({
 
 
                   </div>
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
-                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">When</h3>
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <div className="tw:w-0.5 tw:h-4 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-sm tw:font-bold tw:text-gray-700 tw:uppercase tw:tracking-wide">When</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-3 tw:gap-x-6">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-y-3 tw:gap-x-4">
                     <div className="tw:space-y-1.5">
                       <Label required>Check-in Date</Label>
                       <Input
@@ -673,14 +671,14 @@ export const PreRegistration = ({
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -20, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="tw:space-y-8"
+                className="tw:space-y-4"
               >
-                <div className="tw:space-y-4">
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
-                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Visitor Details</h3>
+                <div className="tw:space-y-3">
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <div className="tw:w-0.5 tw:h-4 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-sm tw:font-bold tw:text-gray-700 tw:uppercase tw:tracking-wide">Visitor Details</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-3 tw:gap-x-6">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-y-3 tw:gap-x-4">
                     {/* 1. Identity Fields First (Statically rendered) */}
                     {(() => {
                       const f = getFieldDef('Full Name');
@@ -744,7 +742,7 @@ export const PreRegistration = ({
                       if (f?.status === 'INACTIVE') return null;
                       return (
                         <div className="tw:space-y-1.5">
-                          <Label required={f?.isMandatoryForPreregistration}>{f?.name || "Phone Number"}</Label>
+                          <Label required>{f?.name || "Phone Number"}</Label>
                           <Input
                             placeholder={f?.displayText || 'Phone Number'}
                             value={form.phoneNumber}
@@ -775,11 +773,11 @@ export const PreRegistration = ({
                     />
                   </div>
 
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
-                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Host Details</h3>
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <div className="tw:w-0.5 tw:h-4 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-sm tw:font-bold tw:text-gray-700 tw:uppercase tw:tracking-wide">Host Details</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-4">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-4 tw:gap-y-3">
                     {/* 2. Whom Fields (Statically rendered) */}
                     {(() => {
                       const f = getFieldDef('Host');
@@ -841,11 +839,11 @@ export const PreRegistration = ({
                     }
 
                   </div>
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
-                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Internal Note</h3>
+                  <div className="tw:flex tw:items-center tw:gap-2">
+                    <div className="tw:w-0.5 tw:h-4 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-sm tw:font-bold tw:text-gray-700 tw:uppercase tw:tracking-wide">Internal Note</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-4">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-4 tw:gap-y-3">
                     <Input
                       value={form.internalNote}
                       onChange={(e) => setFormField('internalNote', e.target.value)}
@@ -866,40 +864,55 @@ export const PreRegistration = ({
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -20, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="tw:space-y-8"
+                className="tw:space-y-3"
               >
                 {/* Summary Card */}
-                <div className="tw:bg-[#EEF2FF] tw:rounded-2xl tw:p-6 tw:text-gray-700 tw:shadow-lg">
-                  <div className="tw:flex tw:items-center tw:gap-4">
-                    <div className="tw:w-14 tw:h-14 tw:rounded-full tw:bg-white/20 tw:backdrop-blur-md tw:flex tw:items-center tw:justify-center tw:text-xl tw:font-bold">
+                <div className="tw:bg-[#EEF2FF] tw:rounded-xl tw:p-3 tw:text-gray-700">
+                  <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-3">
+                    Visitor Details
+                  </h5>
+                  <div className="tw:flex tw:items-center tw:gap-3">
+                    <div className="tw:w-10 tw:h-10 tw:rounded-full tw:bg-blue-200 tw:flex tw:items-center tw:justify-center tw:text-base tw:font-bold tw:text-blue-700">
                       {(form.fullName?.toUpperCase() || '?')[0]}
                     </div>
-                    <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-2">
-                      <h4 className="tw:text-lg tw:font-bold">
-                        {form.fullName || 'N/A'}
-                      </h4>
-                      <p className="tw:text-sm">
-                        {form.email || 'No email provided'}
-                      </p>
-                      <p className="tw:text-sm">
-                        {form.companyName || ''}
-                      </p>
-                      <p className="tw:text-sm">
-                        {form.phoneNumber || ''}
-                      </p>
+                    <div className="tw:grid tw:grid-cols-2 tw:gap-x-4 tw:gap-y-0.5">
+                      <div className="tw:flex tw:items-center tw:gap-1.5 tw:text-gray-900">
+                        <User size={12} className="tw:text-blue-500" />
+                        <h4 className="tw:text-base tw:font-bold">
+                          {form.fullName || 'N/A'}
+                        </h4>
+                      </div>
+                      <div className="tw:flex tw:items-center tw:gap-1.5 tw:text-gray-600">
+                        <Mail size={12} className="tw:text-blue-500" />
+                        <p className="tw:text-xs">
+                          {form.email || 'No email provided'}
+                        </p>
+                      </div>
+                      <div className="tw:flex tw:items-center tw:gap-1.5 tw:text-gray-600">
+                        <Building2 size={12} className="tw:text-blue-500" />
+                        <p className="tw:text-xs">
+                          {form.companyName || ''}
+                        </p>
+                      </div>
+                      <div className="tw:flex tw:items-center tw:gap-1.5 tw:text-gray-600">
+                        <Phone size={12} className="tw:text-blue-500" />
+                        <p className="tw:text-xs">
+                          {form.phoneNumber || ''}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
                 {/* 2. Detailed Info Grid */}
-                <div className="tw:grid tw:grid-cols-1 md:tw:grid-cols-2 tw:gap-4">
+                <div className="tw:grid tw:grid-cols-1 md:tw:grid-cols-2 tw:gap-3">
 
                   {/* Visit Logistics */}
-                  <div className="tw:p-6 tw:rounded-2xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
-                    <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-4">
+                  <div className="tw:p-4 tw:rounded-xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
+                    <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-3">
                       Visit Details
                     </h5>
 
-                    <div className="tw:space-y-4 tw:grid tw:grid-cols-2">
+                    <div className="tw:grid tw:grid-cols-2 tw:gap-3">
                       {/* Basic Logistics */}
                       <SummaryField
                         icon={MapPin}
@@ -1006,19 +1019,16 @@ export const PreRegistration = ({
                           );
                         })
                       }
-                      <SummaryField label="Group Name" value={form.groupName} icon={Users} />
-                   </div>
-                  </div>
-                  {/* Dynamic Fields Summary (Remaining fields) */}
-                  <div className="tw:p-6 tw:rounded-2xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
-                    <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-4">
-                      Internal Note
-                    </h5>
-                    <div className="tw:space-y-4 tw:grid tw:grid-cols-2">
-                      {/* ADDITIONAL FIELDS */}
-                      <SummaryField label="" value={form.internalNote} icon={FileText} />
                     </div>
                   </div>
+                  {form.internalNote && (
+                    <div className="tw:p-4 tw:rounded-xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
+                      <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-3">
+                        Internal Note
+                      </h5>
+                      <p className="tw:text-sm tw:text-gray-700">{form.internalNote}</p>
+                    </div>
+                  )}
                 </div>
                 {/* Host Section */}
                 {/* <div className="tw:space-y-6">
@@ -1081,12 +1091,12 @@ export const PreRegistration = ({
                   </div> */}
 
                 {/* Notifications */}
-                <div className="tw:pt-4 tw:border-t tw:border-gray-100">
-                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-4">
-                    <Settings size={14} className="tw:text-gray-400" />
-                    <span className="tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-widest">Notification Settings</span>
+                <div className="tw:pt-3 tw:border-t tw:border-gray-100">
+                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-2">
+                    <Settings size={13} className="tw:text-gray-400" />
+                    <span className="tw:text-[10px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-widest">Notification Settings</span>
                   </div>
-                  <div className="tw:flex tw:flex-wrap tw:gap-3">
+                  <div className="tw:flex tw:flex-wrap tw:gap-2">
                     {[
                       { field: 'notifyVisitFlag', label: 'Email visitor' },
                       { field: 'notifyHostFlag', label: 'Notify host' },
@@ -1119,7 +1129,7 @@ export const PreRegistration = ({
         </div>
 
         {/* Footer */}
-        <div className="tw:px-8 tw:py-5 tw:bg-gray-50/80 tw:backdrop-blur-md tw:border-t tw:border-gray-100 tw:flex tw:justify-between tw:items-center">
+        <div className="tw:px-6 tw:py-3 tw:bg-gray-50/80 tw:backdrop-blur-md tw:border-t tw:border-gray-100 tw:flex tw:justify-between tw:items-center">
           <div>
             {wizardStep > 1 && (
               <Button
