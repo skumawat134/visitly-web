@@ -26,10 +26,11 @@ import {
   Building2,
   PhoneCall,
   Repeat,
+  Edit2,
 } from "lucide-react";
 import { useVisitorDetail } from "./hooks/use-visitor-detail";
 import { Avatar } from "../host-dashboard/components/Avatar";
-import { cn } from "@visitly/ui";
+import { Button, cn } from "@visitly/ui";
 import { format } from "date-fns";
 import { useEntitlements } from "./hooks/useEntitlement";
 import { useCancelVisit } from "./hooks/use-cancel-visit";
@@ -122,6 +123,7 @@ const VisitorDetail = () => {
       <div className="tw:max-w-[1200px] tw:mx-auto tw:px-10 tw:py-7">
         {/* Breadcrumb */}
         <div className="tw:flex tw:items-center tw:gap-1.5 tw:text-[13px] tw:text-gray-400 tw:mb-5">
+
           <button
             onClick={() => navigate("/host/upcoming-visitors")}
             className="tw:text-indigo-600 tw:font-medium hover:tw:underline tw:transition-all"
@@ -154,11 +156,11 @@ const VisitorDetail = () => {
                 </h1>
                 {((v.recurrenceType && v.recurrenceType !== "NONE") ||
                   v.parentVisitId) && (
-                  <span className="tw:px-3 tw:py-1 tw:rounded-full tw:text-[#5E2CED] tw:flex tw:gap-2 tw:justify-center tw:items-center tw:bg-[#E5E9FF]">
-                    {" "}
-                    <Repeat size={16} /> Recurring Visit{" "}
-                  </span>
-                )}
+                    <span className="tw:px-3 tw:py-1 tw:rounded-full tw:text-[#5E2CED] tw:flex tw:gap-2 tw:justify-center tw:items-center tw:bg-[#E5E9FF]">
+                      {" "}
+                      <Repeat size={16} /> Recurring Visit{" "}
+                    </span>
+                  )}
               </div>
               <div className="tw:flex tw:items-center tw:gap-3 tw:mt-2 tw:flex-wrap">
                 {v.email && (
@@ -185,6 +187,13 @@ const VisitorDetail = () => {
 
           {/* Right: action buttons */}
           <div className="tw:flex tw:items-center tw:gap-2.5 tw:shrink-0">
+            <Button leftIcon={<Edit2  size={15} />}
+            variant="outline"
+              className="tw:inline-flex tw:items-center tw:gap-1 tw:px-4.5 tw:py-2.5 tw:rounded-xl  tw:text-sm tw:font-medium hover:tw:border-red-300 hover:tw:bg-red-50 tw:transition-all"
+           onClick={()=>navigate("/host/invite/"+id)}
+          >
+              Edit Visit
+            </Button>
             {source != "pastVisitors" && (
               <button
                 onClick={() => setIsCancelModalOpen(true)}
@@ -330,7 +339,7 @@ const VisitorDetail = () => {
 
                       {/* Content */}
                       {v.visitSignoutCustomFields &&
-                      v.visitSignoutCustomFields.length > 0 ? (
+                        v.visitSignoutCustomFields.length > 0 ? (
                         <div className="tw:flex tw:flex-col tw:gap-2">
                           {v.visitSignoutCustomFields.map((cf, i) => (
                             <DetailRow
@@ -718,7 +727,7 @@ const VisitorDetail = () => {
                     Documents
                   </div> */}
                   {v.visitSignedDocsInfos &&
-                  v.visitSignedDocsInfos.length > 0 ? (
+                    v.visitSignedDocsInfos.length > 0 ? (
                     <div className="tw:flex tw:flex-col tw:gap-2.5">
                       {v.visitSignedDocsInfos.map((doc, i) => (
                         <a

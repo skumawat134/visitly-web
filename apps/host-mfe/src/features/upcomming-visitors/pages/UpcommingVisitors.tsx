@@ -42,7 +42,7 @@ import { HoverCard } from "@/features/host-dashboard/components/HoverCard";
 const viewPillActive = "tw:px-4 tw:py-1.5 tw:rounded-lg tw:text-sm tw:font-semibold tw:text-blue-600 tw:bg-white tw:shadow-sm tw:border-none tw:cursor-pointer tw:whitespace-nowrap";
 const viewPillInactive = "tw:px-4 tw:py-1.5 tw:rounded-lg tw:text-sm tw:font-medium tw:text-gray-500 tw:bg-transparent tw:border-none tw:cursor-pointer tw:whitespace-nowrap tw:transition-colors tw:hover:text-gray-700";
 
-const UpcommingVisitors: React.FC = () => {
+export const UpcomingVisitors: React.FC = () => {
   const {
     data,
     isLoading,
@@ -90,13 +90,13 @@ const UpcommingVisitors: React.FC = () => {
     visitorToCancel,
     cancelUpdateType,
     setCancelUpdateType,
-     upcomingDateRange,
+    upcomingDateRange,
     setUpcomingDateRange
   } = useUpcomingVisitors();
-   const [searchParams] = useSearchParams();
-   const type = searchParams.get("type");
-   const mode = searchParams.get("mode");
-   const openTab = searchParams.get("st");
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get("type");
+  const mode = searchParams.get("mode");
+  const openTab = searchParams.get("st");
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const { searchTerm, setSearchTerm } = search;
   const { pageSize, pageIndex } = pagination;
@@ -112,39 +112,39 @@ const UpcommingVisitors: React.FC = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const debouncedGroupName = useDebounce(groupFilter, 500);
 
-    const hoverTimerRef = useRef<any>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const inviteRef = useRef<HTMLDivElement>(null);
-    const [hoveredVisitor, setHoveredVisitor] = useState<any>(null);
-      const [hoverAnchor, setHoverAnchor] = useState<any>(null);
-      const [hoverIsUpcoming, setHoverIsUpcoming] = useState(false);
-     
-    const handleRowEnter = (visitor: any, e: any, isUpcoming: boolean) => {
-      clearTimeout(hoverTimerRef.current);
-      const anchor = { clientX: e.event.clientX, clientY: e.event.clientY };
-      hoverTimerRef.current = setTimeout(() => {
-        setHoveredVisitor(visitor);
-        setHoverAnchor(anchor);
-        setHoverIsUpcoming(isUpcoming);
-      }, 400);
-    };
-  
-    const handleRowLeave = () => {
-      clearTimeout(hoverTimerRef.current);
-      setHoveredVisitor(null);
-      setHoverAnchor(null);
-    };
- 
+  const hoverTimerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inviteRef = useRef<HTMLDivElement>(null);
+  const [hoveredVisitor, setHoveredVisitor] = useState<any>(null);
+  const [hoverAnchor, setHoverAnchor] = useState<any>(null);
+  const [hoverIsUpcoming, setHoverIsUpcoming] = useState(false);
+
+  const handleRowEnter = (visitor: any, e: any, isUpcoming: boolean) => {
+    clearTimeout(hoverTimerRef.current);
+    const anchor = { clientX: e.event.clientX, clientY: e.event.clientY };
+    hoverTimerRef.current = setTimeout(() => {
+      setHoveredVisitor(visitor);
+      setHoverAnchor(anchor);
+      setHoverIsUpcoming(isUpcoming);
+    }, 400);
+  };
+
+  const handleRowLeave = () => {
+    clearTimeout(hoverTimerRef.current);
+    setHoveredVisitor(null);
+    setHoverAnchor(null);
+  };
+
   useEffect(() => {
     // show modal from other page
-     if(type =="single-invite"){
-         setshowPreRegistrationModal(true)
-     }
-     if(openTab === 'checkin'){
+    if (type == "single-invite") {
+      setshowPreRegistrationModal(true)
+    }
+    if (openTab === 'checkin') {
       setActiveTab('checkedin')
-     }
-  }, [type])  
-  
+    }
+  }, [type])
+
 
   // Customizing the Theme for AG Grid
   const myTheme = useMemo(
@@ -214,7 +214,8 @@ const UpcommingVisitors: React.FC = () => {
                       className="tw:flex tw:items-center tw:gap-3 tw:w-full tw:px-3 tw:py-2.5 tw:bg-transparent tw:border-none tw:rounded-lg tw:cursor-pointer tw:text-left tw:transition-colors tw:hover:bg-gray-50"
                       onClick={() => {
                         setShowInviteMenu(false);
-                        openPreRegistrationModalHandler();
+                        // openPreRegistrationModalHandler();
+                           navigate("/host/invite");
                       }}
                     >
                       <UserPlus size={15} className="tw:text-blue-600 tw:shrink-0" />
@@ -362,14 +363,14 @@ const UpcommingVisitors: React.FC = () => {
           {/* Date Range Picker Section */}
           <div className="tw:md:col-span-12 tw:flex tw:items-center tw:gap-3 tw:flex-wrap tw:mt-4 md:tw:mt-0">
 
-            { activeTab === 'upcoming' && 
+            {activeTab === 'upcoming' &&
               <FutureDateRangeFilter
-              value={upcomingDateRange}
-              onChange={(val: DateRangeValue | string) => setUpcomingDateRange(val as any)}
+                value={upcomingDateRange}
+                onChange={(val: DateRangeValue | string) => setUpcomingDateRange(val as any)}
               />
             }
 
-           {  activeTab === 'checkedin' && <DateRangePicker
+            {activeTab === 'checkedin' && <DateRangePicker
               value={dateRange}
               onChange={(val: DateRangeValue | string) => setDateRange(val as any)}
             />}
@@ -455,7 +456,7 @@ const UpcommingVisitors: React.FC = () => {
                 className="tw:text-gray-400 tw:hover:text-gray-600"
                 onClick={settingModalClickHander}
               >
-                <Logs  size={18} />
+                <Logs size={18} />
               </Button>
             </div>}
           </div>
@@ -558,17 +559,17 @@ const UpcommingVisitors: React.FC = () => {
         />
       )}
 
-       {hoveredVisitor && hoverAnchor && (
-              <HoverCard
-                visitor={hoveredVisitor}
-                isUpcoming={hoverIsUpcoming}
-                anchorRect={hoverAnchor}
-                containerRef={containerRef}
-              />
-            )}
+      {hoveredVisitor && hoverAnchor && (
+        <HoverCard
+          visitor={hoveredVisitor}
+          isUpcoming={hoverIsUpcoming}
+          anchorRect={hoverAnchor}
+          containerRef={containerRef}
+        />
+      )}
     </div>
 
   );
 };
 
-export default UpcommingVisitors;
+export default UpcomingVisitors;

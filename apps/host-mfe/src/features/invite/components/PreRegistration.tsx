@@ -1,0 +1,1191 @@
+import React, { useEffect, useState, useRef } from "react";
+import { format, formatDate } from "date-fns";
+import {
+  Button,
+  cn,
+  Input,
+  Label,
+  Radio,
+  SearchUserSelect,
+  Select,
+  Checkbox,
+} from "@visitly/ui";
+import { getIn } from "formik";
+import { ArrowRight, MapPin, Calendar, Check, UserPlus, Info, Users, Settings, Clock, RefreshCw, FileText, User, ShieldCheck, CalendarDays, Cross, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEntitlements } from "@/features/visitor-detail/hooks/useEntitlement";
+import { usePreRegistrationForm } from "../hooks/use-preregistration";
+
+interface PreRegistrationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  status: 'Create' | 'Update';
+  visitId?: string;
+}
+
+const IDENTITY_FIELDS = ['Full Name', 'Email', 'Company Name', 'Phone Number', 'Building', 'Parking Lot', 'Point of Entry'];
+const WHOM_FIELDS = ['Host', 'CoHost'];
+const EXCLUDED_DYNAMIC_FIELDS = [...IDENTITY_FIELDS, ...WHOM_FIELDS];
+
+export const PreRegistration = ({
+  status,
+  visitId,
+  onClose,
+}: {
+  status: 'Create' | 'Update';
+  visitId?: string;
+  onClose: () => void;
+}) => {
+  const {
+    form,
+    setFormField,
+    formik,
+    siteOptions,
+    visitorTypeOptions,
+    hostOptions,
+    setHostSearch,
+    coHostOptions,
+    setCoHostSearch,
+    handlePreScreen,
+    isPreScreening,
+    isSaving,
+    validateStep,
+    poeOptions,
+    parkingOptions,
+    destOptions,
+    setWizardStep,
+    wizardStep,
+    poeData,
+    parkingData,
+    destData,
+    isFieldDisabled,
+    matchedRule,
+    preScreenStatus,
+    visitorTypeFields,
+    isPrefilledVisit,
+    entitlements
+  } = usePreRegistrationForm(visitId, onClose, status);
+
+  const getFieldDef = (name: string) => {
+    return visitorTypeFields?.fields?.find((f: any) => f.name === name || f.fid === name);
+  };
+
+  const formatTimeAMPM = (time: string | null | undefined): string => {
+    if (!time) return 'Not specified';
+    const [hStr, mStr] = time.split(':');
+    const h = parseInt(hStr || '0', 10);
+    const m = parseInt(mStr || '0', 10);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+  };
+
+  const [timeOptions, setTimeOptions] = useState<{ label: string; value: string }[]>([]);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const repeatOptions = [
+    { label: 'Select Recurrence', value: '' },
+    { label: 'Does Not Repeat', value: 'NONE' },
+    { label: 'Daily', value: 'DAILY' },
+    { label: 'Weekly', value: 'WEEKLY' },
+    { label: 'Monthly', value: 'MONTHLY' },
+    { label: 'Annually', value: 'ANNUALLY' },
+    { label: 'Weekdays (Mon–Fri)', value: 'WEEKDAY' },
+  ];
+  // Reset step when component mounts
+  useEffect(() => {
+    setWizardStep(1);
+  }, []);
+
+  // Generate time options
+  useEffect(() => {
+    const opts: typeof timeOptions = [{ label: 'Select Time', value: '' }];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        const hour = h % 12 || 12;
+        const ampm = h < 12 ? 'AM' : 'PM';
+        const hh = h.toString().padStart(2, '0');
+        const mm = m.toString().padStart(2, '0');
+        opts.push({ label: `${hour}:${mm} ${ampm}`, value: `${hh}:${mm}` });
+      }
+    }
+    setTimeOptions(opts);
+  }, []);
+
+  // Close on Escape removed as it's not a modal anymore
+
+  const modalTitle =
+    status === 'Update'
+      ? 'Update Visit'
+      : wizardStep === 1
+        ? 'Pre-Register Visitor'
+        : wizardStep === 2
+          ? 'Visitor Information'
+          : 'Review & Options';
+
+  const handleNextStep = async () => {
+    const result = await validateStep(wizardStep as any);
+
+    if (result.isValid) {
+      setWizardStep(prev => prev + 1);
+    } else {
+      // Force Formik to recognize the errors for this step
+      formik.setErrors(result.errors);
+      // Mark fields as touched to show errors
+      Object.keys(result.errors).forEach(key => formik.setFieldTouched(key, true, false));
+    }
+  };
+
+  // isOpen check removed
+
+  const renderDynamicField = (field: any, index: number) => {
+    const fieldName = `preregisterVisitCustomFieldModels[${index}].value`;
+    const errorPath = `preregisterVisitCustomFieldModels[${index}].value`;
+    const fieldError = getIn(formik.errors, errorPath);
+    const isTouched = getIn(formik.touched, errorPath);
+    const value = field.value || '';
+
+    if (field.name === 'Building') {
+      return (
+        <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+          <Select
+            options={destOptions}
+            value={form.buildingId || ''}
+            onChange={(e: any) => {
+              setFormField('buildingId', e.target.value);
+              formik.setFieldValue(fieldName, e.target.value);
+            }}
+            onBlur={() => formik.setFieldTouched(fieldName, true)}
+            disabled={isFieldDisabled(field.name)}
+            name="buildingId"
+            label="Building / Destination"
+            required={field.isMandatoryForPreregistration}
+            error={isTouched ? fieldError : undefined}
+            data-testid="custom-field-select-building"
+          />
+        </div>
+      );
+    }
+
+    if (field.name === 'Parking Lot') {
+      return (
+        <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+          <Select
+            options={parkingOptions}
+            value={form.parkingLotId || ''}
+            onChange={(e: any) => {
+              setFormField('parkingLotId', e.target.value);
+              formik.setFieldValue(fieldName, e.target.value);
+            }}
+            onBlur={() => formik.setFieldTouched(fieldName, true)}
+            disabled={isFieldDisabled(field.name)}
+            name="parkingLotId"
+            label="Parking Lot"
+            required={field.isMandatoryForPreregistration}
+            error={isTouched ? fieldError : undefined}
+            data-testid="custom-field-select-parking-lot"
+          />
+        </div>
+      );
+    }
+
+    // Input fields (edit mode)
+    if (field.name === 'Point of Entry') {
+      return (
+        <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+          <Select
+            options={poeOptions}
+            value={form.poeId || ''}
+            onChange={(e: any) => {
+              setFormField('poeId', e.target.value);
+              formik.setFieldValue(fieldName, e.target.value);
+            }}
+            onBlur={() => formik.setFieldTouched(fieldName, true)}
+            disabled={isFieldDisabled(field.name)}
+            name="poeId"
+            required={field.isMandatoryForPreregistration}
+            label="Point of Entry"
+            error={isTouched ? fieldError : undefined}
+            data-testid="custom-field-select-poe"
+          />
+        </div>
+      );
+    }
+    if (field.name === 'Host') {
+      return (
+        <div className="tw:space-y-1.5" key={field.orgCustomFieldId}>
+          <Label required={field.isMandatoryForPreregistration}>Host</Label>
+          <SearchUserSelect
+            options={hostOptions}
+            onSearch={setHostSearch}
+            value={form.hostUser}
+            onChange={(opt) => {
+              const selected = Array.isArray(opt) ? opt[0] : opt;
+              setFormField('hostUserId', selected?.value || null);
+              setFormField('hostEmail', selected?.email || '');
+              setFormField('hostUser', selected || null);
+              formik.setFieldValue(fieldName, selected?.value || '');
+            }}
+            isDisabled={isFieldDisabled('hostUserId')}
+            isClearable={!isPrefilledVisit}
+            placeholder="Search host"
+            error={isTouched ? fieldError : undefined}
+            data-testid="host-search-select"
+          />
+        </div>
+      );
+    }
+
+    if (field.type === 'TEXT') {
+      return (
+        <Input
+          key={field.orgCustomFieldId}
+          label={field.name}
+          name={fieldName}
+          placeholder={field.displayText}
+          required={field.isMandatoryForPreregistration || IDENTITY_FIELDS.includes(field.name)}
+          error={isTouched ? fieldError : undefined}
+          value={value}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          disabled={isFieldDisabled(field.name)}
+          data-testid={`custom-field-text-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
+        />
+      );
+    }
+
+    if (field.type === 'DROPDOWN') {
+      return (
+        <Select
+          key={field.orgCustomFieldId}
+          label={field.name}
+          required={field.isMandatoryForPreregistration}
+          options={[
+            { label: `Select ${field.name}`, value: '' },
+            ...(field.options?.map((o: any) => ({ label: o.label, value: o.value })) || [])
+          ]}
+          value={value}
+          onChange={(e) => formik.setFieldValue(fieldName, e.target.value)}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          error={isTouched ? fieldError : undefined}
+          disabled={isFieldDisabled(field.name)}
+          data-testid={`custom-field-select-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
+        />
+      );
+    }
+
+    if (field.type === 'RADIO') {
+      return (
+        <div className="tw:flex tw:flex-col tw:gap-2" key={field.orgCustomFieldId}>
+          <Label>
+            {field.name} {field.isMandatoryForPreregistration && <span className="tw:text-red-500">*</span>}
+          </Label>
+          <div className="tw:flex tw:gap-4" data-testid={`custom-field-radio-${field.name.toLowerCase().replace(/\s+/g, '-')}`}>
+            {field.options?.map((o: any) => (
+              <Radio
+                key={o.value}
+                label={o.label}
+                checked={value === o.value}
+                disabled={isFieldDisabled(field.name)}
+                onChange={() => {
+                  formik.setFieldValue(fieldName, o.value);
+                  formik.setFieldTouched(fieldName, true);
+                }}
+              />
+            ))}
+          </div>
+          {isTouched && fieldError && <p className="tw:text-xs tw:text-red-500">{fieldError}</p>}
+        </div>
+      );
+    }
+
+    if (field.type === 'DATEPICKER') {
+      return (
+        <Input
+          key={field.orgCustomFieldId}
+          type="date"
+          label={field.name}
+          required={field.isMandatoryForPreregistration}
+          value={value ? format(new Date(value), 'yyyy-MM-dd') : ''}
+          onChange={(e) => formik.setFieldValue(fieldName, e.target.value ? new Date(e.target.value).toISOString() : '')}
+          onBlur={() => formik.setFieldTouched(fieldName, true)}
+          error={isTouched ? fieldError : undefined}
+          disabled={isFieldDisabled(field.name)}
+          data-testid={`custom-field-date-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
+        />
+      );
+    }
+
+    return (
+      <Input
+        key={field.orgCustomFieldId}
+        label={field.name}
+        placeholder={field.displayText}
+        name={fieldName}
+        required={field.isMandatoryForPreregistration}
+        value={value}
+        onChange={formik.handleChange}
+        onBlur={formik.handleBlur}
+        error={isTouched ? fieldError : undefined}
+        disabled={isFieldDisabled(field.name)}
+      />
+    );
+
+  };
+
+
+  type Step = {
+    step: number;
+    label: string;
+  };
+
+  type Props = {
+    wizardStep: number;
+  };
+
+  const steps: Step[] = [
+    { step: 1, label: "Where & When" },
+    { step: 2, label: "Whom?" },
+    { step: 3, label: "Review & Confirm" }
+  ];
+
+  const WizardProgress: React.FC<Props> = ({ wizardStep }) => {
+    const totalSteps = steps.length;
+    const progress = ((wizardStep - 1) / (totalSteps - 1)) * 100;
+
+    return (
+      <div className="tw:relative">
+
+        {/* TRACK aligned with step centers */}
+        <div className="tw:absolute tw:top-[22px] tw:left-0 tw:right-0 tw:mx-[50px] tw:h-[1.5px] tw:mr-[60px]">
+
+          {/* Background */}
+          <div className="tw:w-full tw:h-full tw:bg-gray-200 tw:rounded-full" />
+
+          {/* Active */}
+          <div
+            className="tw:absolute tw:top-0 tw:left-0 tw:h-full tw:bg-blue-600 tw:rounded-full tw:transition-all tw:duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        {/* STEPS */}
+        <div className="tw:flex tw:justify-between tw:relative tw:px-4 tw:py-2">
+          {steps.map((s) => {
+            const isCompleted = wizardStep > s.step;
+            const isActive = wizardStep === s.step;
+
+            return (
+              <div key={s.step} className="tw:flex tw:flex-col tw:items-center tw:gap-2 tw:z-10">
+
+                {/* CIRCLE */}
+                <div
+                  className={cn(
+                    "tw:w-9 tw:h-9 tw:rounded-full tw:flex tw:items-center tw:justify-center tw:text-sm tw:font-bold tw:transition-all tw:duration-300",
+                    isActive
+                      ? "tw:bg-blue-600 tw:text-white tw:shadow-[0_0_0_4px_rgba(37,99,235,0.1)]"
+                      : isCompleted
+                        ? "tw:bg-blue-600 tw:text-white"
+                        : "tw:bg-white tw:border-2 tw:border-gray-200 tw:text-gray-400"
+                  )}
+                  data-testid={`step-${s.step}-indicator`}
+                >
+                  {isCompleted ? <Check size={18} /> : s.step}
+                </div>
+
+                {/* LABEL */}
+                <span
+                  className={cn(
+                    "tw:text-[11px] tw:font-bold tw:uppercase tw:tracking-wider",
+                    isActive || isCompleted
+                      ? "tw:text-gray-900"
+                      : "tw:text-gray-400"
+                  )}
+                >
+                  {s.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+
+  const SummaryField = ({
+    label,
+    value,
+    icon: Icon
+  }: {
+    label: string;
+    value?: string | number | null;
+    icon?: React.ElementType
+  }) => {
+    if (!value) return null;
+
+    return (
+      <div className="tw:flex tw:items-start tw:gap-3">
+        {Icon && (
+          <div className="tw:mt-0.5 tw:p-1.5 tw:bg-white tw:rounded-lg tw:shadow-sm">
+            <Icon size={14} className="tw:text-blue-600" />
+          </div>
+        )}
+        <div className="tw:flex tw:flex-col">
+          <span className="tw:text-[10px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-widest">
+            {label}
+          </span>
+          <span className="tw:text-sm tw:font-semibold tw:text-gray-900">
+            {value}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const { isPreScreenCheckEntitled } = useEntitlements();
+
+  const modalContent = (
+    <div className="tw:p-6 tw:w-full tw:rounded-2xl tw:shadow-sm tw:border tw:border-gray-100 tw:flex tw:flex-col tw:overflow-hidden">
+      {/* Header */}
+      <div className="tw:flex tw:items-center tw:justify-between tw:px-8 tw:py-4  tw:border-gray-100">
+        <h3 className="tw:text-xl tw:font-bold tw:text-gray-900">{modalTitle}</h3>
+      </div>
+
+      {/* Progress Bar */}
+      <WizardProgress wizardStep={wizardStep} />
+      <form onSubmit={formik.handleSubmit} className="tw:flex-1 tw:flex tw:flex-col tw:overflow-hidden">
+        <div className="tw:flex-1 tw:overflow-y-auto tw:px-8 tw:py-6">
+          <AnimatePresence mode="wait">
+            {wizardStep === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -20, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="tw:space-y-8"
+              >
+                <div className="tw:space-y-6">
+                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
+                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Where & When</h3>
+                  </div>
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-6">
+                    <div className="tw:space-y-1.5">
+                      <Label required>Location</Label>
+                      <Select
+                        value={form.siteId}
+                        options={siteOptions}
+                        onChange={(e) => {
+                          setFormField('siteId', e.target.value);
+                          setFormField('visitorTypeId', '');
+                        }}
+                        onBlur={() => formik.setFieldTouched('siteId', true)}
+                        disabled={isFieldDisabled('siteId')}
+                        error={formik.touched.siteId && formik.errors.siteId ? String(formik.errors.siteId) : undefined}
+                        data-testid="location-select"
+                      />
+                    </div>
+                    <div className="tw:space-y-1.5">
+                      <Label required>Visitor Type</Label>
+                      <Select
+                        value={form.visitorTypeId}
+                        options={visitorTypeOptions}
+                        onChange={(e) => setFormField('visitorTypeId', e.target.value)}
+                        disabled={!form.siteId || isFieldDisabled('visitorTypeId')}
+                        onBlur={() => formik.setFieldTouched('visitorTypeId', true)}
+                        error={formik.touched.visitorTypeId && formik.errors.visitorTypeId ? String(formik.errors.visitorTypeId) : undefined}
+                        data-testid="visitor-type-select"
+                      />
+                    </div>
+                  </div>
+                  {/* <div className="tw:col-span-2">
+                      <Checkbox
+                        label="Allow Visitor to submit information before Arrival"
+                        checked={form.shouldPrefill}
+                        onChange={(e: any) => setFormField('shouldPrefill', e.target.checked)}
+                        data-testid="visitor-arrival-prefill-checkbox"
+                        disabled={isFieldDisabled('shouldPrefill')}
+                        aria-label="Allow Visitor to submit information before Arrival"
+                      />
+                    </div> */}
+
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                    <div className="tw:space-y-1.5">
+                      <Label required>Check-in Date</Label>
+                      <Input
+                        type="date"
+                        value={form.scheduleCheckinDate ? format(new Date(form.scheduleCheckinDate), 'yyyy-MM-dd') : ''}
+                        onChange={(e) => {
+                          setFormField('scheduleCheckinDate', e.target.value ? new Date(e.target.value) : null)
+                        }}
+                        onBlur={() => formik.setFieldTouched('scheduleCheckinDate', true)}
+                        disabled={isFieldDisabled('scheduleCheckinDate')}
+                        error={formik.touched.scheduleCheckinDate && formik.errors.scheduleCheckinDate ? String(formik.errors.scheduleCheckinDate) : undefined}
+                        data-testid="schedule-checkin-date-input"
+                      />
+                    </div>
+                    <div className="tw:space-y-1.5">
+                      <Label required>Check-in Time</Label>
+                      <Select
+                        value={form.scheduleCheckinTimeOnly || ''}
+                        options={timeOptions}
+                        onChange={(e) => setFormField('scheduleCheckinTimeOnly', e.target.value)}
+                        onBlur={() => formik.setFieldTouched('scheduleCheckinTimeOnly', true)}
+                        disabled={isFieldDisabled('scheduleCheckinTimeOnly')}
+                        error={formik.touched.scheduleCheckinTimeOnly && formik.errors.scheduleCheckinTimeOnly ? String(formik.errors.scheduleCheckinTimeOnly) : undefined}
+                        data-testid="schedule-checkin-time-select"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                    <div className="tw:space-y-1.5">
+                      <Label>Repeats</Label>
+                      <Select
+                        value={form.recurrenceType}
+                        options={repeatOptions}
+                        onChange={(e) => setFormField('recurrenceType', e.target.value)}
+                        onBlur={() => formik.setFieldTouched('recurrenceType', true)}
+                        error={formik.touched.recurrenceType && formik.errors.recurrenceType ? String(formik.errors.recurrenceType) : undefined}
+                        disabled={isFieldDisabled('recurrenceType')}
+                        data-testid="recurrence-select"
+                      />
+                    </div>
+                    {form.recurrenceType === 'NONE' ? (
+                      <>
+                        <div className="tw:space-y-1.5">
+                          <Label>Check-out Date (Optional)</Label>
+                          <Input
+                            type="date"
+                            value={form.scheduleCheckoutDate ? format(new Date(form.scheduleCheckoutDate), 'yyyy-MM-dd') : ''}
+                            onChange={(e) => setFormField('scheduleCheckoutDate', e.target.value ? new Date(e.target.value) : null)}
+                            onBlur={() => formik.setFieldTouched('scheduleCheckoutDate', true)}
+                            disabled={isFieldDisabled('scheduleCheckoutDate')}
+                            error={formik.touched.scheduleCheckoutDate && formik.errors.scheduleCheckoutDate ? String(formik.errors.scheduleCheckoutDate) : undefined}
+                            data-testid="schedule-checkout-date-input"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="tw:space-y-1.5">
+                        <Label className="tw:required" required>Ends On</Label>
+                        <Input
+                          type="date"
+                          value={form.recurrenceEndDateOnly ? format(new Date(form.recurrenceEndDateOnly), 'yyyy-MM-dd') : ''}
+                          onChange={(e) => setFormField('recurrenceEndDateOnly', e.target.value ? new Date(e.target.value) : null)}
+                          error={formik.touched.recurrenceEndDateOnly && formik.errors.recurrenceEndDateOnly ? String(formik.errors.recurrenceEndDateOnly) : undefined}
+                          disabled={isFieldDisabled('recurrenceEndDateOnly')}
+                          data-testid="schedule-recurrence-end-date-input"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                    <div className="tw:space-y-1.5">
+                      <Label required={!!form.scheduleCheckoutDate || form.recurrenceType !== 'NONE'}>Check-out Time</Label>
+                      <Select
+                        value={form.scheduleCheckoutTimeOnly || ''}
+                        options={timeOptions}
+                        onChange={(e) => setFormField('scheduleCheckoutTimeOnly', e.target.value)}
+                        onBlur={() => formik.setFieldTouched('scheduleCheckoutTimeOnly', true)}
+                        error={formik.touched.scheduleCheckoutTimeOnly && formik.errors.scheduleCheckoutTimeOnly ? String(formik.errors.scheduleCheckoutTimeOnly) : undefined}
+                        disabled={isFieldDisabled('scheduleCheckoutTimeOnly')}
+                        data-testid="checkout-time-select"
+                      />
+                    </div>
+                  </div>
+
+                </div>
+              </motion.div>
+            )}
+
+            {wizardStep === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -20, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="tw:space-y-8"
+              >
+                <div className="tw:space-y-6">
+                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
+                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Who and Whom?</h3>
+                  </div>
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                    {/* 1. Identity Fields First (Statically rendered) */}
+                    {(() => {
+                      const f = getFieldDef('Full Name');
+                      if (f?.status === 'INACTIVE') return null;
+                      return (
+                        <div className="tw:space-y-1.5">
+                          <Label required>{f?.name || "Full Name"}</Label>
+                          <Input
+                            placeholder={f?.displayText || 'Full Name'}
+                            value={form.fullName}
+                            onChange={(e) => setFormField('fullName', e.target.value)}
+                            onBlur={() => formik.setFieldTouched('fullName', true)}
+                            disabled={isFieldDisabled('Full Name')}
+                            error={formik.touched.fullName && formik.errors.fullName ? String(formik.errors.fullName) : undefined}
+                            data-testid="full-name-input"
+                          />
+                        </div>
+                      );
+                    })()}
+
+                    {(() => {
+                      const f = getFieldDef('Email');
+                      if (f?.status === 'INACTIVE') return null;
+                      return (
+                        <div className="tw:space-y-1.5">
+                          <Label required>{f?.name || "Email"}</Label>
+                          <Input
+                            placeholder={f?.displayText || 'Email Address'}
+                            value={form.email}
+                            onChange={(e) => setFormField('email', e.target.value)}
+                            onBlur={() => formik.setFieldTouched('email', true)}
+                            disabled={isFieldDisabled('Email')}
+                            error={formik.touched.email && formik.errors.email ? String(formik.errors.email) : undefined}
+                            data-testid="email-input"
+                          />
+                        </div>
+                      );
+                    })()}
+
+                    {(() => {
+                      const f = getFieldDef('Company Name');
+                      if (f?.status === 'INACTIVE') return null;
+                      return (
+                        <div className="tw:space-y-1.5">
+                          <Label required >{f?.name || "Company Name"}</Label>
+                          <Input
+                            placeholder={f?.displayText || 'Company Name'}
+                            value={form.companyName}
+                            onChange={(e) => setFormField('companyName', e.target.value)}
+                            onBlur={() => formik.setFieldTouched('companyName', true)}
+                            disabled={isFieldDisabled('Company Name')}
+                            error={formik.touched.companyName && formik.errors.companyName ? String(formik.errors.companyName) : undefined}
+                            data-testid="company-name-input"
+                          />
+                        </div>
+                      );
+                    })()}
+
+                    {(() => {
+                      const f = getFieldDef('Phone Number');
+                      if (f?.status === 'INACTIVE') return null;
+                      return (
+                        <div className="tw:space-y-1.5">
+                          <Label required={f?.isMandatoryForPreregistration}>{f?.name || "Phone Number"}</Label>
+                          <Input
+                            placeholder={f?.displayText || 'Phone Number'}
+                            value={form.phoneNumber}
+                            onChange={(e) => setFormField('phoneNumber', e.target.value)}
+                            onBlur={() => formik.setFieldTouched('phoneNumber', true)}
+                            disabled={isFieldDisabled('Phone Number')}
+                            error={formik.touched.phoneNumber && formik.errors.phoneNumber ? String(formik.errors.phoneNumber) : undefined}
+                            data-testid="phone-number-input"
+                          />
+                        </div>
+                      );
+                    })()}
+
+                    {/* Where Section - Conditionally rendered if any location field exists in metadata */}
+                    {(() => {
+                      const poeDef = getFieldDef('Point of Entry');
+                      const buildingDef = getFieldDef('Building');
+                      const parkingDef = getFieldDef('Parking Lot');
+
+                      // Show section if any location field exists in the visitor type metadata
+                      if (!poeDef && !buildingDef && !parkingDef) {
+                        return null;
+                      }
+
+                      return (
+                        <>
+                          {poeDef && (
+                            <Select
+                              label="Point of Entry"
+                              options={poeOptions}
+                              value={form.poeId || ''}
+                              required={poeDef.isMandatoryForPreregistration || poeDef.setting === 'MANDATORY'}
+                              onChange={(e: any) => {
+                                setFormField('poeId', e.target.value);
+                                formik.setFieldValue('poeId', e.target.value);
+                              }}
+                              onBlur={() => formik.setFieldTouched('poeId', true)}
+                              error={formik.touched.poeId && formik.errors.poeId ? String(formik.errors.poeId) : undefined}
+                              disabled={isFieldDisabled('Point of Entry')}
+                              data-testid="custom-field-select-poe"
+                            />
+                          )}
+                          {buildingDef && (
+                            <Select
+                              label="Building"
+                              options={destOptions}
+                              value={form.buildingId || ''}
+                              required={buildingDef.isMandatoryForPreregistration || buildingDef.setting === 'MANDATORY'}
+                              onChange={(e: any) => {
+                                setFormField('buildingId', e.target.value);
+                                formik.setFieldValue('buildingId', e.target.value);
+                              }}
+                              onBlur={() => formik.setFieldTouched('buildingId', true)}
+                              error={formik.touched.buildingId && formik.errors.buildingId ? String(formik.errors.buildingId) : undefined}
+                              disabled={isFieldDisabled('Building')}
+                              data-testid="custom-field-select-building"
+                            />
+                          )}
+                          {parkingDef && (
+                            <Select
+                              label="Parking Lot"
+                              options={parkingOptions}
+                              value={form.parkingLotId || ''}
+                              required={parkingDef.isMandatoryForPreregistration || parkingDef.setting === 'MANDATORY'}
+                              onChange={(e: any) => {
+                                setFormField('parkingLotId', e.target.value);
+                                formik.setFieldValue('parkingLotId', e.target.value);
+                              }}
+                              onBlur={() => formik.setFieldTouched('parkingLotId', true)}
+                              error={formik.touched.parkingLotId && formik.errors.parkingLotId ? String(formik.errors.parkingLotId) : undefined}
+                              disabled={isFieldDisabled('Parking Lot')}
+                              data-testid="custom-field-select-parking-lot"
+                            />
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
+                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Whom?</h3>
+                  </div>
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                    {/* 2. Whom Fields (Statically rendered) */}
+                    {(() => {
+                      const f = getFieldDef('Host');
+                      if (f?.status === 'INACTIVE') return null;
+                      const isMandatory = f?.isMandatoryForPreregistration;
+                      return (
+                        <div className="tw:space-y-1.5">
+                          <Label required={isMandatory}>Host</Label>
+                          <SearchUserSelect
+                            options={hostOptions}
+                            onSearch={setHostSearch}
+                            value={form.hostUser}
+                            onChange={(opt) => {
+                              const selected = Array.isArray(opt) ? opt[0] : opt;
+                              setFormField('hostUserId', selected?.value || null);
+                              setFormField('hostEmail', selected?.email || '');
+                              setFormField('hostUser', selected || null);
+                              formik.setFieldValue('hostUserId', selected?.value || '');
+                            }}
+                            isDisabled={isFieldDisabled('hostUserId')}
+                            isClearable={!isPrefilledVisit}
+                            placeholder={f?.displayText || "Search host"}
+                            error={formik.touched.hostUserId && formik.errors.hostUserId ? String(formik.errors.hostUserId) : undefined}
+                            data-testid="host-search-select"
+                          />
+                        </div>
+                      );
+                    })()}
+                    {
+                      entitlements.isCoHostsEntitled && <div className="tw:space-y-1.5">
+                        <Label>Co-Host(s)</Label>
+                        <SearchUserSelect
+                          options={coHostOptions}
+                          onSearch={setCoHostSearch}
+                          value={form.cohostUsers || []}
+                          onChange={(opt) => {
+                            if (Array.isArray(opt)) {
+                              setFormField('cohostUserIds', opt.map(o => o.value));
+                              setFormField('cohostUsers', opt);
+                            } else if (opt) {
+                              const currentIds = form.cohostUserIds || [];
+                              const currentUsers = form.cohostUsers || [];
+                              if (!currentIds.includes(opt.value)) {
+                                setFormField('cohostUserIds', [...currentIds, opt.value]);
+                                setFormField('cohostUsers', [...currentUsers, opt as any]);
+                              }
+                            } else {
+                              setFormField('cohostUserIds', []);
+                              setFormField('cohostUsers', []);
+                            }
+                          }}
+                          isDisabled={isFieldDisabled('cohostUserIds')}
+                          isClearable={!isPrefilledVisit}
+                          multi={true}
+                          placeholder="Search co-hosts"
+                          data-testid="co-host-search-select"
+                        />
+                      </div>
+                    }
+
+                  </div>
+
+
+                  {/* Other Dynamic Fields */}
+                  <div className="tw:pt-4 tw:border-t tw:border-gray-50">
+                    <div className="tw:text-xs tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-widest tw:mb-4">Additional Information</div>
+                    <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                      {form.preregisterVisitCustomFieldModels
+                        .filter(f => !EXCLUDED_DYNAMIC_FIELDS.includes(f.name))
+                        .map(f => {
+                          const idx = form.preregisterVisitCustomFieldModels.findIndex(orig => orig.name === f.name);
+                          return renderDynamicField(f, idx);
+                        })
+                      }
+
+                      <Input
+                        label="Group Name"
+                        value={form.groupName}
+                        onChange={(e) => setFormField('groupName', e.target.value)}
+                        placeholder="Team Alpha, Project X..."
+                        data-testid="group-name-input"
+                        disabled={isFieldDisabled('Group Name')}
+                      />
+                      <Input
+                        label="Internal Note"
+                        value={form.internalNote}
+                        onChange={(e) => setFormField('internalNote', e.target.value)}
+                        placeholder="Special instructions for reception..."
+                        data-testid="internal-note-input"
+                        disabled={isFieldDisabled('Internal Note')}
+                      />
+                    </div>
+
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {wizardStep === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -20, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="tw:space-y-8"
+              >
+                {/* Summary Card */}
+                <div className="tw:bg-[#EEF2FF] tw:rounded-2xl tw:p-6 tw:text-gray-700 tw:shadow-lg">
+                  <div className="tw:flex tw:items-center tw:gap-4">
+                    <div className="tw:w-14 tw:h-14 tw:rounded-full tw:bg-white/20 tw:backdrop-blur-md tw:flex tw:items-center tw:justify-center tw:text-xl tw:font-bold">
+                      {(form.fullName?.toUpperCase() || '?')[0]}
+                    </div>
+                    <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-2">
+                      <h4 className="tw:text-lg tw:font-bold">
+                        {form.fullName || 'N/A'}
+                      </h4>
+                      <p className="tw:text-sm">
+                        {form.email || 'No email provided'}
+                      </p>
+                      <p className="tw:text-sm">
+                        {form.companyName || ''}
+                      </p>
+                      <p className="tw:text-sm">
+                        {form.phoneNumber || ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {/* 2. Detailed Info Grid */}
+                <div className="tw:grid tw:grid-cols-1 md:tw:grid-cols-2 tw:gap-4">
+
+                  {/* Visit Logistics */}
+                  <div className="tw:p-6 tw:rounded-2xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
+                    <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-4">
+                      Visit Details
+                    </h5>
+
+                    <div className="tw:space-y-4 tw:grid tw:grid-cols-2">
+                      {/* Basic Logistics */}
+                      <SummaryField
+                        icon={MapPin}
+                        label="Location"
+                        value={siteOptions.find(s => s.value === form.siteId)?.label}
+                      />
+                      <SummaryField
+                        icon={User}
+                        label="Visitor Type"
+                        value={visitorTypeOptions.find(v => v.value === form.visitorTypeId)?.label}
+                      />
+
+                      <SummaryField
+                        icon={Calendar}
+                        label="Check-in Date"
+                        value={form.scheduleCheckinDate ? format(new Date(form.scheduleCheckinDate), 'PPP') : 'N/A'}
+                      />
+
+                      <SummaryField
+                        icon={Clock}
+                        label="Check-in Time"
+                        value={formatTimeAMPM(form.scheduleCheckinTimeOnly)}
+                      />
+
+                      {form.recurrenceType !== 'NONE' && (
+                        <SummaryField
+                          icon={RefreshCw}
+                          label="Repeats"
+                          value={form.recurrenceType}
+                        />
+                      )}
+
+                      {/* Integrated Check-out Logic using SummaryRow */}
+                      <SummaryField
+                        icon={form.recurrenceType === 'NONE' ? CalendarDays : RefreshCw}
+                        label={form.recurrenceType === 'NONE' ? "Check-out Date" : "Recurrence Ends"}
+                        value={
+                          form.recurrenceType === 'NONE'
+                            ? (form.scheduleCheckoutDate ? format(new Date(form.scheduleCheckoutDate), 'PPP') : 'Same day')
+                            : (form.recurrenceEndDateOnly ? format(new Date(form.recurrenceEndDateOnly), 'PPP') : 'No end date')
+                        }
+                      />
+
+                      <SummaryField
+                        icon={Clock}
+                        label="Check-out Time"
+                        value={formatTimeAMPM(form.scheduleCheckoutTimeOnly)}
+                      />
+                      <SummaryField
+                        label="Host"
+                        value={form.hostUser?.label || 'Not specified'}
+                        icon={ShieldCheck}
+                      />
+                      <SummaryField
+                        label="Co-hosts"
+                        value={
+                          form.cohostUsers && form.cohostUsers.length > 0
+                            ? form.cohostUsers.map(u => u.label).join(', ')
+                            : null
+                        }
+                        icon={Users}
+                      />
+                      {/* Location fields from top-level form state */}
+                      {form.poeId && (
+                        <SummaryField
+                          key="poe"
+                          label="Point of Entry"
+                          value={poeOptions.find(o => o.value === form.poeId)?.label || form.poeId}
+                          icon={Info}
+                        />
+                      )}
+                      {form.buildingId && (
+                        <SummaryField
+                          key="building"
+                          label="Building"
+                          value={destOptions.find(o => o.value === form.buildingId)?.label || form.buildingId}
+                          icon={Info}
+                        />
+                      )}
+                      {form.parkingLotId && (
+                        <SummaryField
+                          key="parking"
+                          label="Parking Lot"
+                          value={parkingOptions.find(o => o.value === form.parkingLotId)?.label || form.parkingLotId}
+                          icon={Info}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  {/* Dynamic Fields Summary (Remaining fields) */}
+                  <div className="tw:p-6 tw:rounded-2xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
+                    <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-4">
+                      Additional Information
+                    </h5>
+                    <div className="tw:space-y-4 tw:grid tw:grid-cols-2">
+                      {/* DYNAMIC FIELDS MAPPING */}
+                      {form.preregisterVisitCustomFieldModels
+                        .filter((field: any) => !EXCLUDED_DYNAMIC_FIELDS.includes(field.name))
+                        .map((field: any) => {
+                          let displayValue = field.value;
+                          if (field.type === 'DATEPICKER' && displayValue) {
+                            try { displayValue = format(new Date(displayValue), 'MMM dd, yyyy'); } catch (_) { }
+                          }
+                          if (!displayValue) return null;
+                          return (
+                            <SummaryField
+                              key={field.orgCustomFieldId}
+                              label={field.name}
+                              value={displayValue}
+                              icon={Info}
+                            />
+                          );
+                        })
+                      }
+
+                      {/* ADDITIONAL FIELDS */}
+                      <SummaryField label="Group Name" value={form.groupName} icon={Users} />
+                      <SummaryField label="Internal Note" value={form.internalNote} icon={FileText} />
+                    </div>
+                  </div>
+                </div>
+                {/* Host Section */}
+                {/* <div className="tw:space-y-6">
+                    <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
+                      <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
+                      <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Host & Details</h3>
+                    </div>
+                    <div className="tw:space-y-4">
+                      <div className="tw:space-y-1.5">
+                        <Label>Host</Label>
+                        <SearchUserSelect
+                          options={hostOptions}
+                          onSearch={setHostSearch}
+                          value={hostOptions.filter(opt => opt.value === form.hostUserId)}
+                          onChange={(opt) => {
+                            const selected = Array.isArray(opt) ? opt[0] : opt;
+                            setFormField('hostUserId', selected?.value || null);
+                          }}
+                          placeholder="Search host"
+                        />
+                      </div>
+                      <div className="tw:space-y-1.5">
+                        <Label>Co-Hosts</Label>
+                        <SearchUserSelect
+                          options={coHostOptions}
+                          onSearch={setCoHostSearch}
+                          value={coHostOptions.filter(opt => (form.cohostUserIds || []).includes(opt.value))}
+                          onChange={(opt) => {
+                            if (Array.isArray(opt)) setFormField('cohostUserIds', opt.map(o => o.value));
+                            else if (opt) setFormField('cohostUserIds', [(opt as any).value]);
+                          }}
+                          multi={true}
+                          placeholder="Add co-hosts"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                      <Input
+                        label="Group Name"
+                        value={form.groupName}
+                        onChange={(e) => setFormField('groupName', e.target.value)}
+                        placeholder="Team Alpha, Project X..."
+                      />
+                      <Select
+                        label="Point of Entry"
+                        options={poeOptions}
+                        value={form.poeId || ''}
+                        onChange={(e) => setFormField('poeId', e.target.value)}
+                      />
+                    </div>
+                    <div className="tw:grid tw:grid-cols-1 tw:gap-6">
+                      <Input
+                        label="Internal Note"
+                        value={form.internalNote}
+                        onChange={(e) => setFormField('internalNote', e.target.value)}
+                        placeholder="Special instructions for reception..."
+                      />
+                    </div>
+                  </div> */}
+
+                {/* Notifications */}
+                <div className="tw:pt-4 tw:border-t tw:border-gray-100">
+                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-4">
+                    <Settings size={14} className="tw:text-gray-400" />
+                    <span className="tw:text-[11px] tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-widest">Notification Settings</span>
+                  </div>
+                  <div className="tw:flex tw:flex-wrap tw:gap-3">
+                    {[
+                      { field: 'notifyVisitFlag', label: 'Email visitor' },
+                      { field: 'notifyHostFlag', label: 'Notify host' },
+                      { field: 'shouldPrefill', label: 'Allow pre-fill' },
+                    ].map((item) => {
+                      const isActive = (form as any)[item.field];
+                      return (
+                        <button
+                          key={item.field}
+                          type="button"
+                          onClick={() => setFormField(item.field as any, !isActive)}
+                          className={cn(
+                            "tw:inline-flex tw:items-center tw:gap-2 tw:px-4 tw:py-2 tw:rounded-full tw:text-sm tw:font-medium tw:transition-all tw:border-2",
+                            isActive
+                              ? "tw:bg-blue-50 tw:border-blue-600 tw:text-blue-700"
+                              : "tw:bg-white tw:border-gray-200 tw:text-gray-500 tw:hover:border-gray-300"
+                          )}
+                          data-testid={`notify-${item.field}-btn`}
+                        >
+                          {isActive && <Check size={14} />}
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="tw:px-8 tw:py-5 tw:bg-gray-50/80 tw:backdrop-blur-md tw:border-t tw:border-gray-100 tw:flex tw:justify-between tw:items-center">
+          <div>
+            {wizardStep > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setWizardStep(prev => prev - 1)}
+                data-testid="back-btn"
+              >
+                Back
+              </Button>
+            )}
+          </div>
+
+          <div className="tw:flex tw:gap-4 tw:items-center">
+            {
+              preScreenStatus == "SAFE" && <span className="tw:text-green-700">No watchlist matches found</span>
+            }
+            {
+              matchedRule && <span className="tw:text-red-700"> Please review and edit {matchedRule}, it has triggered a watchlist hit. Click "Save Anyway" to
+                proceed, or "Cancel" to close.</span>
+            }
+
+          
+
+            {wizardStep < 3 ? (
+              <Button
+                type="button"
+                onClick={handleNextStep}
+                className="tw:bg-blue-600 tw:hover:bg-blue-700 tw:rounded-xl tw:px-6 tw:py-2.5 tw:shadow-lg tw:shadow-blue-200"
+                data-testid="continue-btn"
+              >
+                Continue <ArrowRight size={18} className="tw:ml-2" />
+              </Button>
+            ) : (
+              <div className="tw:flex tw:gap-3">
+                {
+                  isPreScreenCheckEntitled && <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePreScreen}
+                    isLoading={isPreScreening}
+                    className="tw:rounded-xl tw:border-gray-300"
+                    data-testid="prescreen-btn"
+                  >
+                    Pre-screen
+                  </Button>
+                }
+                <Button
+                  type="submit"
+                  isLoading={isSaving}
+                  className="tw:bg-blue-600 tw:hover:bg-blue-700 tw:rounded-xl tw:px-8 tw:py-2.5 tw:shadow-lg tw:shadow-blue-200"
+                  data-testid="submit-btn"
+                >
+                  <UserPlus size={18} className="tw:mr-2" />
+                  {status === 'Update' ? 'Update Invite' : 'Create Invite'}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+  return modalContent;
+};

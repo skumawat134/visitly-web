@@ -268,8 +268,9 @@ export const useUpcomingVisitors = () => {
               onClick={() => {
                 const id = (params.data as VisitorsRowsType)?.id;
                 setSelectedVisitId(id);
-                setModalStatus('Update');
-                setshowPreRegistrationModal(true);
+                // setModalStatus('Update');
+                // setshowPreRegistrationModal(true);
+                navigate('/host/invite/'+id)
               }}
               className="tw:text-indigo-600 hover:tw:text-indigo-800 tw:p-0 tw:h-auto"
             >

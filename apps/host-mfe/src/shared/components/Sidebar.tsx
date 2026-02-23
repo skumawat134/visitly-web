@@ -4,7 +4,8 @@ import { Image } from '@visitly/ui';
 import {
   AlertTriangle, BookOpen, ChevronRight, ClipboardList,
   IdCard, LogIn, Package, User, UserCircle, type LucideIcon,
-  LayoutDashboard, Users, UserCheck, Truck, MapPin, Settings, X
+  LayoutDashboard, Users, UserCheck, Truck, MapPin, Settings, X,
+  UserRoundPlus
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useSidebarPermissions } from './useSidebarPermissions';
@@ -80,6 +81,13 @@ export const SIDEBAR_CONFIG: SidebarItemConfig[] = [
     icon: UserCircle,
     path: '/host/profile',
     testid: 'evac-profile-settings-link',
+    permission: ['HOST'],
+  },
+    {
+    title: 'Invite',
+    icon: UserRoundPlus,
+    testid: 'single-invite-add',
+    path: '/host/invite',
     permission: ['HOST'],
   },
 ];
