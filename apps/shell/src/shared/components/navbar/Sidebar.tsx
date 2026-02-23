@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronRight, Menu } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useSidebarStore } from './useSidebarStore';
 import { useSidebarPermissions } from './useSidebarPermissions';
 import {
@@ -13,14 +13,15 @@ import {
     type SidebarContext
 } from './SidebarConfig';
 import './Sidebar.css';
-import { Button } from '@visitly/ui';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const SidebarItemComponent: React.FC<{
     item: SidebarItem;
     context: SidebarContext;
     isCollapsed: boolean;
     onAction?: (action: string) => void;
-}> = ({ item, context, isCollapsed, onAction }) => {
+    onNavigate?: () => void;
+}> = ({ item, context, isCollapsed, onAction, onNavigate }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -36,9 +37,12 @@ const SidebarItemComponent: React.FC<{
         if (item.action && onAction) {
             e.preventDefault();
             onAction(item.action);
+            onNavigate?.();
         } else if (hasChildren) {
             e.preventDefault();
             setIsOpen(!isOpen);
+        } else {
+            onNavigate?.();
         }
     };
 
@@ -59,17 +63,9 @@ const SidebarItemComponent: React.FC<{
 
     // Custom active check
     const isItemActive = (reactActive: boolean, path?: string) => {
-        // 1. React Router active
-        // if (reactActive) return true;
-
-        // 2. Custom isActive function from config
         if (item.isActive && item.isActive(location.pathname)) return true;
-
-        // 3. Fallback: Check if current location starts with the item's path (for Angular routes)
-        // Ensure path is defined and not just '#' or empty
         if (path && path !== '#' && location.pathname.startsWith(path)) return true;
 
-        // 4. Check if any child is active (Recursive)
         const isAnyChildActive = (children?: SidebarItem[]): boolean => {
             if (!children) return false;
             return children.some(child => {
@@ -139,8 +135,8 @@ const SidebarItemComponent: React.FC<{
                             <NavLink
                                 key={child.title}
                                 to={child.path || '#'}
+                                onClick={() => onNavigate?.()}
                                 className={({ isActive }) => {
-                                    // Submenu item active check
                                     const active = isActive ||
                                         (child.isActive && child.isActive(location.pathname)) ||
                                         (child.path && child.path !== '#' && location.pathname.startsWith(child.path));
@@ -184,6 +180,7 @@ const SidebarItemComponent: React.FC<{
                                 <NavLink
                                     key={child.title}
                                     to={child.path || '#'}
+                                    onClick={() => onNavigate?.()}
                                     className={({ isActive }) => {
                                         const active = isActive ||
                                             (child.isActive && child.isActive(location.pathname)) ||
@@ -209,14 +206,14 @@ const SidebarItemComponent: React.FC<{
 };
 
 export const Sidebar: React.FC = () => {
-    const { isCollapsed, isLocationMode, setLocationMode } = useSidebarStore();
+    const { isCollapsed, isLocationMode, setLocationMode, isMobileOpen, setMobileOpen } = useSidebarStore();
     const context = useSidebarPermissions();
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         const handler = (event: any) => {
             const path = event.detail.pathname;
-            // update location 
             const match = path.match(
                 /^\/admin\/work_area\/locations(\/(?!list$).*)?$/
             );
@@ -234,17 +231,12 @@ export const Sidebar: React.FC = () => {
         if (action === 'BACK_TO_LOCATIONS') {
             setLocationMode(false);
             navigate('/admin/work_area/locations/list');
-            //dispatch a custom event to angular
             window.dispatchEvent(
                 new CustomEvent('host:navigation', {
                     detail: { pathname: '/admin/work_area/locations/list' },
                 })
             );
         }
-        // if (action == 'GO_TO_LOCATION') {
-        //     setLocationMode(true);
-        //     navigate('/admin/admin/work_area/locations/list');
-        // }
     };
 
     const getMenuItems = () => {
@@ -254,64 +246,76 @@ export const Sidebar: React.FC = () => {
         if (!isLocationMode && (context.isGlobalAdmin || context.isFrontDeskManager)) {
             return MAIN_MENU;
         }
-
-        // Delivery Manager specific view (only if not viewing as Global Admin in standard mode? 
-        // Angular logic: !GlobalAdmin && DeliveryManager -> sidebarnav-delivery-manager
-        // If GlobalAdmin, they see MAIN_MENU which includes "Deliveries" submenu if entitled.
-        // The Angular logic separates GlobalAdmin menus from "pure" DeliveryManager menus.
-
         if (!context.isGlobalAdmin && context.isDeliveryManager) {
             return DELIVERY_MANAGER_MENU;
         }
-
         if (!context.isGlobalAdmin && context.isEvacManager) {
             return EVAC_HOST_MENU;
         }
-
         if (context.isHost) {
             return EVAC_HOST_MENU;
         }
-
-        // Default Main Menu (Global Admin, Front Desk Manager, or fallthrough)
-        // Note: Angular also checks !isDeliveryManagerEntitled for Dashboard link etc inside the main menu.
-        // Our MAIN_MENU config handles those intra-menu conditions.
         return MAIN_MENU;
     };
 
     const menuItems = getMenuItems();
-    return (
+
+    const sidebarContent = (isMobile: boolean) => (
         <aside
             className={`
                 tw:bg-white tw:border-r tw:border-gray-200
                 tw:transition-all tw:duration-300 tw:z-40
                 tw:flex tw:flex-col tw:h-full tw:min-h-0 tw:overflow-y-auto tw:flex-shrink-0 custom-scrollbar
-                ${isCollapsed ? 'tw:w-20' : 'tw:w-64'}
+                ${isMobile ? 'tw:w-72' : (isCollapsed ? 'tw:w-20' : 'tw:w-64')}
             `}
             data-testid="left-sidebar"
         >
-            <nav className="tw:flex-1 tw:py-4  tw:overflow-x-hidden tw:min-h-0">
+            <nav className="tw:flex-1 tw:py-4 tw:overflow-x-hidden tw:min-h-0">
                 {menuItems.map((item, index) => (
                     <SidebarItemComponent
                         key={index}
                         item={item}
                         context={context}
-                        isCollapsed={isCollapsed}
+                        isCollapsed={isMobile ? false : isCollapsed}
                         onAction={handleAction}
+                        onNavigate={isMobile ? () => setMobileOpen(false) : undefined}
                     />
                 ))}
             </nav>
-            {!isCollapsed && (
+            {(!isCollapsed || isMobile) && (
                 <div className="tw:p-4 tw:space-y-4 tw:border-t tw:border-gray-50">
-                    {/* {context.isGlobalAdmin && context.currentPlan === 'Trial' && (
-                        <Button className="tw:w-full tw:bg-indigo-600 tw:text-white tw:py-2.5 tw:rounded-lg tw:text-sm tw:font-semibold hover:tw:bg-indigo-700 tw:transition-all tw:shadow-md tw:shadow-indigo-100">
-                            Quick Setup
-                        </Button>
-                    )}*/}
                     <div className="tw:text-[10px] tw:text-gray-400 tw:text-center tw:font-medium">
                         v 1.3.201
                     </div>
                 </div>
             )}
         </aside>
+    );
+
+    return (
+        <>
+            {/* Desktop sidebar – only rendered in flow when not mobile */}
+            {!isMobile && (
+                <div className="tw:flex tw:h-full">
+                    {sidebarContent(false)}
+                </div>
+            )}
+
+            {/* Mobile drawer overlay – only rendered on mobile */}
+            {isMobile && isMobileOpen && (
+                <div className="tw:fixed tw:inset-0 tw:z-50 tw:flex">
+                    {/* Backdrop */}
+                    <div
+                        className="tw:absolute tw:inset-0 tw:bg-black/40 tw:backdrop-blur-sm"
+                        onClick={() => setMobileOpen(false)}
+                        aria-label="Close sidebar"
+                    />
+                    {/* Drawer */}
+                    <div className="tw:relative tw:flex tw:h-full tw:animate-slide-in-left">
+                        {sidebarContent(true)}
+                    </div>
+                </div>
+            )}
+        </>
     );
 };

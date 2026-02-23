@@ -27,10 +27,10 @@ const AppLayout = () => {
 
             {/* Main content area */}
             <div className="tw:flex tw:flex-1 tw:min-h-0 tw:overflow-hidden">
-                {/* Sidebar */}
+                {/* Sidebar – desktop only; mobile drawer is rendered as fixed overlay inside AppSidebar */}
                 <AppSidebar />
-                {/* Routed content */}
-                <main className="tw:bg-[#f8fafc] tw:flex-1 tw:min-w-0 tw:min-h-0">
+                {/* Routed content – takes full width on mobile since sidebar is overlaid */}
+                <main className="tw:bg-[#f8fafc] tw:flex-1 tw:min-w-0 tw:min-h-0 tw:overflow-auto">
                     <Outlet />
                 </main>
             </div>

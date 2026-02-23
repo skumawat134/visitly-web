@@ -25,3 +25,17 @@
 .active-indicator {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Mobile drawer slide-in animation */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.tw\:animate-slide-in-left {
+  animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
