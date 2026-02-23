@@ -345,7 +345,7 @@ export const PreRegistration = ({
 
   const steps: Step[] = [
     { step: 1, label: "Where & When" },
-    { step: 2, label: "Whom?" },
+    { step: 2, label: "Who and Whom?" },
     { step: 3, label: "Review & Confirm" }
   ];
 
@@ -446,7 +446,7 @@ export const PreRegistration = ({
   const { isPreScreenCheckEntitled } = useEntitlements();
 
   const modalContent = (
-    <div className="tw:p-6 tw:w-full tw:rounded-2xl tw:shadow-sm tw:border tw:border-gray-100 tw:flex tw:flex-col tw:overflow-hidden">
+    <div className="tw:p-6 tw:py-0 tw:w-full tw:rounded-2xl tw:shadow-sm tw:border tw:border-gray-100 tw:flex tw:flex-col tw:overflow-hidden">
       {/* Header */}
       <div className="tw:flex tw:items-center tw:justify-between tw:px-8 tw:py-4  tw:border-gray-100">
         <h3 className="tw:text-xl tw:font-bold tw:text-gray-900">{modalTitle}</h3>
@@ -455,7 +455,7 @@ export const PreRegistration = ({
       {/* Progress Bar */}
       <WizardProgress wizardStep={wizardStep} />
       <form onSubmit={formik.handleSubmit} className="tw:flex-1 tw:flex tw:flex-col tw:overflow-hidden">
-        <div className="tw:flex-1 tw:overflow-y-auto tw:px-8 tw:py-6">
+        <div className="tw:flex-1 tw:overflow-y-auto tw:px-8 tw:py-3">
           <AnimatePresence mode="wait">
             {wizardStep === 1 && (
               <motion.div
@@ -466,12 +466,12 @@ export const PreRegistration = ({
                 transition={{ duration: 0.3 }}
                 className="tw:space-y-8"
               >
-                <div className="tw:space-y-6">
+                <div className="tw:space-y-4">
                   <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
                     <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Where & When</h3>
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Where</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-6">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-3 tw:gap-x-6">
                     <div className="tw:space-y-1.5">
                       <Label required>Location</Label>
                       <Select
@@ -499,8 +499,72 @@ export const PreRegistration = ({
                         data-testid="visitor-type-select"
                       />
                     </div>
-                  </div>
-                  {/* <div className="tw:col-span-2">
+                    {/* Where Section - Conditionally rendered if any location field exists in metadata */}
+                    {(() => {
+                      const poeDef = getFieldDef('Point of Entry');
+                      const buildingDef = getFieldDef('Building');
+                      const parkingDef = getFieldDef('Parking Lot');
+
+                      // Show section if any location field exists in the visitor type metadata
+                      if (!poeDef && !buildingDef && !parkingDef) {
+                        return null;
+                      }
+
+                      return (
+                        <>
+                          {poeDef && (
+                            <Select
+                              label="Point of Entry"
+                              options={poeOptions}
+                              value={form.poeId || ''}
+                              required={poeDef.isMandatoryForPreregistration || poeDef.setting === 'MANDATORY'}
+                              onChange={(e: any) => {
+                                setFormField('poeId', e.target.value);
+                                formik.setFieldValue('poeId', e.target.value);
+                              }}
+                              onBlur={() => formik.setFieldTouched('poeId', true)}
+                              error={formik.touched.poeId && formik.errors.poeId ? String(formik.errors.poeId) : undefined}
+                              disabled={isFieldDisabled('Point of Entry')}
+                              data-testid="custom-field-select-poe"
+                            />
+                          )}
+                          {buildingDef && (
+                            <Select
+                              label="Building"
+                              options={destOptions}
+                              value={form.buildingId || ''}
+                              required={buildingDef.isMandatoryForPreregistration || buildingDef.setting === 'MANDATORY'}
+                              onChange={(e: any) => {
+                                setFormField('buildingId', e.target.value);
+                                formik.setFieldValue('buildingId', e.target.value);
+                              }}
+                              onBlur={() => formik.setFieldTouched('buildingId', true)}
+                              error={formik.touched.buildingId && formik.errors.buildingId ? String(formik.errors.buildingId) : undefined}
+                              disabled={isFieldDisabled('Building')}
+                              data-testid="custom-field-select-building"
+                            />
+                          )}
+                          {parkingDef && (
+                            <Select
+                              label="Parking Lot"
+                              options={parkingOptions}
+                              value={form.parkingLotId || ''}
+                              required={parkingDef.isMandatoryForPreregistration || parkingDef.setting === 'MANDATORY'}
+                              onChange={(e: any) => {
+                                setFormField('parkingLotId', e.target.value);
+                                formik.setFieldValue('parkingLotId', e.target.value);
+                              }}
+                              onBlur={() => formik.setFieldTouched('parkingLotId', true)}
+                              error={formik.touched.parkingLotId && formik.errors.parkingLotId ? String(formik.errors.parkingLotId) : undefined}
+                              disabled={isFieldDisabled('Parking Lot')}
+                              data-testid="custom-field-select-parking-lot"
+                            />
+                          )}
+                        </>
+                      );
+                    })()}
+
+                    {/* <div className="tw:col-span-2">
                       <Checkbox
                         label="Allow Visitor to submit information before Arrival"
                         checked={form.shouldPrefill}
@@ -511,7 +575,13 @@ export const PreRegistration = ({
                       />
                     </div> */}
 
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+
+                  </div>
+                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
+                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">When</h3>
+                  </div>
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-3 tw:gap-x-6">
                     <div className="tw:space-y-1.5">
                       <Label required>Check-in Date</Label>
                       <Input
@@ -538,9 +608,7 @@ export const PreRegistration = ({
                         data-testid="schedule-checkin-time-select"
                       />
                     </div>
-                  </div>
 
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
                     <div className="tw:space-y-1.5">
                       <Label>Repeats</Label>
                       <Select
@@ -581,8 +649,6 @@ export const PreRegistration = ({
                         />
                       </div>
                     )}
-                  </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
                     <div className="tw:space-y-1.5">
                       <Label required={!!form.scheduleCheckoutDate || form.recurrenceType !== 'NONE'}>Check-out Time</Label>
                       <Select
@@ -596,7 +662,6 @@ export const PreRegistration = ({
                       />
                     </div>
                   </div>
-
                 </div>
               </motion.div>
             )}
@@ -610,12 +675,12 @@ export const PreRegistration = ({
                 transition={{ duration: 0.3 }}
                 className="tw:space-y-8"
               >
-                <div className="tw:space-y-6">
+                <div className="tw:space-y-4">
                   <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
                     <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Who and Whom?</h3>
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Visitor Details</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-3 tw:gap-x-6">
                     {/* 1. Identity Fields First (Statically rendered) */}
                     {(() => {
                       const f = getFieldDef('Full Name');
@@ -693,77 +758,28 @@ export const PreRegistration = ({
                       );
                     })()}
 
-                    {/* Where Section - Conditionally rendered if any location field exists in metadata */}
-                    {(() => {
-                      const poeDef = getFieldDef('Point of Entry');
-                      const buildingDef = getFieldDef('Building');
-                      const parkingDef = getFieldDef('Parking Lot');
-
-                      // Show section if any location field exists in the visitor type metadata
-                      if (!poeDef && !buildingDef && !parkingDef) {
-                        return null;
-                      }
-
-                      return (
-                        <>
-                          {poeDef && (
-                            <Select
-                              label="Point of Entry"
-                              options={poeOptions}
-                              value={form.poeId || ''}
-                              required={poeDef.isMandatoryForPreregistration || poeDef.setting === 'MANDATORY'}
-                              onChange={(e: any) => {
-                                setFormField('poeId', e.target.value);
-                                formik.setFieldValue('poeId', e.target.value);
-                              }}
-                              onBlur={() => formik.setFieldTouched('poeId', true)}
-                              error={formik.touched.poeId && formik.errors.poeId ? String(formik.errors.poeId) : undefined}
-                              disabled={isFieldDisabled('Point of Entry')}
-                              data-testid="custom-field-select-poe"
-                            />
-                          )}
-                          {buildingDef && (
-                            <Select
-                              label="Building"
-                              options={destOptions}
-                              value={form.buildingId || ''}
-                              required={buildingDef.isMandatoryForPreregistration || buildingDef.setting === 'MANDATORY'}
-                              onChange={(e: any) => {
-                                setFormField('buildingId', e.target.value);
-                                formik.setFieldValue('buildingId', e.target.value);
-                              }}
-                              onBlur={() => formik.setFieldTouched('buildingId', true)}
-                              error={formik.touched.buildingId && formik.errors.buildingId ? String(formik.errors.buildingId) : undefined}
-                              disabled={isFieldDisabled('Building')}
-                              data-testid="custom-field-select-building"
-                            />
-                          )}
-                          {parkingDef && (
-                            <Select
-                              label="Parking Lot"
-                              options={parkingOptions}
-                              value={form.parkingLotId || ''}
-                              required={parkingDef.isMandatoryForPreregistration || parkingDef.setting === 'MANDATORY'}
-                              onChange={(e: any) => {
-                                setFormField('parkingLotId', e.target.value);
-                                formik.setFieldValue('parkingLotId', e.target.value);
-                              }}
-                              onBlur={() => formik.setFieldTouched('parkingLotId', true)}
-                              error={formik.touched.parkingLotId && formik.errors.parkingLotId ? String(formik.errors.parkingLotId) : undefined}
-                              disabled={isFieldDisabled('Parking Lot')}
-                              data-testid="custom-field-select-parking-lot"
-                            />
-                          )}
-                        </>
-                      );
-                    })()}
+                    {form.preregisterVisitCustomFieldModels
+                      .filter(f => !EXCLUDED_DYNAMIC_FIELDS.includes(f.name))
+                      .map(f => {
+                        const idx = form.preregisterVisitCustomFieldModels.findIndex(orig => orig.name === f.name);
+                        return renderDynamicField(f, idx);
+                      })
+                    }
+                    <Input
+                      label="Group Name"
+                      value={form.groupName}
+                      onChange={(e) => setFormField('groupName', e.target.value)}
+                      placeholder="Team Alpha, Project X..."
+                      data-testid="group-name-input"
+                      disabled={isFieldDisabled('Group Name')}
+                    />
                   </div>
 
                   <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
                     <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
-                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Whom?</h3>
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Host Details</h3>
                   </div>
-                  <div className="tw:grid tw:grid-cols-2 tw:gap-6">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-4">
                     {/* 2. Whom Fields (Statically rendered) */}
                     {(() => {
                       const f = getFieldDef('Host');
@@ -825,39 +841,20 @@ export const PreRegistration = ({
                     }
 
                   </div>
-
-
-                  {/* Other Dynamic Fields */}
-                  <div className="tw:pt-4 tw:border-t tw:border-gray-50">
-                    <div className="tw:text-xs tw:font-bold tw:text-gray-400 tw:uppercase tw:tracking-widest tw:mb-4">Additional Information</div>
-                    <div className="tw:grid tw:grid-cols-2 tw:gap-6">
-                      {form.preregisterVisitCustomFieldModels
-                        .filter(f => !EXCLUDED_DYNAMIC_FIELDS.includes(f.name))
-                        .map(f => {
-                          const idx = form.preregisterVisitCustomFieldModels.findIndex(orig => orig.name === f.name);
-                          return renderDynamicField(f, idx);
-                        })
-                      }
-
-                      <Input
-                        label="Group Name"
-                        value={form.groupName}
-                        onChange={(e) => setFormField('groupName', e.target.value)}
-                        placeholder="Team Alpha, Project X..."
-                        data-testid="group-name-input"
-                        disabled={isFieldDisabled('Group Name')}
-                      />
-                      <Input
-                        label="Internal Note"
-                        value={form.internalNote}
-                        onChange={(e) => setFormField('internalNote', e.target.value)}
-                        placeholder="Special instructions for reception..."
-                        data-testid="internal-note-input"
-                        disabled={isFieldDisabled('Internal Note')}
-                      />
-                    </div>
-
+                  <div className="tw:flex tw:items-center tw:gap-2 tw:mb-1">
+                    <div className="tw:w-1 tw:h-5 tw:bg-blue-600 tw:rounded-full" />
+                    <h3 className="tw:text-lg tw:font-bold tw:text-gray-900">Internal Note</h3>
                   </div>
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-x-6 tw:gap-y-4">
+                    <Input
+                      value={form.internalNote}
+                      onChange={(e) => setFormField('internalNote', e.target.value)}
+                      placeholder="Special instructions for reception..."
+                      data-testid="internal-note-input"
+                      disabled={isFieldDisabled('Internal Note')}
+                    />
+                  </div>
+                  {/* Other Dynamic Fields */}
                 </div>
               </motion.div>
             )}
@@ -990,14 +987,6 @@ export const PreRegistration = ({
                           icon={Info}
                         />
                       )}
-                    </div>
-                  </div>
-                  {/* Dynamic Fields Summary (Remaining fields) */}
-                  <div className="tw:p-6 tw:rounded-2xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
-                    <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-4">
-                      Additional Information
-                    </h5>
-                    <div className="tw:space-y-4 tw:grid tw:grid-cols-2">
                       {/* DYNAMIC FIELDS MAPPING */}
                       {form.preregisterVisitCustomFieldModels
                         .filter((field: any) => !EXCLUDED_DYNAMIC_FIELDS.includes(field.name))
@@ -1017,10 +1006,17 @@ export const PreRegistration = ({
                           );
                         })
                       }
-
-                      {/* ADDITIONAL FIELDS */}
                       <SummaryField label="Group Name" value={form.groupName} icon={Users} />
-                      <SummaryField label="Internal Note" value={form.internalNote} icon={FileText} />
+                   </div>
+                  </div>
+                  {/* Dynamic Fields Summary (Remaining fields) */}
+                  <div className="tw:p-6 tw:rounded-2xl tw:border tw:border-gray-100 tw:bg-gray-50/50">
+                    <h5 className="tw:text-[10px] tw:uppercase tw:tracking-widest tw:font-bold tw:text-gray-400 tw:mb-4">
+                      Internal Note
+                    </h5>
+                    <div className="tw:space-y-4 tw:grid tw:grid-cols-2">
+                      {/* ADDITIONAL FIELDS */}
+                      <SummaryField label="" value={form.internalNote} icon={FileText} />
                     </div>
                   </div>
                 </div>
@@ -1146,7 +1142,7 @@ export const PreRegistration = ({
                 proceed, or "Cancel" to close.</span>
             }
 
-          
+
 
             {wizardStep < 3 ? (
               <Button

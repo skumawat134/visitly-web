@@ -117,7 +117,21 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
         if (!value) return false;
         return !isBefore(startOfDay(value), startOfDay(new Date()));
       }),
-
+    poeId: Yup.string().nullable().test('poe-required', 'Point of Entry is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Point of Entry' || f.fid === 'POINT_OF_ENTRY');
+      if (field && field.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    buildingId: Yup.string().nullable().test('building-required', 'Building is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Building' || f.fid === 'DESTINATION');
+      if (field && field.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
+    parkingLotId: Yup.string().nullable().test('parking-required', 'Parking Lot is required', function (value) {
+      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Parking Lot' || f.fid === 'PARKING_LOT');
+      if (field && field.isMandatoryForPreregistration && !value) return false;
+      return true;
+    }),
     // 2. Check-in Time (Angular: Please select Check-in Time)
     scheduleCheckinTimeOnly: Yup.string().required('Please select Check-in Time'),
 
@@ -189,14 +203,14 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
       return true;
     }),
     email: Yup.string().nullable()
-    // test('email-required', 'Email is required', function (value) {
-    //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Email' || f.fid === 'EMAIL');
-    //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
-    //   return true;
-    // }),
-    .required("Email is required."),
+      // test('email-required', 'Email is required', function (value) {
+      //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Email' || f.fid === 'EMAIL');
+      //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+      //   return true;
+      // }),
+      .required("Email is required."),
     companyName: Yup.string().nullable()
-    .required("Company Name is required."),
+      .required("Company Name is required."),
     // .test('company-required', 'Company Name is required', function (value) {
     //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Company Name' || f.fid === 'COMPANY_NAME');
     //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
@@ -204,27 +218,13 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     // }),
 
     phoneNumber: Yup.string().nullable()
-    // .test('phone-required', 'Phone Number is required', function (value) {
-    //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Phone Number' || f.fid === 'PHONE_NUMBER');
-    //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
-    //   return true;
-    // }),
-    .required("Phone Number is required"),
-    poeId: Yup.string().nullable().test('poe-required', 'Point of Entry is required', function (value) {
-      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Point of Entry' || f.fid === 'POINT_OF_ENTRY');
-      if (field && field.isMandatoryForPreregistration && !value) return false;
-      return true;
-    }),
-    buildingId: Yup.string().nullable().test('building-required', 'Building is required', function (value) {
-      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Building' || f.fid === 'DESTINATION');
-      if (field && field.isMandatoryForPreregistration && !value) return false;
-      return true;
-    }),
-    parkingLotId: Yup.string().nullable().test('parking-required', 'Parking Lot is required', function (value) {
-      const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Parking Lot' || f.fid === 'PARKING_LOT');
-      if (field && field.isMandatoryForPreregistration && !value) return false;
-      return true;
-    }),
+      // .test('phone-required', 'Phone Number is required', function (value) {
+      //   const field = visitorTypeFields?.fields?.find((f: any) => f.name === 'Phone Number' || f.fid === 'PHONE_NUMBER');
+      //   if (field?.status === 'ACTIVE' && field?.isMandatoryForPreregistration && !value) return false;
+      //   return true;
+      // }),
+      .required("Phone Number is required"),
+
     preregisterVisitCustomFieldModels: Yup.array().of(
       Yup.object().shape({
         fid: Yup.string(),
@@ -270,7 +270,7 @@ export const usePreRegistrationForm = (visitId?: string, onClose?: () => void, s
     internalNote: Yup.string().nullable(),
   });
   const showToast = useToastStore((s) => s.showToast)
-  const  navigate = useNavigate();
+  const navigate = useNavigate();
   const formik = useFormik<PreRegistrationForm>({
     initialValues,
     validationSchema: step1Schema.concat(step2Schema).concat(step3Schema),
