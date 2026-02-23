@@ -83,13 +83,7 @@ export const SIDEBAR_CONFIG: SidebarItemConfig[] = [
     testid: 'evac-profile-settings-link',
     permission: ['HOST'],
   },
-    {
-    title: 'Invite',
-    icon: UserRoundPlus,
-    testid: 'single-invite-add',
-    path: '/host/invite',
-    permission: ['HOST'],
-  },
+
 ];
 
 interface SidebarItemProps {

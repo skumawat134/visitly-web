@@ -1,6 +1,5 @@
 import CompanyDirectory from '@/features/company-directory/pages/CompanyDirectory';
 import { MyDeliveryLogs } from '@/features/my-deliveries';
-import { PastVisitors } from '@/features/past-visitors';
 import { UpcomingVisitors } from '@/features/upcomming-visitors';
 import HostLayout from '@/layout';
 import { Route, Routes } from 'react-router-dom';
@@ -18,7 +17,7 @@ function AppRouter() {
       <Routes>
         <Route element={<HostLayout />}>
           <Route path="/dashboard" index element={<HostDashboard />} />
-          <Route path="/upcoming-visitors" index element={<UpcomingVisitors />} />
+          <Route path="/upcoming-visitors"  element={<UpcomingVisitors />} />
           <Route path="/my-sign-in-log" element={<MySignInLog />} />
           <Route path="/my-deliveries" element={<MyDeliveryLogs />} />
           <Route path="/directory" element={<CompanyDirectory />} />
