@@ -9,7 +9,7 @@ import { useSidebarPermissions } from './useSidebarPermissions';
 import { useSidebarStore } from './useSidebarStore';
 import { useQuery } from '@tanstack/react-query';
 import { getAllSites } from '../../services/sites.api';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useIsMobile } from '@visitly/shared-core';
 
 interface HeaderProps {
     onToggle: () => void;
@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
-    const { switchToAnotherRole, roles } = useSwitchLogin();
+    const {  roles } = useSwitchLogin();
     const permissions = useSidebarPermissions();
     const navigate = useNavigate();
     const user = useAuthStore((s) => s.user);
@@ -222,7 +222,7 @@ export const Header: React.FC<HeaderProps> = ({ isCollapsed, onToggle }) => {
                                 </Button>
                             </Tooltip>
                         ) : (
-                            <Button variant="outline" className="tw:rounded-lg!" onClick={switchToHost} data-testid="launch-visitly-button">
+                            <Button variant="outline" className="tw:rounded-lg! tw:font-normal" onClick={switchToHost} data-testid="launch-visitly-button">
                                 Launch My Visitly
                             </Button>
                         )

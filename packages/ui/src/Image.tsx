@@ -1,58 +1,52 @@
 import React from 'react';
+import { cn } from './utils';
 
-export interface ImageProps
-  extends React.ImgHTMLAttributes<HTMLImageElement> {
-  /**
-   * Image source
-   */
+export interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  /** Image source */
   src: string;
-
-  /**
-   * Alternate text for accessibility
-   */
+  /** Alternate text for accessibility */
   alt: string;
-
-  /**
-   * Optional wrapper class (useful for layout control)
-   */
+  /** Optional wrapper class – only renders a wrapper div when provided */
   wrapperClassName?: string;
-
-  /**
-   * Enable rounded image
-   */
+  /** Enable rounded corners */
   rounded?: boolean;
-
-  /**
-   * Enable full width image
-   */
+  /** Make image full width */
   fullWidth?: boolean;
 }
 
 export const Image: React.FC<ImageProps> = ({
   src,
   alt,
-  className = '',
-  wrapperClassName = '',
+  className,
+  wrapperClassName,
   rounded = false,
   fullWidth = false,
   loading = 'lazy',
+  width,
+  height,
   ...rest
 }) => {
-  return (
-    <div className={wrapperClassName}>
-      <img
-        src={src}
-        alt={alt}
-        loading={loading}
-        className={[
-          'tw-block tw-max-w-full',
-          rounded ? 'tw-rounded-lg' : '',
-          fullWidth ? 'tw-w-full' : '',
-          className,
-        ].join(' ')}
-        {...rest}
-      />
-    </div>
+  const imgEl = (
+    <img
+      src={src}
+      alt={alt}
+      loading={loading}
+      width={width}
+      height={height}
+      className={cn(
+        'tw:block tw:max-w-full',
+        rounded && 'tw:rounded-lg',
+        fullWidth && 'tw:w-full',
+        className
+      )}
+      {...rest}
+    />
   );
-};
 
+  // Only wrap in a div when wrapperClassName is explicitly provided
+  if (wrapperClassName) {
+    return <div className={wrapperClassName}>{imgEl}</div>;
+  }
+
+  return imgEl;
+};

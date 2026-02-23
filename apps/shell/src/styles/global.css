@@ -23,8 +23,9 @@ body {
   padding: 0;
   height: 100vh;
   width: 100vw;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  /* overflow-x: hidden; */
+  /* overflow-y: scroll; */
+  overflow: hidden;
 }
 
 #root {

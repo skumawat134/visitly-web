@@ -1,4 +1,3 @@
-
 import { Outlet } from 'react-router-dom';
 import { Header, Sidebar } from '@/shared/components';
 import { useState } from 'react';
@@ -6,32 +5,38 @@ import { HostBanner } from '@/shared/components/HostBanner';
 
 const HostLayout = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+
     return (
-        <div id="host-layout" className="tw:flex tw:flex-col tw:h-screen">
-            {/* banner + header - fixed */}
-            <div className="tw:flex-shrink-0 tw:sticky tw:top-0 tw:z-50">
+        <div id="host-layout" className="tw:flex tw:flex-col tw:h-screen tw:overflow-hidden">
+
+            {/* Banner — fixed strip at top */}
+            <div className="tw:flex-shrink-0">
                 <HostBanner />
             </div>
-             <div className="tw:flex-shrink-0 tw:sticky tw:top-0 tw:z-40">
-                        <Header onToggle={() => setIsCollapsed(!isCollapsed)} isCollapsed={isCollapsed}/>
+
+            {/* Header — fixed strip below banner */}
+            <div className="tw:flex-shrink-0">
+                <Header
+                    onToggle={() => setIsCollapsed(!isCollapsed)}
+                    isCollapsed={isCollapsed}
+                    onMobileMenuToggle={() => setIsMobileOpen(true)}
+                />
             </div>
-            
-            {/* Header + Sidebar + Main content */}
-            <div className="tw:flex tw:flex-1 tw:overflow-hidden">
-                {/* Sidebar - resizable */}
-                <div className="tw:sticky tw:top-0 tw:transition-all tw:duration-300">
-                    <Sidebar isCollapsed={isCollapsed}/>
-                </div>
-                
-                {/* Main content - scrollable */}
-                <div className="tw:flex tw:flex-col tw:flex-1 tw:overflow-hidden">
-                   
-                    
-                    {/* Routed content - scrollable */}
-                    <main className="tw:flex-1 tw:overflow-auto">
-                        <Outlet />
-                    </main>
-                </div>
+
+            {/* Body: sidebar + main — takes remaining height, NO overflow here */}
+            <div className="tw:flex tw:flex-1 tw:min-h-0">
+                {/* Sidebar — scrolls internally via its own styles */}
+                <Sidebar
+                    isCollapsed={isCollapsed}
+                    isMobileOpen={isMobileOpen}
+                    onMobileClose={() => setIsMobileOpen(false)}
+                />
+
+                {/* Main content — only scroll zone */}
+                <main className="tw:flex-1 tw:overflow-y-auto tw:min-h-0">
+                    <Outlet />
+                </main>
             </div>
         </div>
     );

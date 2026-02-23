@@ -13,7 +13,7 @@ import {
     type SidebarContext
 } from './SidebarConfig';
 import './Sidebar.css';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useIsMobile } from '@visitly/shared-core';
 
 const SidebarItemComponent: React.FC<{
     item: SidebarItem;
@@ -112,7 +112,7 @@ const SidebarItemComponent: React.FC<{
                                         className={`${active && !item.action ? 'tw:text-indigo-600!' : 'tw:text-[#5e5e5e]! group-hover:tw:text-indigo-600!'} tw:group-hover:bg-indigo-50! tw:group-hover:text-indigo-700!`}
                                     />
                                 )}
-                                {!isCollapsed && <span className="tw:text-sm tw:font-medium">{item.title}</span>}
+                                {!isCollapsed && <span className={`tw:text-sm ${active && !item.action ? 'tw:font-semibold' : 'tw:font-medium'}`}>{item.title}</span>}
                             </div>
 
                             {!isCollapsed && hasChildren && (
@@ -143,7 +143,7 @@ const SidebarItemComponent: React.FC<{
 
                                     return `
                   tw:block tw:pl-12 tw:pr-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
-                  ${active ? 'tw:text-indigo-700! tw:font-semibold' : 'tw:text-gray-500! hover:tw:text-indigo-700!'}
+                  ${active ? 'tw:text-indigo-700! tw:font-semibold' : 'tw:text-gray-500! tw:font-medium hover:tw:text-indigo-700!'}
                   tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
                 `}}
                                 data-testid={child.testid}
@@ -188,7 +188,7 @@ const SidebarItemComponent: React.FC<{
 
                                         return `
                                             tw:block tw:px-4 tw:py-2.5 tw:text-sm tw:transition-colors tw:no-underline
-                                            ${active ? 'tw:bg-indigo-50! tw:text-indigo-700!' : 'tw:text-gray-600! hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
+                                            ${active ? 'tw:bg-indigo-50! tw:text-indigo-700! tw:font-semibold' : 'tw:text-gray-600! tw:font-medium hover:tw:bg-indigo-50! hover:tw:text-indigo-700!'}
                                             tw:hover:bg-indigo-50! tw:hover:text-indigo-700!
                                         `
                                     }}
